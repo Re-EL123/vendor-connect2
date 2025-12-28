@@ -17,13 +17,6 @@
       to { opacity: 1; transform: translateY(0); }
     }
     .fade-in { animation: fadeIn 0.3s ease-out; }
-    
-    @keyframes heartBeat {
-      0%, 100% { transform: scale(1); }
-      25% { transform: scale(1.2); }
-      50% { transform: scale(1.1); }
-    }
-    .heart-beat { animation: heartBeat 0.4s ease-out; }
   </style>
 </head>
 
@@ -162,12 +155,6 @@
           <option value="Services">Services</option>
           <option value="Other">Other</option>
         </select>
-        
-        <button onclick="refreshFeed()" 
-          class="ml-auto px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center gap-2">
-          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-          <span class="text-sm font-medium">Refresh</span>
-        </button>
       </div>
 
       <!-- Loading indicator -->
@@ -228,7 +215,7 @@
   lucide.createIcons();
   
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, getDocs, addDoc, doc, getDoc, updateDoc, deleteDoc, serverTimestamp, query, where, increment, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, getDocs, addDoc, doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
@@ -246,7 +233,6 @@
   let currentUser = null;
   let userProfile = null;
   let allPosts = [];
-  let commentsCache = {};
   let currentPage = 1;
   const pageSize = 10;
 
@@ -255,16 +241,19 @@
     currentUser = user;
     
     try {
+      // Fetch user profile
       const userDoc = await getDoc(doc(db, "users", user.uid));
       if (userDoc.exists()) {
         userProfile = userDoc.data();
         
+        // Update UI with user info
         const displayName = userProfile.businessName || userProfile.name || 'User';
         const initial = displayName.charAt(0).toUpperCase();
         
         document.getElementById('userName').textContent = displayName;
         document.getElementById('userType').textContent = userProfile.subscriptionType === 'business' ? 'Business Account' : 'Basic Account';
         
+        // Update all avatar elements
         document.getElementById('userAvatar').textContent = initial;
         document.getElementById('createPostAvatar').textContent = initial;
         document.querySelector('#userInfo .w-20').textContent = initial;
@@ -294,28 +283,22 @@
 
   async function fetchAllPosts() {
     try {
+      // Fetch all posts
       const postsSnap = await getDocs(collection(db, "posts"));
       const posts = [];
       
+      // Fetch all users once to avoid multiple calls
       const usersSnap = await getDocs(collection(db, "users"));
       const usersMap = {};
       usersSnap.forEach(userDoc => {
         usersMap[userDoc.id] = userDoc.data();
       });
       
-      // Fetch comments count for each post
-      const commentsSnap = await getDocs(collection(db, "comments"));
-      const commentsCountMap = {};
-      commentsSnap.forEach(commentDoc => {
-        const comment = commentDoc.data();
-        if (comment.postId) {
-          commentsCountMap[comment.postId] = (commentsCountMap[comment.postId] || 0) + 1;
-        }
-      });
-      
+      // Process posts with user data
       postsSnap.forEach(postDoc => {
         const postData = { id: postDoc.id, ...postDoc.data() };
         
+        // Get author data from map
         if (postData.uid && usersMap[postData.uid]) {
           const authorData = usersMap[postData.uid];
           postData.authorName = authorData.businessName || authorData.name || 'Unknown User';
@@ -325,18 +308,10 @@
           postData.authorCategory = '';
         }
         
-        // Ensure likes is always an array
-        if (!Array.isArray(postData.likes)) {
-          postData.likes = [];
-        }
-        
-        // Use actual comment count from database, fallback to commentsCount field
-        postData.actualCommentsCount = commentsCountMap[postDoc.id] || postData.commentsCount || 0;
-        
         posts.push(postData);
       });
       
-      // Sort by creation date (newest first)
+      // Sort posts by creation date (newest first) - client-side sorting
       allPosts = posts.sort((a, b) => {
         const timeA = a.createdAt?.seconds || 0;
         const timeB = b.createdAt?.seconds || 0;
@@ -356,15 +331,18 @@
     
     container.innerHTML = "";
     
+    // Filter posts based on selected filters
     let filtered = allPosts.filter(p => {
       const provinceMatch = !document.getElementById('provinceFilter').value || p.province === document.getElementById('provinceFilter').value;
       const categoryMatch = !document.getElementById('categoryFilter').value || p.category === document.getElementById('categoryFilter').value;
       return provinceMatch && categoryMatch;
     });
 
+    // Pagination
     const start = (currentPage - 1) * pageSize;
     const pagePosts = filtered.slice(start, start + pageSize);
 
+    // Hide loading, show content
     loading.classList.add('hidden');
     container.classList.remove('hidden');
     pagination.classList.remove('hidden');
@@ -378,7 +356,6 @@
     pagePosts.forEach(post => {
       const isLiked = post.likes && Array.isArray(post.likes) && post.likes.includes(currentUser.uid);
       const likesCount = post.likes && Array.isArray(post.likes) ? post.likes.length : 0;
-      const commentsCount = post.actualCommentsCount || 0;
       const isOwner = post.uid === currentUser.uid;
       
       const postDate = post.createdAt?.seconds 
@@ -390,7 +367,7 @@
       card.innerHTML = `
         <div class="flex items-start justify-between mb-4">
           <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-lg">
+            <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
               ${(post.authorName || 'U').charAt(0).toUpperCase()}
             </div>
             <div>
@@ -409,20 +386,20 @@
         <p class="text-gray-700 mb-3 whitespace-pre-wrap">${post.description || ''}</p>
         
         ${post.imageURL ? `
-          <img src="${post.imageURL}" class="w-full rounded-xl mb-4 max-h-96 object-cover cursor-pointer hover:opacity-95 transition-opacity" 
+          <img src="${post.imageURL}" class="w-full rounded-xl mb-4 max-h-96 object-cover cursor-pointer" 
             onclick="window.location.href='post-details.html?id=${post.id}'" />
         ` : ''}
         
         <div class="flex items-center gap-6 pt-4 border-t border-gray-100">
-          <button onclick="toggleLike('${post.id}')" id="likeBtn-${post.id}"
+          <button onclick="toggleLike('${post.id}')" 
             class="flex items-center gap-2 ${isLiked ? 'text-red-500' : 'text-gray-600'} hover:text-red-500 transition-colors">
             <i data-lucide="heart" class="w-5 h-5 ${isLiked ? 'fill-current' : ''}"></i>
-            <span class="text-sm font-medium" id="likeCount-${post.id}">${likesCount}</span>
+            <span class="text-sm font-medium">${likesCount}</span>
           </button>
           <button onclick="window.location.href='post-details.html?id=${post.id}'" 
             class="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors">
             <i data-lucide="message-circle" class="w-5 h-5"></i>
-            <span class="text-sm font-medium" id="commentCount-${post.id}">${commentsCount}</span>
+            <span class="text-sm font-medium">Comment</span>
           </button>
           <button onclick="repostPost('${post.id}')" 
             class="flex items-center gap-2 text-gray-600 hover:text-green-600 transition-colors">
@@ -440,6 +417,7 @@
 
     lucide.createIcons();
     
+    // Update pagination controls
     document.getElementById('pageNum').textContent = currentPage;
     document.getElementById('prevBtn').disabled = currentPage === 1;
     document.getElementById('nextBtn').disabled = start + pageSize >= filtered.length;
@@ -509,7 +487,6 @@
         city: userProfile.city || '',
         category: userProfile.category || '',
         likes: [],
-        commentsCount: 0,
         views: 0,
         createdAt: serverTimestamp()
       });
@@ -530,57 +507,30 @@
   };
 
   window.toggleLike = async (postId) => {
-    const likeBtn = document.getElementById(`likeBtn-${postId}`);
-    const likeCountEl = document.getElementById(`likeCount-${postId}`);
-    
-    // Prevent double-clicking
-    if (likeBtn.classList.contains('pointer-events-none')) return;
-    likeBtn.classList.add('pointer-events-none');
-    
     try {
       const postRef = doc(db, "posts", postId);
       const postSnap = await getDoc(postRef);
       
       if (postSnap.exists()) {
         const postData = postSnap.data();
-        const likes = Array.isArray(postData.likes) ? postData.likes : [];
+        const likes = postData.likes || [];
         const isLiked = likes.includes(currentUser.uid);
         
         if (isLiked) {
-          // Unlike
           await updateDoc(postRef, {
-            likes: arrayRemove(currentUser.uid)
+            likes: likes.filter(id => id !== currentUser.uid)
           });
-          
-          // Update UI immediately
-          const heartIcon = likeBtn.querySelector('i');
-          heartIcon.classList.remove('fill-current');
-          likeBtn.classList.remove('text-red-500');
-          likeBtn.classList.add('text-gray-600');
-          likeCountEl.textContent = likes.length - 1;
-          
         } else {
-          // Like
           await updateDoc(postRef, {
-            likes: arrayUnion(currentUser.uid)
+            likes: [...likes, currentUser.uid]
           });
           
-          // Update UI immediately with animation
-          const heartIcon = likeBtn.querySelector('i');
-          heartIcon.classList.add('fill-current', 'heart-beat');
-          likeBtn.classList.remove('text-gray-600');
-          likeBtn.classList.add('text-red-500');
-          likeCountEl.textContent = likes.length + 1;
-          
-          setTimeout(() => heartIcon.classList.remove('heart-beat'), 400);
-          
-          // Send notification if not own post
+          // Create notification if not liking own post
           if (postData.uid !== currentUser.uid) {
             try {
               await addDoc(collection(db, "notifications"), {
                 recipientId: postData.uid,
                 senderId: currentUser.uid,
-                senderName: userProfile.businessName || userProfile.name || 'Someone',
                 type: 'like',
                 postId: postId,
                 read: false,
@@ -592,22 +542,12 @@
           }
         }
         
-        // Update local cache
-        const postIndex = allPosts.findIndex(p => p.id === postId);
-        if (postIndex !== -1) {
-          allPosts[postIndex].likes = isLiked 
-            ? likes.filter(id => id !== currentUser.uid)
-            : [...likes, currentUser.uid];
-        }
+        await fetchAllPosts();
+        renderPosts();
       }
     } catch (error) {
       console.error('Error toggling like:', error);
       alert('Failed to update like. Please try again.');
-      // Refresh to get correct state
-      await fetchAllPosts();
-      renderPosts();
-    } finally {
-      likeBtn.classList.remove('pointer-events-none');
     }
   };
 
@@ -615,10 +555,106 @@
     if (!confirm('Are you sure you want to delete this post?')) return;
     
     try {
-      // Delete post
       await deleteDoc(doc(db, "posts", postId));
+      alert('Post deleted successfully!');
+      await fetchAllPosts();
+      renderPosts();
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      alert('Failed to delete post. Please try again.');
+    }
+  };
+
+  window.repostPost = async (postId) => {
+    if (!userProfile || userProfile.subscriptionType === 'basic') {
+      if (confirm('Upgrade to Business plan to repost. Visit subscription page?')) {
+        window.location.href = 'subscription.html';
+      }
+      return;
+    }
+    
+    try {
+      const originalPost = allPosts.find(p => p.id === postId);
+      if (!originalPost) {
+        alert('Original post not found');
+        return;
+      }
       
-      // Delete associated comments
-      const commentsQuery = query(collection(db, "comments"), where("postId", "==", postId));
-      const commentsSnap = await getDocs(commentsQuery);
-      const deletePromises = commentsSnap.docs.map(commentDoc => deleteDoc(commentDoc.ref));
+      await addDoc(collection(db, "posts"), {
+        description: originalPost.description,
+        imageURL: originalPost.imageURL,
+        uid: currentUser.uid,
+        originalPostId: postId,
+        originalAuthorId: originalPost.uid,
+        isRepost: true,
+        province: userProfile.province || '',
+        city: userProfile.city || '',
+        category: userProfile.category || '',
+        likes: [],
+        views: 0,
+        createdAt: serverTimestamp()
+      });
+      
+      alert('Reposted successfully!');
+      await fetchAllPosts();
+      currentPage = 1;
+      renderPosts();
+    } catch (error) {
+      console.error('Error reposting:', error);
+      alert('Failed to repost. Please try again.');
+    }
+  };
+
+  window.sharePost = async (postId) => {
+    const url = `${window.location.origin}/post-details.html?id=${postId}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({ 
+          title: 'Check out this post on VendorConnect', 
+          url 
+        });
+      } catch (e) {
+        if (e.name !== 'AbortError') {
+          await navigator.clipboard.writeText(url);
+          alert('Link copied to clipboard!');
+        }
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        alert('Link copied to clipboard!');
+      } catch (e) {
+        console.error('Failed to copy:', e);
+        alert('Failed to copy link');
+      }
+    }
+  };
+
+  // Pagination controls
+  document.getElementById('prevBtn').onclick = () => { 
+    currentPage--; 
+    renderPosts(); 
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  
+  document.getElementById('nextBtn').onclick = () => { 
+    currentPage++; 
+    renderPosts(); 
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  
+  // Filter controls
+  document.getElementById('provinceFilter').onchange = () => { 
+    currentPage = 1; 
+    renderPosts(); 
+  };
+  
+  document.getElementById('categoryFilter').onchange = () => { 
+    currentPage = 1; 
+    renderPosts(); 
+  };
+</script>
+
+</body>
+</html>
