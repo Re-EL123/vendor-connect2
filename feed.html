@@ -1,558 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Feed - VendorConnect</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Feed - Vendor Connect</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        // Firebase Firestore import
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-  <!-- Tailwind -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
-  <style>
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .fade-in { animation: fadeIn 0.3s ease-out; }
-  </style>
-</head>
-
-<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
-
-<!-- Header -->
-<header class="bg-white/90 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-  <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-    <h1 class="text-2xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-      VendorConnect
-    </h1>
-    
-    <div class="flex items-center gap-3">
-      <!-- Added search icon and notifications -->
-      <button onclick="window.location.href='search.html'" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-        <i data-lucide="search" class="w-5 h-5 text-gray-600"></i>
-      </button>
-      <button id="notifBtn" onclick="window.location.href='notifications.html'" class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
-        <i data-lucide="bell" class="w-5 h-5 text-gray-600"></i>
-        <span id="notifBadge" class="hidden absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-      </button>
-      <button onclick="window.location.href='inbox.html'" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-        <i data-lucide="message-circle" class="w-5 h-5 text-gray-600"></i>
-      </button>
-      <button onclick="window.location.href='settings.html'" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-        <i data-lucide="settings" class="w-5 h-5 text-gray-600"></i>
-      </button>
-      <div id="userAvatar" class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-sm cursor-pointer"
-        onclick="window.location.href='profile.html'">
-      </div>
-    </div>
-  </div>
-</header>
-
-<div class="max-w-6xl mx-auto px-4 py-6">
-  <div class="grid md:grid-cols-3 gap-6">
-    
-    <!-- Left Sidebar -->
-    <aside class="md:col-span-1 space-y-4">
-      <div class="bg-white rounded-2xl shadow-lg p-6">
-        <div id="userInfo" class="text-center">
-          <div class="w-20 h-20 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 mx-auto mb-3 flex items-center justify-center text-white font-semibold"></div>
-          <h3 id="userName" class="font-bold text-gray-800 mb-1"></h3>
-          <p id="userType" class="text-sm text-gray-500 mb-3"></p>
-          <button onclick="window.location.href='profile.html'" 
-            class="text-sm text-blue-600 hover:underline font-semibold">
-            View Profile
-          </button>
-        </div>
-      </div>
-      
-      <!-- Subscription status card -->
-      <div id="subscriptionCard" class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-lg p-6 text-white">
-        <h3 class="font-bold text-lg mb-2">Upgrade to Business</h3>
-        <p class="text-sm text-blue-100 mb-4">Create posts, sell products, and grow your business</p>
-        <button onclick="window.location.href='subscription.html'" 
-          class="w-full bg-white text-blue-600 py-2 rounded-xl font-semibold hover:bg-blue-50 transition-all">
-          Upgrade Now
-        </button>
-      </div>
-    </aside>
-
-    <!-- Main Feed -->
-    <main class="md:col-span-2 space-y-4">
-      
-      <!-- Create Post Section with subscription check -->
-      <div id="createPostSection" class="bg-white rounded-2xl shadow-lg p-6">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold"></div>
-          <button id="createPostBtn" 
-            class="flex-1 text-left px-4 py-3 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-colors">
-            What's on your mind?
-          </button>
-        </div>
-        
-        <div id="postFormContainer" class="hidden mt-4 pt-4 border-t">
-          <textarea id="postDescription" rows="3" 
-            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-            placeholder="Share your thoughts..."></textarea>
-          
-          <input id="postImage" type="file" accept="image/*" class="hidden" />
-          
-          <div id="imagePreview" class="hidden mt-3">
-            <div class="relative inline-block">
-              <img id="previewImg" class="rounded-xl max-h-64" />
-              <button onclick="removeImage()" 
-                class="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600">
-                <i data-lucide="x" class="w-4 h-4"></i>
-              </button>
-            </div>
-          </div>
-          
-          <div class="flex items-center justify-between mt-4">
-            <button onclick="document.getElementById('postImage').click()" 
-              class="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors">
-              <i data-lucide="image" class="w-5 h-5"></i>
-              <span class="text-sm font-medium">Photo</span>
-            </button>
-            
-            <div class="flex gap-2">
-              <button onclick="cancelPost()" 
-                class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                Cancel
-              </button>
-              <button onclick="submitPost()" id="submitPostBtn"
-                class="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center gap-2">
-                <i data-lucide="send" class="w-4 h-4"></i> Post
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Filters -->
-      <div class="bg-white rounded-2xl shadow-lg p-4 flex flex-wrap gap-3">
-        <select id="provinceFilter" 
-          class="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          <option value="">All Provinces</option>
-          <option value="Gauteng">Gauteng</option>
-          <option value="Western Cape">Western Cape</option>
-          <option value="KwaZulu-Natal">KwaZulu-Natal</option>
-          <option value="Eastern Cape">Eastern Cape</option>
-          <option value="Free State">Free State</option>
-          <option value="Limpopo">Limpopo</option>
-          <option value="Mpumalanga">Mpumalanga</option>
-          <option value="North West">North West</option>
-          <option value="Northern Cape">Northern Cape</option>
-        </select>
-        
-        <select id="categoryFilter" 
-          class="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          <option value="">All Categories</option>
-          <option value="Food">Food & Beverage</option>
-          <option value="Tech">Technology</option>
-          <option value="Fashion">Fashion</option>
-          <option value="Beauty">Beauty</option>
-          <option value="Services">Services</option>
-          <option value="Other">Other</option>
-        </select>
-      </div>
-
-      <!-- Posts Container -->
-      <div id="postsContainer" class="space-y-4"></div>
-
-      <!-- Pagination -->
-      <div class="flex justify-center items-center gap-4 py-6">
-        <button id="prevBtn" disabled 
-          class="px-4 py-2 bg-white rounded-xl shadow disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors flex items-center gap-2">
-          <i data-lucide="chevron-left" class="w-4 h-4"></i>
-          Previous
-        </button>
-        <span id="pageNum" class="px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold">1</span>
-        <button id="nextBtn" 
-          class="px-4 py-2 bg-white rounded-xl shadow hover:bg-gray-50 transition-colors flex items-center gap-2">
-          Next
-          <i data-lucide="chevron-right" class="w-4 h-4"></i>
-        </button>
-      </div>
-    </main>
-
-  </div>
-</div>
-
-<!-- Bottom Navigation -->
-<nav class="fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur-lg border-t border-gray-200 shadow-lg md:hidden">
-  <div class="flex justify-around py-3">
-    <a href="feed.html" class="flex flex-col items-center text-blue-600">
-      <i data-lucide="home" class="w-6 h-6"></i>
-      <span class="text-xs font-medium mt-1">Feed</span>
-    </a>
-    <a href="search.html" class="flex flex-col items-center text-gray-600">
-      <i data-lucide="search" class="w-6 h-6"></i>
-      <span class="text-xs font-medium mt-1">Search</span>
-    </a>
-    <a href="marketplace.html" class="flex flex-col items-center text-gray-600">
-      <i data-lucide="shopping-bag" class="w-6 h-6"></i>
-      <span class="text-xs font-medium mt-1">Market</span>
-    </a>
-    <a href="inbox.html" class="flex flex-col items-center text-gray-600">
-      <i data-lucide="message-circle" class="w-6 h-6"></i>
-      <span class="text-xs font-medium mt-1">Inbox</span>
-    </a>
-    <a href="profile.html" class="flex flex-col items-center text-gray-600">
-      <i data-lucide="user" class="w-6 h-6"></i>
-      <span class="text-xs font-medium mt-1">Profile</span>
-    </a>
-  </div>
-</nav>
-
-<script type="module">
-  lucide.createIcons();
-  
-  // Existing code here
-  
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, getDocs, addDoc, doc, getDoc, updateDoc, deleteDoc, serverTimestamp, increment, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-
-  const app = initializeApp({
-    apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
-    authDomain: "online-mall-4422.firebaseapp.com",
-    projectId: "online-mall-4422",
-    storageBucket: "online-mall-4422.appspot.com"
-  });
-
-  const db = getFirestore(app);
-  const auth = getAuth(app);
-  const storage = getStorage(app);
-
-  let currentUser = null;
-  let userProfile = null;
-  let allPosts = [];
-  let currentPage = 1;
-  const pageSize = 10;
-
-  onAuthStateChanged(auth, async user => {
-    if (!user) return location.href = "login.html";
-    currentUser = user;
-    
-    // Fetch user profile
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    if (userDoc.exists()) {
-      userProfile = userDoc.data();
-      
-      // Update UI with user info
-      document.getElementById('userName').textContent = userProfile.name || 'User';
-      document.getElementById('userType').textContent = userProfile.subscriptionType === 'business' ? 'Business Account' : 'Basic Account';
-      document.querySelectorAll('#userAvatar, #userInfo .w-20').forEach(el => {
-        el.textContent = (userProfile.name || 'U').charAt(0).toUpperCase();
-      });
-      
-      const canPost = userProfile.subscriptionType === 'business' || userProfile.subscriptionType === 'premium';
-      
-      if (!canPost) {
-        document.getElementById('createPostBtn').onclick = () => {
-          if (confirm('Upgrade to Business plan to create posts. Visit subscription page?')) {
-            window.location.href = 'subscription.html';
-          }
+        // Your Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyDR3P8rN4vQ5wX6yZ7aB8cD9eF0gH1iJ2k",
+            authDomain: "vendor-connect-7a8b9.firebaseapp.com",
+            projectId: "vendor-connect-7a8b9",
+            storageBucket: "vendor-connect-7a8b9.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef1234567890ghij"
         };
-      } else {
-        document.getElementById('subscriptionCard').remove();
-        document.getElementById('createPostBtn').onclick = showPostForm;
-      }
-    }
-    
-    await fetchAllPosts();
-    renderPosts();
-  });
 
-  async function fetchAllPosts() {
-    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(100));
-    const snap = await getDocs(q);
-    allPosts = [];
-    
-    for (const postDoc of snap.docs) {
-      const postData = { id: postDoc.id, ...postDoc.data() };
-      
-      const authorDoc = await getDoc(doc(db, "users", postData.uid));
-      if (authorDoc.exists()) {
-        const authorData = authorDoc.data();
-        postData.authorName = authorData.businessName || authorData.name;
-        postData.authorCategory = authorData.category;
-      }
-      
-      allPosts.push(postData);
-    }
-  }
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
 
-  function renderPosts() {
-    const container = document.getElementById("postsContainer");
-    container.innerHTML = "";
-    
-    let filtered = allPosts.filter(p =>
-      (!document.getElementById('provinceFilter').value || p.province === document.getElementById('provinceFilter').value) &&
-      (!document.getElementById('categoryFilter').value || p.category === document.getElementById('categoryFilter').value)
-    );
+        // Get current user
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                loadFeed(user.uid);
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
 
-    const start = (currentPage - 1) * pageSize;
-    const pagePosts = filtered.slice(start, start + pageSize);
+        async function loadFeed(userId) {
+            const feedContainer = document.getElementById('feed-container');
+            feedContainer.innerHTML = '<p class="text-center text-gray-500">Loading feed...</p>';
 
-    if (pagePosts.length === 0) {
-      container.innerHTML = '<div class="bg-white rounded-2xl shadow-lg p-12 text-center"><p class="text-gray-500">No posts found</p></div>';
-      return;
-    }
+            try {
+                // Query posts from followed vendors
+                const postsRef = collection(db, 'posts');
+                const q = query(postsRef, where('vendorId', '!=', userId));
+                
+                onSnapshot(q, (snapshot) => {
+                    feedContainer.innerHTML = '';
+                    if (snapshot.empty) {
+                        feedContainer.innerHTML = '<p class="text-center text-gray-500">No posts available</p>';
+                        return;
+                    }
 
-    pagePosts.forEach(post => {
-      const isLiked = post.likes && post.likes.includes(currentUser.uid);
-      const likesCount = post.likes ? post.likes.length : 0;
-      const isOwner = post.uid === currentUser.uid;
-
-      const card = document.createElement("div");
-      card.className = "bg-white rounded-2xl shadow-lg p-6 fade-in";
-      card.innerHTML = `
-        <div class="flex items-start justify-between mb-4">
-          <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
-              ${(post.authorName || 'U').charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <h3 class="font-bold text-gray-800">${post.authorName || 'Unknown'}</h3>
-              <p class="text-xs text-gray-500">${post.authorCategory || ''} • ${post.city || ''}, ${post.province || ''}</p>
-              <p class="text-xs text-gray-400">${new Date(post.createdAt?.seconds * 1000 || Date.now()).toLocaleDateString()}</p>
-            </div>
-          </div>
-          ${isOwner ? `
-            <button onclick="deletePost('${post.id}')" class="text-gray-400 hover:text-red-500">
-              <i data-lucide="trash-2" class="w-5 h-5"></i>
-            </button>
-          ` : ''}
-        </div>
-        
-        <p class="text-gray-700 mb-3">${post.description || ''}</p>
-        
-        ${post.imageURL ? `
-          <img src="${post.imageURL}" class="w-full rounded-xl mb-4 max-h-96 object-cover cursor-pointer" 
-            onclick="window.location.href='post-details.html?id=${post.id}'" />
-        ` : ''}
-        
-        <div class="flex items-center gap-6 pt-4 border-t border-gray-100">
-          <button onclick="toggleLike('${post.id}')" 
-            class="flex items-center gap-2 ${isLiked ? 'text-red-500' : 'text-gray-600'} hover:text-red-500 transition-colors">
-            <i data-lucide="heart" class="w-5 h-5 ${isLiked ? 'fill-current' : ''}"></i>
-            <span class="text-sm font-medium">${likesCount}</span>
-          </button>
-          <button onclick="window.location.href='post-details.html?id=${post.id}'" 
-            class="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors">
-            <i data-lucide="message-circle" class="w-5 h-5"></i>
-            <span class="text-sm font-medium">Comment</span>
-          </button>
-          <button onclick="repostPost('${post.id}')" 
-            class="flex items-center gap-2 text-gray-600 hover:text-green-600 transition-colors">
-            <i data-lucide="repeat" class="w-5 h-5"></i>
-            <span class="text-sm font-medium">Repost</span>
-          </button>
-          <button onclick="sharePost('${post.id}')" 
-            class="flex items-center gap-2 text-gray-600 hover:text-purple-600 transition-colors ml-auto">
-            <i data-lucide="share-2" class="w-4 h-4"></i>
-          </button>
-        </div>
-      `;
-      container.appendChild(card);
-    });
-
-    lucide.createIcons();
-    
-    document.getElementById('pageNum').textContent = currentPage;
-    document.getElementById('prevBtn').disabled = currentPage === 1;
-    document.getElementById('nextBtn').disabled = start + pageSize >= filtered.length;
-  }
-
-  function showPostForm() {
-    if (userProfile.subscriptionType === 'basic') {
-      alert('Upgrade to Business plan to create posts');
-      window.location.href = 'subscription.html';
-      return;
-    }
-    document.getElementById('postFormContainer').classList.remove('hidden');
-  }
-
-  window.cancelPost = () => {
-    document.getElementById('postFormContainer').classList.add('hidden');
-    document.getElementById('postDescription').value = '';
-    document.getElementById('imagePreview').classList.add('hidden');
-  };
-
-  document.getElementById('postImage').onchange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        document.getElementById('previewImg').src = ev.target.result;
-        document.getElementById('imagePreview').classList.remove('hidden');
-        lucide.createIcons();
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  window.removeImage = () => {
-    document.getElementById('postImage').value = '';
-    document.getElementById('imagePreview').classList.add('hidden');
-  };
-
-  window.submitPost = async () => {
-    const description = document.getElementById('postDescription').value.trim();
-    if (!description) {
-      alert('Please enter a description');
-      return;
-    }
-    
-    const submitBtn = document.getElementById('submitPostBtn');
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Posting...';
-    lucide.createIcons();
-    
-    try {
-      let imageURL = null;
-      const imageFile = document.getElementById('postImage').files[0];
-      
-      if (imageFile) {
-        const storageRef = ref(storage, `posts/${currentUser.uid}/${Date.now()}_${imageFile.name}`);
-        await uploadBytes(storageRef, imageFile);
-        imageURL = await getDownloadURL(storageRef);
-      }
-      
-      await addDoc(collection(db, "posts"), {
-        description,
-        imageURL,
-        uid: currentUser.uid,
-        province: userProfile.province,
-        city: userProfile.city,
-        category: userProfile.category,
-        likes: [],
-        views: 0,
-        createdAt: serverTimestamp()
-      });
-      
-      alert('Post created successfully!');
-      cancelPost();
-      await fetchAllPosts();
-      renderPosts();
-    } catch (error) {
-      console.error('Error creating post:', error);
-      alert('Failed to create post');
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i> Post';
-      lucide.createIcons();
-    }
-  };
-
-  window.toggleLike = async (postId) => {
-    try {
-      const postRef = doc(db, "posts", postId);
-      const postSnap = await getDoc(postRef);
-      
-      if (postSnap.exists()) {
-        const postData = postSnap.data();
-        const likes = postData.likes || [];
-        const isLiked = likes.includes(currentUser.uid);
-        
-        if (isLiked) {
-          await updateDoc(postRef, {
-            likes: likes.filter(id => id !== currentUser.uid)
-          });
-        } else {
-          await updateDoc(postRef, {
-            likes: [...likes, currentUser.uid]
-          });
-          
-          if (postData.uid !== currentUser.uid) {
-            await addDoc(collection(db, "notifications"), {
-              recipientId: postData.uid,
-              senderId: currentUser.uid,
-              type: 'like',
-              postId: postId,
-              read: false,
-              createdAt: serverTimestamp()
-            });
-          }
+                    snapshot.forEach(doc => {
+                        const post = doc.data();
+                        const postElement = document.createElement('div');
+                        postElement.className = 'bg-white rounded-lg shadow p-4 mb-4';
+                        postElement.innerHTML = `
+                            <div class="flex items-center mb-4">
+                                <img src="${post.vendorAvatar || 'default-avatar.png'}" alt="Vendor" class="w-10 h-10 rounded-full mr-3">
+                                <div>
+                                    <h3 class="font-bold text-gray-900">${post.vendorName}</h3>
+                                    <p class="text-sm text-gray-500">${new Date(post.timestamp?.toDate()).toLocaleDateString()}</p>
+                                </div>
+                            </div>
+                            <p class="text-gray-700 mb-4">${post.content}</p>
+                            ${post.image ? `<img src="${post.image}" alt="Post image" class="w-full rounded mb-4">` : ''}
+                            <div class="flex gap-4 text-gray-600">
+                                <button class="flex items-center gap-1 hover:text-blue-500">
+                                    <span>👍</span> Like (${post.likes || 0})
+                                </button>
+                                <button class="flex items-center gap-1 hover:text-blue-500">
+                                    <span>💬</span> Comment (${post.comments || 0})
+                                </button>
+                                <button class="flex items-center gap-1 hover:text-blue-500">
+                                    <span>↗️</span> Share
+                                </button>
+                            </div>
+                        `;
+                        feedContainer.appendChild(postElement);
+                    });
+                });
+            } catch (error) {
+                console.error('Error loading feed:', error);
+                feedContainer.innerHTML = '<p class="text-center text-red-500">Error loading feed</p>';
+            }
         }
-        
-        await fetchAllPosts();
-        renderPosts();
-      }
-    } catch (error) {
-      console.error('Error toggling like:', error);
-    }
-  };
-
-  window.deletePost = async (postId) => {
-    if (!confirm('Delete this post?')) return;
-    
-    try {
-      await deleteDoc(doc(db, "posts", postId));
-      await fetchAllPosts();
-      renderPosts();
-    } catch (error) {
-      console.error('Error deleting post:', error);
-    }
-  };
-
-  window.repostPost = async (postId) => {
-    if (userProfile.subscriptionType === 'basic') {
-      alert('Upgrade to Business plan to repost');
-      window.location.href = 'subscription.html';
-      return;
-    }
-    
-    try {
-      const originalPost = allPosts.find(p => p.id === postId);
-      if (!originalPost) return;
-      
-      await addDoc(collection(db, "posts"), {
-        description: originalPost.description,
-        imageURL: originalPost.imageURL,
-        uid: currentUser.uid,
-        originalPostId: postId,
-        originalAuthorId: originalPost.uid,
-        isRepost: true,
-        province: userProfile.province,
-        city: userProfile.city,
-        category: userProfile.category,
-        likes: [],
-        views: 0,
-        createdAt: serverTimestamp()
-      });
-      
-      alert('Reposted successfully!');
-      await fetchAllPosts();
-      renderPosts();
-    } catch (error) {
-      console.error('Error reposting:', error);
-      alert('Failed to repost');
-    }
-  };
-
-  window.sharePost = async (postId) => {
-    const url = `${window.location.origin}/post-details.html?id=${postId}`;
-    
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: 'Check out this post', url });
-      } catch (e) {}
-    } else {
-      await navigator.clipboard.writeText(url);
-      alert('Link copied!');
-    }
-  };
-
-  document.getElementById('prevBtn').onclick = () => { currentPage--; renderPosts(); };
-  document.getElementById('nextBtn').onclick = () => { currentPage++; renderPosts(); };
-  document.getElementById('provinceFilter').onchange = () => { currentPage = 1; renderPosts(); };
-  document.getElementById('categoryFilter').onchange = () => { currentPage = 1; renderPosts(); };
-</script>
-
+    </script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2/dist/tailwind.min.css">
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-2xl mx-auto p-4">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Vendor Feed</h1>
+            <p class="text-gray-600">Stay updated with posts from vendors you follow</p>
+        </header>
+        <div id="feed-container" class="space-y-4">
+            <!-- Posts will be loaded here -->
+        </div>
+    </div>
 </body>
 </html>
