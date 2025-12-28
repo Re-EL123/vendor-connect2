@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Street Connect - Chat</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+  <div class="max-w-3xl mx-auto py-6 px-4">
+    <h1 class="text-2xl font-bold mb-1">Chat with Vendor</h1>
+    <h2 id="vendorName" class="text-lg text-gray-600 mb-4"></h2>
+
+    <div id="chatBox" class="bg-white p-4 rounded shadow h-96 overflow-y-auto space-y-2 mb-4">
+      <p class="text-gray-500 text-center">Loading messages...</p>
+    </div>
+
+    <form id="chatForm" class="flex items-center space-x-2">
+      <input
+        type="text"
+        id="messageInput"
+        placeholder="Type your message..."
+        class="flex-1 p-2 border rounded"
+        autocomplete="off"
+      />
+      <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        Send
+      </button>
+    </form>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
+      authDomain: "online-mall-4422.firebaseapp.com",
+      databaseURL: "https://online-mall-4422-default-rtdb.firebaseio.com",
+      projectId: "online-mall-4422",
+      storageBucket: "online-mall-4422.appspot.com",
+      messagingSenderId: "947082232783",
+      appId: "1:947082232783:web:116206502e5fb38383c8ba",
+      measurementId: "G-LNTNZQBGL8",
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const vendorId = urlParams.get("uid");
+
+    let currentUser;
+
+    const chatBox = document.getElementById("chatBox");
+    const messageInput = document.getElementById("messageInput");
+    const chatForm = document.getElementById("chatForm");
+    const vendorNameEl = document.getElementById("vendorName");
+
+    async function fetchVendorName() {
+      if (!vendorId) {
+        vendorNameEl.textContent = "Invalid vendor";
+        return;
+      }
+      try {
+        const doc = await db.collection("users").doc(vendorId).get();
+        if (doc.exists) {
+          const data = doc.data();
+          vendorNameEl.textContent = data.businessName || "Unknown Business";
+        } else {
+          vendorNameEl.textContent = "Vendor Not Found";
+        }
+      } catch (err) {
+        vendorNameEl.textContent = "Error loading vendor";
+        console.error("Error fetching vendor:", err);
+      }
+    }
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) return window.location.href = "login.html";
+      currentUser = user;
+
+      if (!vendorId || vendorId === currentUser.uid) {
+        alert("Invalid chat partner");
+        window.location.href = "inbox.html";
+        return;
+      }
+
+      await fetchVendorName();
+      listenForMessages();
+    });
+
+    function listenForMessages() {
+      if (!vendorId || !currentUser) return;
+
+      const chatId = [currentUser.uid, vendorId].sort().join("_");
+
+      db.collection("chats")
+        .doc(chatId)
+        .collection("messages")
+        .orderBy("timestamp")
+        .onSnapshot(
+          (snapshot) => {
+            chatBox.innerHTML = "";
+            if (snapshot.empty) {
+              chatBox.innerHTML = '<p class="text-center text-gray-500">No messages yet.</p>';
+              return;
+            }
+
+            snapshot.forEach((doc) => {
+              const msg = doc.data();
+              const isOwn = msg.sender === currentUser.uid;
+              const msgDiv = document.createElement("div");
+              msgDiv.className = `p-2 rounded max-w-sm ${
+                isOwn ? "bg-blue-200 self-end ml-auto" : "bg-gray-200"
+              }`;
+              msgDiv.innerText = msg.text;
+              chatBox.appendChild(msgDiv);
+            });
+            chatBox.scrollTop = chatBox.scrollHeight;
+          },
+          (error) => {
+            console.error("Listen failed:", error);
+            chatBox.innerHTML = '<p class="text-red-600 text-center">Error loading messages. Check your permissions.</p>';
+          }
+        );
+    }
+
+    chatForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!vendorId || !currentUser) return;
+
+      const text = messageInput.value.trim();
+      if (!text) return;
+
+      const chatId = [currentUser.uid, vendorId].sort().join("_");
+      const chatRef = db.collection("chats").doc(chatId);
+
+      try {
+        await db.runTransaction(async (transaction) => {
+          const chatDoc = await transaction.get(chatRef);
+          if (!chatDoc.exists) {
+            transaction.set(chatRef, {
+              users: [currentUser.uid, vendorId],
+              lastMessage: text,
+              timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+          } else {
+            transaction.update(chatRef, {
+              lastMessage: text,
+              timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+          }
+
+          const messagesRef = chatRef.collection("messages").doc();
+          transaction.set(messagesRef, {
+            sender: currentUser.uid,
+            receiver: vendorId,
+            text,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          });
+        });
+
+        messageInput.value = "";
+      } catch (err) {
+        console.error("Error sending message:", err);
+      }
+    });
+  </script>
+</body>
+</html>

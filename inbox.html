@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Street Connect - Inbox</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 min-h-screen">
+
+  <!-- HEADER -->
+  <header class="p-4 bg-white/80 backdrop-blur shadow">
+    <div class="max-w-4xl mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-extrabold text-indigo-700">Street Connect</h1>
+      <button onclick="window.location.href='feed.html'" class="text-sm text-gray-600 hover:text-indigo-600">← Back to Feed</button>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <div class="max-w-4xl mx-auto py-8 px-4">
+    <div class="bg-white/80 backdrop-blur rounded-2xl shadow-xl p-6">
+      <h2 class="text-2xl font-bold text-indigo-700 mb-6">Your Messages</h2>
+      <div id="chatList" class="space-y-3">
+        <div class="text-center py-8">
+          <div class="animate-pulse">
+            <div class="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
+          </div>
+          <p class="text-gray-500 mt-2">Loading chats...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
+      authDomain: "online-mall-4422.firebaseapp.com",
+      databaseURL: "https://online-mall-4422-default-rtdb.firebaseio.com",
+      projectId: "online-mall-4422",
+      storageBucket: "online-mall-4422.appspot.com",
+      messagingSenderId: "947082232783",
+      appId: "1:947082232783:web:116206502e5fb38383c8ba",
+      measurementId: "G-LNTNZQBGL8"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const chatList = document.getElementById("chatList");
+    let currentUser;
+
+    auth.onAuthStateChanged(async user => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      currentUser = user;
+      try {
+        await loadChats();
+      } catch (err) {
+        console.error("Error loading chats:", err);
+        chatList.innerHTML = `<div class="text-center py-8"><p class="text-red-600">Failed to load chats: ${err.message}</p></div>`;
+      }
+    });
+
+    async function loadChats() {
+      const chatsRef = db.collection("chats").where("users", "array-contains", currentUser.uid);
+      
+      chatsRef.onSnapshot(async snapshot => {
+        if (snapshot.empty) {
+          chatList.innerHTML = `
+            <div class="text-center py-12">
+              <div class="text-6xl mb-4">💬</div>
+              <p class="text-gray-600 text-lg">No conversations yet</p>
+              <p class="text-gray-500 text-sm mt-2">Start chatting with vendors from the marketplace</p>
+            </div>
+          `;
+          return;
+        }
+
+        chatList.innerHTML = "";
+        
+        const chatPromises = snapshot.docs.map(async (doc) => {
+          const chat = doc.data();
+          const partnerId = chat.users.find(uid => uid !== currentUser.uid);
+
+          try {
+            const partnerDoc = await db.collection("users").doc(partnerId).get();
+            const partner = partnerDoc.data() || {};
+
+            const partnerName = partner.businessName || partner.fullName || partner.name || "Unknown User";
+            const lastMessage = chat.lastMessage || "No messages yet";
+            const timestamp = chat.timestamp ? chat.timestamp.toDate() : new Date();
+            
+            const timeAgo = getTimeAgo(timestamp);
+
+            return {
+              partnerId,
+              partnerName,
+              lastMessage,
+              timeAgo,
+              timestamp
+            };
+          } catch (err) {
+            console.warn("Could not load chat partner:", err);
+            return null;
+          }
+        });
+
+        const chats = (await Promise.all(chatPromises))
+          .filter(chat => chat !== null)
+          .sort((a, b) => b.timestamp - a.timestamp);
+
+        chats.forEach(chat => {
+          const chatItem = document.createElement("div");
+          chatItem.className = "bg-white p-4 rounded-xl shadow hover:shadow-lg transition cursor-pointer border border-gray-100";
+          chatItem.onclick = () => window.location.href = `chat.html?uid=${chat.partnerId}`;
+
+          chatItem.innerHTML = `
+            <div class="flex items-center justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <div class="w-10 h-10 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
+                    ${chat.partnerName.charAt(0).toUpperCase()}
+                  </div>
+                  <div class="flex-1">
+                    <p class="font-semibold text-gray-800">${chat.partnerName}</p>
+                    <p class="text-sm text-gray-600 truncate">${chat.lastMessage}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="text-right ml-4">
+                <p class="text-xs text-gray-400">${chat.timeAgo}</p>
+                <span class="text-indigo-600 text-xl">→</span>
+              </div>
+            </div>
+          `;
+
+          chatList.appendChild(chatItem);
+        });
+      });
+    }
+
+    function getTimeAgo(date) {
+      const seconds = Math.floor((new Date() - date) / 1000);
+      
+      if (seconds < 60) return "Just now";
+      if (seconds < 3600) return Math.floor(seconds / 60) + "m ago";
+      if (seconds < 86400) return Math.floor(seconds / 3600) + "h ago";
+      if (seconds < 604800) return Math.floor(seconds / 86400) + "d ago";
+      
+      return date.toLocaleDateString();
+    }
+  </script>
+</body>
+</html>

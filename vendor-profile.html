@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vendor Profile</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <!-- Top navbar -->
+  <nav class="bg-white shadow p-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold">Street Link</h1>
+    <div class="space-x-4">
+      <a href="feed.html" class="text-blue-500 hover:underline">Feed</a>
+      <a href="inbox.html" class="text-blue-500 hover:underline">Inbox</a>
+      <a href="settings.html" class="text-blue-500 hover:underline">Settings</a>
+    </div>
+  </nav>
+
+  <!-- Profile Section -->
+  <div class="max-w-4xl mx-auto mt-6 p-4 bg-white rounded shadow">
+    <div class="flex items-center space-x-4">
+      <img id="vendorPhoto" class="w-24 h-24 rounded-full object-cover" src="" alt="Vendor Photo">
+      <div>
+        <h2 id="vendorName" class="text-2xl font-bold"></h2>
+        <p id="vendorDesc" class="text-gray-600"></p>
+        <p id="avgRating" class="mt-1 text-yellow-500 font-medium"></p>
+        <div class="mt-2 space-x-2">
+          <button id="followBtn" class="bg-blue-500 text-white px-4 py-1 rounded">Follow</button>
+          <button onclick="rateVendor()" class="bg-yellow-500 text-white px-4 py-1 rounded">Rate</button>
+          <button onclick="messageVendor()" class="bg-green-500 text-white px-4 py-1 rounded">Message</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vendor Posts -->
+  <div class="max-w-4xl mx-auto mt-6 p-4 bg-white rounded shadow">
+    <h3 class="text-xl font-bold mb-4">Posts</h3>
+    <div id="vendorPosts" class="grid md:grid-cols-2 gap-4"></div>
+  </div>
+
+  <script>
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
+      authDomain: "online-mall-4422.firebaseapp.com",
+      databaseURL: "https://online-mall-4422-default-rtdb.firebaseio.com",
+      projectId: "online-mall-4422",
+      storageBucket: "online-mall-4422.appspot.com",
+      messagingSenderId: "947082232783",
+      appId: "1:947082232783:web:116206502e5fb38383c8ba",
+      measurementId: "G-LNTNZQBGL8"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const vendorId = urlParams.get("uid");
+
+    const vendorName = document.getElementById("vendorName");
+    const vendorDesc = document.getElementById("vendorDesc");
+    const vendorPhoto = document.getElementById("vendorPhoto");
+    const avgRating = document.getElementById("avgRating");
+    const vendorPosts = document.getElementById("vendorPosts");
+    const followBtn = document.getElementById("followBtn");
+
+    let currentUser;
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        alert("Please sign in first.");
+        window.location.href = "login.html";
+        return;
+      }
+      currentUser = user;
+      loadVendorProfile();
+      loadVendorPosts();
+      checkIfFollowing();
+      loadAverageRating();
+    });
+
+    function loadVendorProfile() {
+      db.collection("users").doc(vendorId).get().then((doc) => {
+        if (doc.exists) {
+          const data = doc.data();
+          vendorName.textContent = data.name || "Vendor";
+          vendorDesc.textContent = data.description || "";
+          vendorPhoto.src = data.photoURL || "https://via.placeholder.com/150";
+        }
+      });
+    }
+
+    function loadVendorPosts() {
+      db.collection("posts").where("uid", "==", vendorId)
+        .orderBy("timestamp", "desc")
+        .onSnapshot(snapshot => {
+          vendorPosts.innerHTML = "";
+          snapshot.forEach(doc => {
+            const post = doc.data();
+            vendorPosts.innerHTML += `
+              <div class="border rounded p-3 bg-gray-50">
+                <img src="${post.imageURL}" alt="Post" class="w-full h-40 object-cover rounded mb-2">
+                <h4 class="text-lg font-bold">${post.title}</h4>
+                <p class="text-sm text-gray-600">${post.description}</p>
+              </div>
+            `;
+          });
+        });
+    }
+
+    function loadAverageRating() {
+      db.collection("ratings").where("vendorId", "==", vendorId)
+        .onSnapshot(snapshot => {
+          let sum = 0, count = 0;
+          snapshot.forEach(doc => {
+            sum += doc.data().rating;
+            count++;
+          });
+          const avg = count > 0 ? (sum / count).toFixed(1) : "N/A";
+          avgRating.textContent = `⭐ ${avg} (${count} ratings)`;
+        });
+    }
+
+    function checkIfFollowing() {
+      db.collection("follows")
+        .where("followerId", "==", currentUser.uid)
+        .where("vendorId", "==", vendorId)
+        .get()
+        .then(snapshot => {
+          if (!snapshot.empty) {
+            followBtn.textContent = "Following";
+            followBtn.disabled = true;
+          } else {
+            followBtn.onclick = followVendor;
+          }
+        });
+    }
+
+    function followVendor() {
+      db.collection("follows").add({
+        followerId: currentUser.uid,
+        vendorId,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        followBtn.textContent = "Following";
+        followBtn.disabled = true;
+      });
+    }
+
+    function rateVendor() {
+      const rating = prompt("Rate this vendor out of 5:");
+      const rateNum = parseFloat(rating);
+      if (rateNum >= 1 && rateNum <= 5) {
+        db.collection("ratings").add({
+          vendorId,
+          userId: currentUser.uid,
+          rating: rateNum,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      } else {
+        alert("Invalid rating.");
+      }
+    }
+
+    function messageVendor() {
+      window.location.href = `chat.html?uid=${vendorId}`;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rate Vendor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <nav class="bg-white p-4 shadow flex justify-between items-center">
+    <h1 class="text-xl font-bold text-purple-600">Rate Vendor</h1>
+    <a href="feed.html" class="text-sm text-blue-600">← Back to Feed</a>
+  </nav>
+
+  <div class="max-w-xl mx-auto mt-8 bg-white p-6 rounded shadow">
+    <div id="vendorInfo" class="mb-6 text-center">
+      <img id="vendorPic" src="" alt="Vendor" class="w-24 h-24 rounded-full mx-auto mb-2 object-cover"/>
+      <h2 id="vendorName" class="text-lg font-semibold text-gray-800"></h2>
+    </div>
+
+    <form id="rateForm" class="space-y-4">
+      <div>
+        <label class="block mb-1 font-medium">Rating (1–5)</label>
+        <input type="number" id="ratingInput" min="1" max="5" required class="w-full border rounded px-3 py-2"/>
+      </div>
+
+      <div>
+        <label class="block mb-1 font-medium">Feedback (optional)</label>
+        <textarea id="feedbackInput" rows="3" class="w-full border rounded px-3 py-2"></textarea>
+      </div>
+
+      <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 w-full">Submit Rating</button>
+    </form>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
+      authDomain: "online-mall-4422.firebaseapp.com",
+      databaseURL: "https://online-mall-4422-default-rtdb.firebaseio.com",
+      projectId: "online-mall-4422",
+      storageBucket: "online-mall-4422.appspot.com",
+      messagingSenderId: "947082232783",
+      appId: "1:947082232783:web:116206502e5fb38383c8ba",
+      measurementId: "G-LNTNZQBGL8"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const vendorId = new URLSearchParams(window.location.search).get('vendor');
+
+    if (!vendorId) {
+      alert("Vendor ID missing.");
+      window.location.href = "feed.html";
+    }
+
+    const vendorName = document.getElementById("vendorName");
+    const vendorPic = document.getElementById("vendorPic");
+
+    db.collection("users").doc(vendorId).get().then(doc => {
+      if (doc.exists) {
+        const data = doc.data();
+        vendorName.textContent = data.name || "Vendor";
+        vendorPic.src = data.profilePic || "https://via.placeholder.com/100";
+      } else {
+        vendorName.textContent = "Unknown Vendor";
+      }
+    });
+
+    document.getElementById("rateForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const rating = parseInt(document.getElementById("ratingInput").value);
+      const feedback = document.getElementById("feedbackInput").value;
+
+      if (rating < 1 || rating > 5) return alert("Rating must be between 1 and 5.");
+
+      const user = auth.currentUser;
+      if (!user) return alert("You must be logged in to rate.");
+
+      const ratingData = {
+        userId: user.uid,
+        vendorId: vendorId,
+        rating: rating,
+        feedback: feedback,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      await db.collection("vendor_ratings").add(ratingData);
+      alert("Rating submitted!");
+      window.location.href = "vendor-profile.html?uid=" + vendorId;
+    });
+
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        alert("Please log in to continue.");
+        window.location.href = "login.html";
+      }
+    });
+  </script>
+</body>
+</html>

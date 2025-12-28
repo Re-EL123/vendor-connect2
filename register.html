@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Join Street Connect</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- React (CDN – future ready, non-intrusive) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <!-- Tailwind Animation -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          animation: {
+            fadeUp: "fadeUp 0.7s ease-out forwards"
+          },
+          keyframes: {
+            fadeUp: {
+              "0%": { opacity: "0", transform: "translateY(20px)" },
+              "100%": { opacity: "1", transform: "translateY(0)" }
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-gradient-to-br from-indigo-100 via-blue-100 to-purple-100 min-h-screen flex items-center justify-center">
+
+  <div class="w-full max-w-md bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-8 animate-fadeUp">
+
+    <!-- Header -->
+    <div class="text-center mb-6">
+      <h1 class="text-2xl font-extrabold text-indigo-700">Street Connect</h1>
+      <p class="text-sm text-gray-600 mt-1">Let’s get you set up</p>
+    </div>
+
+    <!-- Progress -->
+    <div class="flex justify-between mb-6 text-xs text-gray-400">
+      <span id="step1Label" class="font-semibold text-indigo-600">Welcome</span>
+      <span id="step2Label">Details</span>
+      <span id="step3Label">Account</span>
+    </div>
+
+    <!-- Form -->
+    <form id="registerForm" class="space-y-4">
+
+      <!-- STEP 1 -->
+      <div class="step">
+        <h2 class="text-lg font-semibold text-gray-800 mb-2">
+          Welcome 👋
+        </h2>
+        <p class="text-sm text-gray-600 mb-4">
+          Street Connect helps you discover and connect with local businesses and services.
+        </p>
+        <button type="button" onclick="nextStep()" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition">
+          Get Started
+        </button>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step hidden">
+        <h2 class="text-lg font-semibold text-gray-800 mb-3">
+          Tell us about you
+        </h2>
+
+        <input
+          type="text"
+          id="fullName"
+          placeholder="Full Name"
+          required
+          class="w-full px-4 py-2 border rounded-lg"
+        />
+
+        <button type="button" onclick="nextStep()" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition">
+          Continue
+        </button>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step hidden">
+        <h2 class="text-lg font-semibold text-gray-800 mb-3">
+          Create your account
+        </h2>
+
+        <input
+          type="email"
+          id="email"
+          placeholder="Email"
+          required
+          class="w-full px-4 py-2 border rounded-lg"
+        />
+
+        <input
+          type="password"
+          id="password"
+          placeholder="Password"
+          required
+          class="w-full px-4 py-2 border rounded-lg"
+        />
+
+        <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition">
+          Create Account
+        </button>
+      </div>
+
+    </form>
+
+    <p id="error" class="text-red-500 mt-4 text-sm text-center"></p>
+
+    <p class="text-sm text-center mt-4">
+      Already have an account?
+      <a href="login.html" class="text-indigo-600 hover:underline">Login</a>
+    </p>
+  </div>
+
+  <!-- STEP LOGIC (Plain JS, React-ready) -->
+  <script>
+    const steps = document.querySelectorAll(".step");
+    const labels = [
+      document.getElementById("step1Label"),
+      document.getElementById("step2Label"),
+      document.getElementById("step3Label")
+    ];
+
+    let currentStep = 0;
+
+    function nextStep() {
+      steps[currentStep].classList.add("hidden");
+      labels[currentStep].classList.remove("text-indigo-600");
+
+      currentStep++;
+      steps[currentStep].classList.remove("hidden");
+      labels[currentStep].classList.add("text-indigo-600");
+    }
+  </script>
+
+  <!-- FIREBASE (UNCHANGED LOGIC) -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
+      authDomain: "online-mall-4422.firebaseapp.com",
+      databaseURL: "https://online-mall-4422-default-rtdb.firebaseio.com",
+      projectId: "online-mall-4422",
+      storageBucket: "online-mall-4422.appspot.com",
+      messagingSenderId: "947082232783",
+      appId: "1:947082232783:web:116206502e5fb38383c8ba"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+
+    const registerForm = document.getElementById("registerForm");
+    const errorEl = document.getElementById("error");
+
+    registerForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const fullName = document.getElementById("fullName").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      try {
+        const userCredential = await firebase
+          .auth()
+          .createUserWithEmailAndPassword(email, password);
+
+        const uid = userCredential.user.uid;
+
+        await firebase.database().ref("users/" + uid).set({
+          uid,
+          fullName,
+          email,
+          accountType: "user",
+          createdAt: new Date().toISOString()
+        });
+
+        window.location.href = "feed.html";
+      } catch (err) {
+        errorEl.textContent = err.message;
+      }
+    });
+  </script>
+
+</body>
+</html>

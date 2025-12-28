@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Street Link - Admin Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+  <div class="max-w-5xl mx-auto py-10 px-4">
+    <h1 class="text-4xl font-bold text-center mb-10">Admin Dashboard</h1>
+    <div id="loginContainer" class="max-w-md mx-auto bg-white p-6 rounded shadow">
+      <h2 class="text-2xl font-semibold mb-4">Admin Login</h2>
+      <form id="loginForm" class="space-y-4">
+        <input type="email" id="adminEmail" placeholder="Admin Email" class="w-full p-3 border rounded" required>
+        <input type="password" id="adminPassword" placeholder="Password" class="w-full p-3 border rounded" required>
+        <button type="submit" class="w-full bg-green-600 text-white p-3 rounded hover:bg-green-700">Login</button>
+      </form>
+    </div>
+    <div class="text-right mt-4 hidden" id="logoutSection">
+      <button onclick="logout()" class="text-sm text-red-600 underline">Logout</button>
+    </div>
+    <div id="vendorList" class="space-y-6 hidden"></div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
+      authDomain: "online-mall-4422.firebaseapp.com",
+      databaseURL: "https://online-mall-4422-default-rtdb.firebaseio.com",
+      projectId: "online-mall-4422",
+      storageBucket: "online-mall-4422.appspot.com",
+      messagingSenderId: "947082232783",
+      appId: "1:947082232783:web:116206502e5fb38383c8ba",
+      measurementId: "G-LNTNZQBGL8"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    const ADMIN_UIDS = ["1t4KXsqAPEUoRthpvxGM2kO0dT52"];
+
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("adminEmail").value;
+      const password = document.getElementById("adminPassword").value;
+
+      try {
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        const uid = userCredential.user.uid;
+        if (!ADMIN_UIDS.includes(uid)) {
+          alert("Access denied. Not an authorized admin.");
+          auth.signOut();
+        } else {
+          document.getElementById("loginContainer").classList.add("hidden");
+          document.getElementById("logoutSection").classList.remove("hidden");
+          document.getElementById("vendorList").classList.remove("hidden");
+          loadVendors();
+        }
+      } catch (error) {
+        alert("Login failed: " + error.message);
+      }
+    });
+
+    async function loadVendors() {
+      const vendorList = document.getElementById("vendorList");
+      vendorList.innerHTML = "<p>Loading vendors...</p>";
+
+      const querySnapshot = await db.collection("vendors").orderBy("createdAt", "desc").get();
+      vendorList.innerHTML = "";
+
+      for (const doc of querySnapshot.docs) {
+        const data = doc.data();
+        const subSnap = await db.collection("subscriptions").doc(data.uid).get();
+        const subData = subSnap.exists ? subSnap.data() : {};
+
+        const vendorCard = document.createElement("div");
+        vendorCard.className = "bg-white p-4 rounded shadow";
+        vendorCard.innerHTML = `
+          <div class="flex justify-between items-center mb-2">
+            <h2 class="text-xl font-semibold">${data.name}</h2>
+            <span class="text-sm text-gray-500">${data.category}</span>
+          </div>
+          <p class="text-sm text-gray-600 mb-2">${data.description}</p>
+          <p class="text-sm mb-2">📞 ${data.phone} | ✉️ ${data.email}</p>
+          <p class="text-sm mb-2">Approval: ${data.isApproved ? '✅ Approved' : '⏳ Pending'}</p>
+          <p class="text-sm mb-2">Subscription: ${data.subscriptionStatus}</p>
+          ${subData.paymentProofURL ? `<a href="${subData.paymentProofURL}" target="_blank" class="text-blue-600 text-sm underline mb-2 inline-block">View Payment Proof</a>` : '<p class="text-sm text-gray-400">No payment proof uploaded.</p>'}
+          <div class="flex space-x-2 mt-2">
+            <button onclick="approveVendor('${data.uid}')" class="bg-green-600 text-white px-4 py-2 rounded">Approve</button>
+            <button onclick="rejectVendor('${data.uid}')" class="bg-red-600 text-white px-4 py-2 rounded">Reject</button>
+          </div>
+        `;
+        vendorList.appendChild(vendorCard);
+      }
+    }
+
+    async function approveVendor(uid) {
+      await db.collection("vendors").doc(uid).update({
+        isApproved: true,
+        subscriptionStatus: "active"
+      });
+      alert("Vendor approved.");
+      loadVendors();
+    }
+
+    async function rejectVendor(uid) {
+      await db.collection("vendors").doc(uid).update({
+        isApproved: false,
+        subscriptionStatus: "rejected"
+      });
+      alert("Vendor rejected.");
+      loadVendors();
+    }
+
+    function logout() {
+      auth.signOut().then(() => {
+        window.location.reload();
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Street Connect — Item</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- React (future ready, non-intrusive) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <!-- Tailwind Animations -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          animation: {
+            fadeUp: "fadeUp 0.6s ease-out forwards"
+          },
+          keyframes: {
+            fadeUp: {
+              "0%": { opacity: "0", transform: "translateY(20px)" },
+              "100%": { opacity: "1", transform: "translateY(0)" }
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-gradient-to-br from-indigo-100 via-blue-100 to-purple-100 min-h-screen flex flex-col">
+
+  <!-- HEADER -->
+  <header class="p-4 bg-white/80 backdrop-blur shadow flex justify-between items-center">
+    <a href="marketplace.html" class="text-indigo-600 font-semibold">← Back</a>
+    <h1 class="text-lg font-extrabold text-indigo-700">Street Connect</h1>
+    <button id="logoutBtn" class="text-sm text-gray-600 hover:text-indigo-600">Logout</button>
+  </header>
+
+  <!-- MAIN -->
+  <main class="flex-grow p-4 max-w-4xl mx-auto w-full animate-fadeUp pb-24">
+
+    <div id="itemContainer" class="bg-white/80 backdrop-blur rounded-2xl shadow p-6 grid md:grid-cols-2 gap-6">
+      <!-- Item injected here -->
+    </div>
+
+  </main>
+
+  <!-- BOTTOM NAV -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur border-t shadow">
+    <div class="max-w-4xl mx-auto flex justify-around py-3 text-sm font-medium">
+      <a href="feed.html" class="flex flex-col items-center hover:text-indigo-600">
+        🏠
+        <span>Feed</span>
+      </a>
+      <a href="marketplace.html" class="flex flex-col items-center text-indigo-600">
+        🛒
+        <span>Marketplace</span>
+      </a>
+      <a href="wallet.html" class="flex flex-col items-center hover:text-indigo-600">
+        💳
+        <span>Wallet</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- FIREBASE LOGIC -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
+      authDomain: "online-mall-4422.firebaseapp.com",
+      databaseURL: "https://online-mall-4422-default-rtdb.firebaseio.com",
+      projectId: "online-mall-4422",
+      storageBucket: "online-mall-4422.appspot.com",
+      messagingSenderId: "947082232783",
+      appId: "1:947082232783:web:116206502e5fb38383c8ba"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    const itemContainer = document.getElementById("itemContainer");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    const params = new URLSearchParams(window.location.search);
+    const itemId = params.get("id");
+
+    if (!itemId) {
+      itemContainer.innerHTML = "<p class='text-center text-gray-500'>Invalid item</p>";
+    }
+
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      loadItem();
+    });
+
+    async function loadItem() {
+      const snap = await db.ref(`marketplace/${itemId}`).once("value");
+
+      if (!snap.exists()) {
+        itemContainer.innerHTML = "<p class='text-center text-gray-500'>Item not found</p>";
+        return;
+      }
+
+      const item = snap.val();
+      let sellerName = "Unknown Seller";
+
+      if (item.sellerId) {
+        const sellerSnap = await db.ref(`users/${item.sellerId}`).once("value");
+        sellerName = sellerSnap.val()?.fullName || sellerName;
+      }
+
+      renderItem(item, sellerName);
+    }
+
+    function renderItem(item, sellerName) {
+      itemContainer.innerHTML = `
+        <div>
+          ${item.imageUrl ? `
+            <img src="${item.imageUrl}" class="rounded-xl w-full h-72 object-cover">
+          ` : ""}
+        </div>
+
+        <div class="flex flex-col">
+          <h2 class="text-2xl font-bold text-indigo-700 mb-2">${item.title}</h2>
+
+          <p class="text-gray-700 mb-4">${item.description}</p>
+
+          <p class="text-sm text-gray-500 mb-2">
+            Category: <span class="font-medium">${item.category || "N/A"}</span>
+          </p>
+
+          <p class="text-sm text-gray-500 mb-4">
+            Seller: <span class="font-medium">${sellerName}</span>
+          </p>
+
+          <div class="mt-auto">
+            <p class="text-3xl font-extrabold text-indigo-700 mb-4">
+              R ${item.price}
+            </p>
+
+            <button class="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition">
+              Buy Now
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    logoutBtn.onclick = async () => {
+      await auth.signOut();
+      window.location.href = "login.html";
+    };
+  </script>
+
+</body>
+</html>

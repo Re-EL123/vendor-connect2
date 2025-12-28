@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Street Connect - Vendor Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 min-h-screen">
+
+  <!-- HEADER -->
+  <header class="p-4 bg-white/80 backdrop-blur shadow">
+    <div class="max-w-6xl mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-extrabold text-indigo-700">Street Connect - Vendor</h1>
+      <nav class="flex gap-4 text-sm">
+        <button onclick="window.location.href='feed.html'" class="text-gray-600 hover:text-indigo-600">Feed</button>
+        <button onclick="window.location.href='settings.html'" class="text-gray-600 hover:text-indigo-600">Settings</button>
+        <button onclick="logout()" class="text-red-600 hover:text-red-700">Logout</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <div class="max-w-6xl mx-auto py-8 px-4">
+    
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white/80 backdrop-blur p-5 rounded-xl shadow">
+        <p class="text-sm text-gray-600">Total Posts</p>
+        <p id="totalPosts" class="text-3xl font-bold text-indigo-700">0</p>
+      </div>
+      <div class="bg-white/80 backdrop-blur p-5 rounded-xl shadow">
+        <p class="text-sm text-gray-600">Total Likes</p>
+        <p id="totalLikes" class="text-3xl font-bold text-purple-700">0</p>
+      </div>
+      <div class="bg-white/80 backdrop-blur p-5 rounded-xl shadow">
+        <p class="text-sm text-gray-600">Products Listed</p>
+        <p id="totalProducts" class="text-3xl font-bold text-blue-700">0</p>
+      </div>
+      <div class="bg-white/80 backdrop-blur p-5 rounded-xl shadow">
+        <p class="text-sm text-gray-600">Messages</p>
+        <p id="totalMessages" class="text-3xl font-bold text-green-700">0</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- Business Profile -->
+      <div class="bg-white/80 backdrop-blur p-6 rounded-2xl shadow-xl">
+        <h2 class="text-xl font-semibold text-indigo-700 mb-4">Business Profile</h2>
+        <form id="businessForm" class="space-y-4">
+          <input type="text" id="businessName" placeholder="Business Name" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500" required>
+          <textarea id="businessDescription" placeholder="Short Business Description" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500" rows="3" required></textarea>
+          <select id="category" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500" required>
+            <option value="">Select Category</option>
+            <option value="Food">Food & Beverage</option>
+            <option value="Fashion">Fashion & Clothing</option>
+            <option value="Beauty">Beauty & Wellness</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Services">Services</option>
+            <option value="Home">Home & Garden</option>
+            <option value="Other">Other</option>
+          </select>
+          <input type="text" id="address" placeholder="Business Address" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500" required>
+          <input type="tel" id="phone" placeholder="Business Phone / WhatsApp" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500" required>
+          <button type="submit" class="bg-indigo-600 text-white w-full p-3 rounded-lg hover:bg-indigo-700 font-semibold">
+            Save Business Profile
+          </button>
+        </form>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="space-y-4">
+        <div class="bg-white/80 backdrop-blur p-6 rounded-2xl shadow-xl">
+          <h2 class="text-xl font-semibold text-indigo-700 mb-4">Quick Actions</h2>
+          <div class="grid grid-cols-2 gap-3">
+            <button onclick="window.location.href='feed.html'" class="bg-indigo-600 text-white p-4 rounded-lg hover:bg-indigo-700 flex flex-col items-center gap-2">
+              <span class="text-2xl">+</span>
+              <span class="text-sm">Create Post</span>
+            </button>
+            <button onclick="showAddProduct()" class="bg-purple-600 text-white p-4 rounded-lg hover:bg-purple-700 flex flex-col items-center gap-2">
+              <span class="text-2xl">🛍️</span>
+              <span class="text-sm">Add Product</span>
+            </button>
+            <button onclick="window.location.href='inbox.html'" class="bg-blue-600 text-white p-4 rounded-lg hover:bg-blue-700 flex flex-col items-center gap-2">
+              <span class="text-2xl">💬</span>
+              <span class="text-sm">Messages</span>
+            </button>
+            <button onclick="viewAnalytics()" class="bg-green-600 text-white p-4 rounded-lg hover:bg-green-700 flex flex-col items-center gap-2">
+              <span class="text-2xl">📊</span>
+              <span class="text-sm">Analytics</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="bg-white/80 backdrop-blur p-6 rounded-2xl shadow-xl">
+          <h2 class="text-xl font-semibold text-indigo-700 mb-4">Recent Activity</h2>
+          <div id="recentActivity" class="space-y-3 text-sm">
+            <p class="text-gray-500">Loading activity...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products & Posts Management -->
+    <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- My Products -->
+      <div class="bg-white/80 backdrop-blur p-6 rounded-2xl shadow-xl">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-semibold text-indigo-700">My Products</h2>
+          <button onclick="showAddProduct()" class="text-sm text-indigo-600 hover:underline">+ Add Product</button>
+        </div>
+        <div id="productsList" class="space-y-3">
+          <p class="text-gray-500">No products yet</p>
+        </div>
+      </div>
+
+      <!-- My Posts -->
+      <div class="bg-white/80 backdrop-blur p-6 rounded-2xl shadow-xl">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-semibold text-indigo-700">My Posts</h2>
+          <button onclick="window.location.href='feed.html'" class="text-sm text-indigo-600 hover:underline">+ Create Post</button>
+        </div>
+        <div id="postsList" class="space-y-3">
+          <p class="text-gray-500">No posts yet</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Product Modal -->
+  <div id="productModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-semibold text-indigo-700">Add Product</h3>
+        <button onclick="hideAddProduct()" class="text-gray-500 text-2xl">&times;</button>
+      </div>
+      <form id="productForm" class="space-y-4">
+        <input type="text" id="productTitle" placeholder="Product Name" class="w-full p-3 border rounded-lg" required>
+        <textarea id="productDescription" placeholder="Product Description" class="w-full p-3 border rounded-lg" rows="3" required></textarea>
+        <input type="number" id="productPrice" placeholder="Price (R)" class="w-full p-3 border rounded-lg" required min="0" step="0.01">
+        <select id="productCategory" class="w-full p-3 border rounded-lg" required>
+          <option value="">Select Category</option>
+          <option value="Food">Food</option>
+          <option value="Fashion">Fashion</option>
+          <option value="Electronics">Electronics</option>
+          <option value="Services">Services</option>
+          <option value="Other">Other</option>
+        </select>
+        <input type="file" id="productImage" accept="image/*" class="w-full">
+        <button type="submit" class="bg-indigo-600 text-white w-full p-3 rounded-lg hover:bg-indigo-700">
+          Add Product
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
+      authDomain: "online-mall-4422.firebaseapp.com",
+      databaseURL: "https://online-mall-4422-default-rtdb.firebaseio.com",
+      projectId: "online-mall-4422",
+      storageBucket: "online-mall-4422.appspot.com",
+      messagingSenderId: "947082232783",
+      appId: "1:947082232783:web:116206502e5fb38383c8ba",
+      measurementId: "G-LNTNZQBGL8"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const realtimeDb = firebase.database();
+
+    let currentUser;
+
+    auth.onAuthStateChanged(async user => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      currentUser = user;
+
+      const doc = await db.collection("users").doc(user.uid).get();
+      if (!doc.exists || !doc.data().isVendor) {
+        alert("You must be a vendor to access this page.");
+        window.location.href = "settings.html";
+        return;
+      }
+
+      const data = doc.data();
+      document.getElementById("businessName").value = data.businessName || "";
+      document.getElementById("businessDescription").value = data.businessDescription || "";
+      document.getElementById("category").value = data.category || "";
+      document.getElementById("address").value = data.address || "";
+      document.getElementById("phone").value = data.phone || "";
+
+      loadDashboardData();
+    });
+
+    async function loadDashboardData() {
+      // Load posts
+      const postsSnap = await db.collection("posts").where("authorId", "==", currentUser.uid).get();
+      const posts = postsSnap.docs.map(d => ({id: d.id, ...d.data()}));
+      
+      document.getElementById("totalPosts").textContent = posts.length;
+      
+      const totalLikes = posts.reduce((sum, post) => sum + (post.likes?.length || 0), 0);
+      document.getElementById("totalLikes").textContent = totalLikes;
+
+      // Load products from realtime database
+      const productsSnap = await realtimeDb.ref("marketplace").orderByChild("vendorId").equalTo(currentUser.uid).once("value");
+      const products = productsSnap.val() ? Object.values(productsSnap.val()) : [];
+      document.getElementById("totalProducts").textContent = products.length;
+
+      // Load chats
+      const chatsSnap = await db.collection("chats").where("users", "array-contains", currentUser.uid).get();
+      document.getElementById("totalMessages").textContent = chatsSnap.size;
+
+      // Display recent posts
+      displayRecentPosts(posts.slice(0, 5));
+      
+      // Display products
+      displayProducts(products.slice(0, 5));
+
+      // Recent activity
+      displayRecentActivity(posts);
+    }
+
+    function displayRecentPosts(posts) {
+      const container = document.getElementById("postsList");
+      if (posts.length === 0) {
+        container.innerHTML = '<p class="text-gray-500">No posts yet</p>';
+        return;
+      }
+      
+      container.innerHTML = posts.map(post => `
+        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+          <div class="flex-1">
+            <p class="font-semibold text-sm">${post.title}</p>
+            <p class="text-xs text-gray-500">${post.likes?.length || 0} likes • ${post.commentsCount || 0} comments</p>
+          </div>
+          <button onclick="window.location.href='edit-post.html?id=${post.id}'" class="text-indigo-600 text-xs">Edit</button>
+        </div>
+      `).join('');
+    }
+
+    function displayProducts(products) {
+      const container = document.getElementById("productsList");
+      if (products.length === 0) {
+        container.innerHTML = '<p class="text-gray-500">No products yet</p>';
+        return;
+      }
+      
+      container.innerHTML = products.map(product => `
+        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+          <div class="flex-1">
+            <p class="font-semibold text-sm">${product.title}</p>
+            <p class="text-xs text-gray-500">R ${product.price}</p>
+          </div>
+          <span class="text-green-600 text-xs font-semibold">${product.category}</span>
+        </div>
+      `).join('');
+    }
+
+    function displayRecentActivity(posts) {
+      const container = document.getElementById("recentActivity");
+      if (posts.length === 0) {
+        container.innerHTML = '<p class="text-gray-500">No recent activity</p>';
+        return;
+      }
+
+      const activities = posts.slice(0, 5).map(post => {
+        const date = post.createdAt ? new Date(post.createdAt.seconds * 1000) : new Date();
+        return `
+          <div class="flex items-center gap-2 p-2 bg-gray-50 rounded">
+            <span class="text-indigo-600">📝</span>
+            <div class="flex-1">
+              <p class="text-xs">Posted: ${post.title}</p>
+              <p class="text-xs text-gray-400">${date.toLocaleDateString()}</p>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = activities.join('');
+    }
+
+    document.getElementById("businessForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const businessName = document.getElementById("businessName").value;
+      const businessDescription = document.getElementById("businessDescription").value;
+      const category = document.getElementById("category").value;
+      const address = document.getElementById("address").value;
+      const phone = document.getElementById("phone").value;
+
+      try {
+        await db.collection("users").doc(currentUser.uid).update({
+          businessName,
+          businessDescription,
+          category,
+          address,
+          phone,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert("Business profile updated successfully!");
+      } catch (error) {
+        alert("Error updating profile: " + error.message);
+      }
+    });
+
+    document.getElementById("productForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const title = document.getElementById("productTitle").value;
+      const description = document.getElementById("productDescription").value;
+      const price = document.getElementById("productPrice").value;
+      const category = document.getElementById("productCategory").value;
+      const imageFile = document.getElementById("productImage").files[0];
+
+      try {
+        let imageUrl = null;
+        
+        if (imageFile) {
+          const storageRef = firebase.storage().ref(`marketplace/${currentUser.uid}/${Date.now()}_${imageFile.name}`);
+          await storageRef.put(imageFile);
+          imageUrl = await storageRef.getDownloadURL();
+        }
+
+        await realtimeDb.ref("marketplace").push({
+          title,
+          description,
+          price: parseFloat(price),
+          category,
+          imageUrl,
+          vendorId: currentUser.uid,
+          createdAt: new Date().toISOString()
+        });
+
+        alert("Product added successfully!");
+        document.getElementById("productForm").reset();
+        hideAddProduct();
+        loadDashboardData();
+      } catch (error) {
+        alert("Error adding product: " + error.message);
+      }
+    });
+
+    function showAddProduct() {
+      document.getElementById("productModal").classList.remove("hidden");
+    }
+
+    function hideAddProduct() {
+      document.getElementById("productModal").classList.add("hidden");
+    }
+
+    function viewAnalytics() {
+      alert("Analytics feature coming soon!");
+    }
+
+    function logout() {
+      auth.signOut().then(() => window.location.href = "login.html");
+    }
+  </script>
+</body>
+</html>

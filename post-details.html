@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Post Details - Street Connect</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 min-h-screen">
+
+<header class="p-4 bg-white/80 backdrop-blur shadow">
+  <div class="max-w-4xl mx-auto flex justify-between items-center">
+    <h1 class="text-xl font-extrabold text-indigo-700">Street Connect</h1>
+    <button onclick="window.history.back()" class="text-sm text-gray-600 hover:text-indigo-600">← Back</button>
+  </div>
+</header>
+
+<main class="p-4 max-w-4xl mx-auto">
+  <div id="postContainer" class="bg-white rounded-xl shadow-lg p-6 mb-6">
+    <p class="text-center text-gray-500">Loading post...</p>
+  </div>
+
+  <div class="bg-white rounded-xl shadow-lg p-6">
+    <h2 class="text-lg font-semibold mb-4">Comments</h2>
+    
+    <form id="commentForm" class="mb-6">
+      <textarea
+        id="commentText"
+        placeholder="Write a comment..."
+        class="w-full border rounded-lg p-3 mb-2 h-20"
+        required
+      ></textarea>
+      <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+        Post Comment
+      </button>
+    </form>
+
+    <div id="commentsContainer" class="space-y-4">
+      <p class="text-gray-500 text-center">No comments yet</p>
+    </div>
+  </div>
+</main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, collection, addDoc, getDocs, serverTimestamp, updateDoc, increment, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
+  authDomain: "online-mall-4422.firebaseapp.com",
+  projectId: "online-mall-4422",
+});
+
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const urlParams = new URLSearchParams(window.location.search);
+const postId = urlParams.get("id");
+let currentUser = null;
+
+onAuthStateChanged(auth, async user => {
+  if (!user) return location.href = "login.html";
+  currentUser = user;
+  await loadPost();
+  await loadComments();
+});
+
+async function loadPost() {
+  try {
+    const postRef = doc(db, "posts", postId);
+    const postSnap = await getDoc(postRef);
+    
+    if (!postSnap.exists()) {
+      document.getElementById("postContainer").innerHTML = '<p class="text-red-500 text-center">Post not found</p>';
+      return;
+    }
+    
+    const post = postSnap.data();
+    const likesCount = post.likes ? post.likes.length : 0;
+    const commentsCount = post.commentsCount || 0;
+    
+    document.getElementById("postContainer").innerHTML = `
+      <div class="mb-4">
+        <h1 class="text-2xl font-bold text-indigo-700 mb-2">${post.title}</h1>
+        <p class="text-sm text-gray-500">${post.city}, ${post.province}</p>
+        <p class="text-xs text-gray-400">${new Date(post.createdAt?.seconds * 1000 || Date.now()).toLocaleDateString()}</p>
+      </div>
+      
+      ${post.imageURL ? `<img src="${post.imageURL}" class="rounded-lg w-full mb-4" />` : ''}
+      
+      <p class="text-gray-700 mb-4 leading-relaxed">${post.description}</p>
+      
+      <div class="flex gap-4 pt-3 border-t">
+        <span class="text-gray-600">❤️ ${likesCount} likes</span>
+        <span class="text-gray-600">💬 ${commentsCount} comments</span>
+      </div>
+    `;
+  } catch (error) {
+    console.error("Error loading post:", error);
+    document.getElementById("postContainer").innerHTML = '<p class="text-red-500 text-center">Error loading post</p>';
+  }
+}
+
+async function loadComments() {
+  try {
+    const commentsRef = collection(db, "posts", postId, "comments");
+    const q = query(commentsRef, orderBy("createdAt", "desc"));
+    const snapshot = await getDocs(q);
+    
+    const container = document.getElementById("commentsContainer");
+    
+    if (snapshot.empty) {
+      container.innerHTML = '<p class="text-gray-500 text-center">No comments yet. Be the first to comment!</p>';
+      return;
+    }
+    
+    container.innerHTML = "";
+    
+    snapshot.forEach(doc => {
+      const comment = doc.data();
+      const div = document.createElement("div");
+      div.className = "bg-gray-50 p-4 rounded-lg";
+      div.innerHTML = `
+        <p class="text-sm font-semibold text-indigo-700 mb-1">${comment.authorEmail}</p>
+        <p class="text-gray-700">${comment.text}</p>
+        <p class="text-xs text-gray-400 mt-1">${new Date(comment.createdAt?.seconds * 1000 || Date.now()).toLocaleString()}</p>
+      `;
+      container.appendChild(div);
+    });
+  } catch (error) {
+    console.error("Error loading comments:", error);
+  }
+}
+
+document.getElementById("commentForm").onsubmit = async (e) => {
+  e.preventDefault();
+  
+  const commentText = document.getElementById("commentText").value.trim();
+  if (!commentText) return;
+  
+  try {
+    const commentsRef = collection(db, "posts", postId, "comments");
+    await addDoc(commentsRef, {
+      text: commentText,
+      authorId: currentUser.uid,
+      authorEmail: currentUser.email,
+      createdAt: serverTimestamp()
+    });
+    
+    const postRef = doc(db, "posts", postId);
+    await updateDoc(postRef, {
+      commentsCount: increment(1)
+    });
+    
+    document.getElementById("commentText").value = "";
+    await loadComments();
+    await loadPost();
+  } catch (error) {
+    console.error("Error posting comment:", error);
+    alert("Failed to post comment");
+  }
+};
+</script>
+
+</body>
+</html>

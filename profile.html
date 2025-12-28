@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Profile - Street Connect</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+</head>
+
+<body class="bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 min-h-screen">
+
+  <!-- HEADER -->
+  <header class="p-4 bg-white/80 backdrop-blur shadow">
+    <div class="max-w-4xl mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-extrabold text-indigo-700">Street Connect</h1>
+      <button onclick="window.location.href='feed.html'" class="text-sm text-gray-600 hover:text-indigo-600">← Back to Feed</button>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <div class="max-w-4xl mx-auto p-4 py-8">
+    
+    <!-- Profile Header -->
+    <div class="bg-white/80 backdrop-blur rounded-2xl shadow-xl p-6 mb-6">
+      <div class="flex items-center gap-6">
+        <div class="w-24 h-24 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center text-white text-4xl font-bold">
+          <span id="profileInitial">U</span>
+        </div>
+        <div class="flex-1">
+          <h2 id="profileName" class="text-2xl font-bold text-indigo-700">Loading...</h2>
+          <p id="profileEmail" class="text-gray-600">loading@example.com</p>
+          <p id="profileType" class="text-sm text-indigo-600 mt-1">User Account</p>
+        </div>
+        <button onclick="window.location.href='settings.html'" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+          Edit Profile
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- User Stats -->
+      <div class="lg:col-span-1">
+        <div class="bg-white/80 backdrop-blur rounded-2xl shadow-xl p-6 mb-6">
+          <h3 class="text-lg font-semibold text-indigo-700 mb-4">Activity Stats</h3>
+          <div class="space-y-4">
+            <div>
+              <p class="text-sm text-gray-600">Posts Created</p>
+              <p id="statsPostsCount" class="text-2xl font-bold text-indigo-700">0</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Total Likes Received</p>
+              <p id="statsLikesCount" class="text-2xl font-bold text-purple-700">0</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Comments Made</p>
+              <p id="statsCommentsCount" class="text-2xl font-bold text-blue-700">0</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white/80 backdrop-blur rounded-2xl shadow-xl p-6">
+          <h3 class="text-lg font-semibold text-indigo-700 mb-4">Quick Actions</h3>
+          <div class="space-y-2">
+            <button onclick="window.location.href='feed.html'" class="w-full bg-indigo-100 text-indigo-700 px-4 py-2 rounded-lg hover:bg-indigo-200 text-left">
+              📝 Create Post
+            </button>
+            <button onclick="window.location.href='marketplace.html'" class="w-full bg-purple-100 text-purple-700 px-4 py-2 rounded-lg hover:bg-purple-200 text-left">
+              🛒 Browse Marketplace
+            </button>
+            <button onclick="window.location.href='wallet.html'" class="w-full bg-blue-100 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-200 text-left">
+              💳 View Wallet
+            </button>
+            <button onclick="window.location.href='inbox.html'" class="w-full bg-green-100 text-green-700 px-4 py-2 rounded-lg hover:bg-green-200 text-left">
+              💬 Messages
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- User Posts & Activity -->
+      <div class="lg:col-span-2">
+        
+        <!-- Tabs -->
+        <div class="bg-white/80 backdrop-blur rounded-t-2xl shadow-xl p-4">
+          <div class="flex gap-4 border-b">
+            <button onclick="switchTab('posts')" id="tabPosts" class="pb-2 px-4 font-semibold border-b-2 border-indigo-600 text-indigo-600">
+              My Posts
+            </button>
+            <button onclick="switchTab('liked')" id="tabLiked" class="pb-2 px-4 font-semibold text-gray-600 hover:text-indigo-600">
+              Liked Posts
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="bg-white/80 backdrop-blur rounded-b-2xl shadow-xl p-6">
+          
+          <!-- My Posts Tab -->
+          <div id="contentPosts">
+            <div id="userPosts" class="space-y-4">
+              <p class="text-gray-500 text-center py-8">Loading your posts...</p>
+            </div>
+          </div>
+
+          <!-- Liked Posts Tab -->
+          <div id="contentLiked" class="hidden">
+            <div id="likedPosts" class="space-y-4">
+              <p class="text-gray-500 text-center py-8">Loading liked posts...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
+      authDomain: "online-mall-4422.firebaseapp.com",
+      databaseURL: "https://online-mall-4422-default-rtdb.firebaseio.com",
+      projectId: "online-mall-4422",
+      storageBucket: "online-mall-4422.appspot.com",
+      messagingSenderId: "947082232783",
+      appId: "1:947082232783:web:116206502e5fb38383c8ba",
+      measurementId: "G-LNTNZQBGL8"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const realtimeDb = firebase.database();
+
+    let currentUser = null;
+    let userPosts = [];
+    let likedPosts = [];
+
+    auth.onAuthStateChanged(async user => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      currentUser = user;
+      await loadProfile();
+    });
+
+    async function loadProfile() {
+      // Load user data
+      const userDoc = await db.collection("users").doc(currentUser.uid).get();
+      let userData = { email: currentUser.email };
+      
+      if (userDoc.exists) {
+        userData = { ...userData, ...userDoc.data() };
+      }
+
+      // Also try realtime database
+      const rtdbSnap = await realtimeDb.ref(`users/${currentUser.uid}`).once("value");
+      if (rtdbSnap.exists()) {
+        userData = { ...userData, ...rtdbSnap.val() };
+      }
+
+      // Update profile display
+      const name = userData.fullName || userData.name || userData.businessName || "User";
+      document.getElementById("profileName").textContent = name;
+      document.getElementById("profileEmail").textContent = userData.email;
+      document.getElementById("profileInitial").textContent = name.charAt(0).toUpperCase();
+      
+      if (userData.isVendor) {
+        document.getElementById("profileType").textContent = `Vendor - ${userData.subscriptionType || 'basic'} plan`;
+      }
+
+      // Load posts
+      await loadUserPosts();
+      await loadLikedPosts();
+      updateStats();
+    }
+
+    async function loadUserPosts() {
+      const postsSnap = await db.collection("posts")
+        .where("authorId", "==", currentUser.uid)
+        .get();
+      
+      userPosts = postsSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds);
+
+      renderUserPosts();
+    }
+
+    async function loadLikedPosts() {
+      const allPostsSnap = await db.collection("posts").get();
+      
+      likedPosts = allPostsSnap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(post => post.likes && post.likes.includes(currentUser.uid))
+        .sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds);
+
+      renderLikedPosts();
+    }
+
+    function renderUserPosts() {
+      const container = document.getElementById("userPosts");
+      
+      if (userPosts.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12">
+            <p class="text-6xl mb-4">📝</p>
+            <p class="text-gray-500 text-lg mb-4">You haven't created any posts yet</p>
+            <button onclick="window.location.href='feed.html'" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">
+              Create Your First Post
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = userPosts.map(post => `
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <div class="flex justify-between items-start mb-2">
+            <h3 class="font-semibold text-indigo-700">${post.title}</h3>
+            <button onclick="window.location.href='edit-post.html?id=${post.id}'" class="text-blue-600 text-sm hover:underline">
+              Edit
+            </button>
+          </div>
+          <p class="text-sm text-gray-600 mb-2">${post.description}</p>
+          <div class="flex gap-4 text-sm text-gray-500">
+            <span>❤️ ${post.likes?.length || 0} likes</span>
+            <span>💬 ${post.commentsCount || 0} comments</span>
+            <span>📍 ${post.city}, ${post.province}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderLikedPosts() {
+      const container = document.getElementById("likedPosts");
+      
+      if (likedPosts.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12">
+            <p class="text-6xl mb-4">❤️</p>
+            <p class="text-gray-500 text-lg">You haven't liked any posts yet</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = likedPosts.map(post => `
+        <div class="bg-gray-50 p-4 rounded-lg cursor-pointer hover:bg-gray-100" onclick="window.location.href='post-details.html?id=${post.id}'">
+          <h3 class="font-semibold text-indigo-700 mb-2">${post.title}</h3>
+          <p class="text-sm text-gray-600 mb-2">${post.description}</p>
+          <div class="flex gap-4 text-sm text-gray-500">
+            <span>❤️ ${post.likes?.length || 0} likes</span>
+            <span>💬 ${post.commentsCount || 0} comments</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function updateStats() {
+      document.getElementById("statsPostsCount").textContent = userPosts.length;
+      
+      const totalLikes = userPosts.reduce((sum, post) => sum + (post.likes?.length || 0), 0);
+      document.getElementById("statsLikesCount").textContent = totalLikes;
+
+      // Count total comments made by user (would need to traverse all post comments)
+      document.getElementById("statsCommentsCount").textContent = "—";
+    }
+
+    function switchTab(tab) {
+      // Update tab buttons
+      document.getElementById("tabPosts").classList.remove("border-b-2", "border-indigo-600", "text-indigo-600");
+      document.getElementById("tabPosts").classList.add("text-gray-600");
+      document.getElementById("tabLiked").classList.remove("border-b-2", "border-indigo-600", "text-indigo-600");
+      document.getElementById("tabLiked").classList.add("text-gray-600");
+
+      // Update content
+      document.getElementById("contentPosts").classList.add("hidden");
+      document.getElementById("contentLiked").classList.add("hidden");
+
+      if (tab === "posts") {
+        document.getElementById("tabPosts").classList.add("border-b-2", "border-indigo-600", "text-indigo-600");
+        document.getElementById("tabPosts").classList.remove("text-gray-600");
+        document.getElementById("contentPosts").classList.remove("hidden");
+      } else {
+        document.getElementById("tabLiked").classList.add("border-b-2", "border-indigo-600", "text-indigo-600");
+        document.getElementById("tabLiked").classList.remove("text-gray-600");
+        document.getElementById("contentLiked").classList.remove("hidden");
+      }
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Street Connect - Following</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+  <div class="max-w-3xl mx-auto py-6 px-4">
+    <h1 class="text-2xl font-bold mb-6">Vendors You Follow</h1>
+    <div id="followList" class="space-y-4">
+      <p>Loading followed vendors...</p>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
+      authDomain: "online-mall-4422.firebaseapp.com",
+      databaseURL: "https://online-mall-4422-default-rtdb.firebaseio.com",
+      projectId: "online-mall-4422",
+      storageBucket: "online-mall-4422.appspot.com",
+      messagingSenderId: "947082232783",
+      appId: "1:947082232783:web:116206502e5fb38383c8ba",
+      measurementId: "G-LNTNZQBGL8"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const followList = document.getElementById("followList");
+    let currentUser;
+
+    auth.onAuthStateChanged(async user => {
+      if (!user) return window.location.href = "login.html";
+      currentUser = user;
+      loadFollowedVendors();
+    });
+
+    async function loadFollowedVendors() {
+      const followSnapshot = await db.collection("follows")
+        .where("followerId", "==", currentUser.uid)
+        .get();
+
+      if (followSnapshot.empty) {
+        followList.innerHTML = "<p>You are not following any vendors.</p>";
+        return;
+      }
+
+      followList.innerHTML = "";
+      for (const doc of followSnapshot.docs) {
+        const followData = doc.data();
+        const vendorId = followData.vendorId;
+
+        const vendorDoc = await db.collection("users").doc(vendorId).get();
+        const vendor = vendorDoc.data();
+
+        const vendorCard = document.createElement("div");
+        vendorCard.className = "bg-white p-4 rounded shadow flex justify-between items-center";
+        vendorCard.innerHTML = `
+          <div>
+            <h2 class="text-lg font-semibold">${vendor.businessName || vendor.fullName}</h2>
+            <p class="text-sm text-gray-500">${vendor.category || ''}</p>
+          </div>
+          <div class="flex gap-2">
+            <a href="view-post.html?vendor=${vendorId}" class="text-blue-600 underline">View Posts</a>
+            <button onclick="unfollowVendor('${doc.id}')" class="text-red-600 underline">Unfollow</button>
+          </div>
+        `;
+
+        followList.appendChild(vendorCard);
+      }
+    }
+
+    async function unfollowVendor(followDocId) {
+      if (confirm("Are you sure you want to unfollow this vendor?")) {
+        await db.collection("follows").doc(followDocId).delete();
+        alert("Unfollowed successfully.");
+        loadFollowedVendors();
+      }
+    }
+  </script>
+</body>
+</html>

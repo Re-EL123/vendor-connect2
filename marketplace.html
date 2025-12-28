@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Street Connect — Marketplace</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- React (future ready, non-intrusive) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <!-- Tailwind Animations -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          animation: {
+            fadeUp: "fadeUp 0.6s ease-out forwards"
+          },
+          keyframes: {
+            fadeUp: {
+              "0%": { opacity: "0", transform: "translateY(20px)" },
+              "100%": { opacity: "1", transform: "translateY(0)" }
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-gradient-to-br from-indigo-100 via-blue-100 to-purple-100 min-h-screen flex flex-col">
+
+  <!-- HEADER -->
+  <header class="p-4 bg-white/80 backdrop-blur shadow flex justify-between items-center">
+    <h1 class="text-xl font-extrabold text-indigo-700">Street Connect</h1>
+    <div class="flex gap-4 items-center">
+      <button onclick="viewCart()" class="relative">
+        <span class="text-2xl">🛒</span>
+        <span id="cartCount" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
+      </button>
+      <button id="logoutBtn" class="text-sm text-gray-600 hover:text-indigo-600">Logout</button>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="flex-grow p-4 max-w-5xl mx-auto w-full animate-fadeUp pb-24">
+
+    <!-- FILTER BAR -->
+    <div class="bg-white/80 backdrop-blur rounded-xl shadow p-4 mb-6 flex flex-wrap gap-3">
+      <input
+        id="searchInput"
+        type="text"
+        placeholder="Search products..."
+        class="flex-grow border rounded-lg p-2 focus:ring-2 focus:ring-indigo-500"
+      />
+
+      <select id="categoryFilter" class="border rounded-lg p-2 w-48 focus:ring-2 focus:ring-indigo-500">
+        <option value="">All Categories</option>
+        <option value="Food">Food</option>
+        <option value="Fashion">Fashion</option>
+        <option value="Electronics">Electronics</option>
+        <option value="Services">Services</option>
+        <option value="Other">Other</option>
+      </select>
+      
+      <select id="sortFilter" class="border rounded-lg p-2 w-48 focus:ring-2 focus:ring-indigo-500">
+        <option value="newest">Newest First</option>
+        <option value="price-low">Price: Low to High</option>
+        <option value="price-high">Price: High to Low</option>
+      </select>
+    </div>
+
+    <!-- ITEMS GRID -->
+    <div id="itemsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+  </main>
+
+  <!-- BOTTOM NAV -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur border-t shadow">
+    <div class="max-w-5xl mx-auto flex justify-around py-3 text-sm font-medium">
+      <a href="feed.html" class="flex flex-col items-center hover:text-indigo-600">
+        🏠
+        <span>Feed</span>
+      </a>
+      <a href="marketplace.html" class="flex flex-col items-center text-indigo-600">
+        🛒
+        <span>Marketplace</span>
+      </a>
+      <a href="wallet.html" class="flex flex-col items-center hover:text-indigo-600">
+        💳
+        <span>Wallet</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Product Detail Modal -->
+  <div id="productModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-start mb-4">
+        <h3 id="modalTitle" class="text-2xl font-bold text-indigo-700"></h3>
+        <button onclick="closeModal()" class="text-gray-500 text-2xl">&times;</button>
+      </div>
+      <img id="modalImage" src="/placeholder.svg" class="w-full h-64 object-cover rounded-lg mb-4" />
+      <div class="mb-4">
+        <span id="modalCategory" class="inline-block bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm"></span>
+        <p id="modalPrice" class="text-3xl font-bold text-indigo-700 mt-2"></p>
+      </div>
+      <p id="modalDescription" class="text-gray-700 mb-4"></p>
+      <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+        <p class="text-sm font-semibold text-gray-700">Vendor Information</p>
+        <p id="modalVendor" class="text-sm text-gray-600"></p>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="addToCartFromModal()" class="flex-1 bg-indigo-600 text-white px-4 py-3 rounded-lg hover:bg-indigo-700 font-semibold">
+          Add to Cart
+        </button>
+        <button onclick="contactVendor()" class="flex-1 bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 font-semibold">
+          Contact Vendor
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIREBASE + MARKETPLACE LOGIC -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
+      authDomain: "online-mall-4422.firebaseapp.com",
+      databaseURL: "https://online-mall-4422-default-rtdb.firebaseio.com",
+      projectId: "online-mall-4422",
+      storageBucket: "online-mall-4422.appspot.com",
+      messagingSenderId: "947082232783",
+      appId: "1:947082232783:web:116206502e5fb38383c8ba"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    const itemsContainer = document.getElementById("itemsContainer");
+    const searchInput = document.getElementById("searchInput");
+    const categoryFilter = document.getElementById("categoryFilter");
+    const sortFilter = document.getElementById("sortFilter");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    let allItems = [];
+    let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    let selectedProduct = null;
+    let currentUser = null;
+
+    updateCartCount();
+
+    /* ---------------- AUTH CHECK ---------------- */
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      currentUser = user;
+      fetchMarketplace();
+    });
+
+    /* ---------------- FETCH ITEMS ---------------- */
+    function fetchMarketplace() {
+      db.ref("marketplace").on("value", snapshot => {
+        const data = snapshot.val() || {};
+        allItems = Object.keys(data).map(key => ({
+          id: key,
+          ...data[key]
+        }));
+
+        applyFilters();
+      });
+    }
+
+    /* ---------------- FILTER ---------------- */
+    function applyFilters() {
+      const search = searchInput.value.toLowerCase();
+      const category = categoryFilter.value;
+      const sort = sortFilter.value;
+
+      let filtered = allItems.filter(item => {
+        return (
+          (!search || item.title.toLowerCase().includes(search)) &&
+          (!category || item.category === category)
+        );
+      });
+
+      // Sort
+      if (sort === "price-low") {
+        filtered.sort((a, b) => a.price - b.price);
+      } else if (sort === "price-high") {
+        filtered.sort((a, b) => b.price - a.price);
+      } else {
+        filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      }
+
+      renderItems(filtered);
+    }
+
+    /* ---------------- RENDER ---------------- */
+    function renderItems(items) {
+      itemsContainer.innerHTML = "";
+
+      if (!items.length) {
+        itemsContainer.innerHTML = `
+          <div class="col-span-full text-center py-12">
+            <p class="text-gray-500 text-lg">No products found</p>
+            <p class="text-gray-400 text-sm mt-2">Try adjusting your filters</p>
+          </div>
+        `;
+        return;
+      }
+
+      items.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "bg-white/80 backdrop-blur rounded-2xl shadow-lg hover:shadow-xl transition cursor-pointer overflow-hidden";
+        card.onclick = () => openProductModal(item);
+
+        card.innerHTML = `
+          ${item.imageUrl ? `
+            <img src="${item.imageUrl}" class="w-full h-48 object-cover">
+          ` : `
+            <div class="w-full h-48 bg-gradient-to-br from-indigo-200 to-purple-200 flex items-center justify-center">
+              <span class="text-4xl">${item.category === 'Food' ? '🍽️' : item.category === 'Fashion' ? '👕' : '📦'}</span>
+            </div>
+          `}
+
+          <div class="p-4">
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="font-semibold text-lg text-indigo-700 line-clamp-1">${item.title}</h3>
+              <span class="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded-full">${item.category}</span>
+            </div>
+            <p class="text-sm text-gray-600 mb-3 line-clamp-2">${item.description}</p>
+
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-xl text-indigo-700">R ${parseFloat(item.price).toFixed(2)}</span>
+              <button onclick="event.stopPropagation(); addToCart('${item.id}')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 text-sm">
+                Add to Cart
+              </button>
+            </div>
+          </div>
+        `;
+
+        itemsContainer.appendChild(card);
+      });
+    }
+
+    /* ---------------- PRODUCT MODAL ---------------- */
+    async function openProductModal(product) {
+      selectedProduct = product;
+      
+      document.getElementById("modalTitle").textContent = product.title;
+      document.getElementById("modalDescription").textContent = product.description;
+      document.getElementById("modalPrice").textContent = `R ${parseFloat(product.price).toFixed(2)}`;
+      document.getElementById("modalCategory").textContent = product.category;
+      
+      if (product.imageUrl) {
+        document.getElementById("modalImage").src = product.imageUrl;
+        document.getElementById("modalImage").classList.remove("hidden");
+      } else {
+        document.getElementById("modalImage").classList.add("hidden");
+      }
+
+      // Fetch vendor info
+      if (product.vendorId) {
+        try {
+          const vendorSnap = await firebase.firestore().collection("users").doc(product.vendorId).get();
+          if (vendorSnap.exists) {
+            const vendor = vendorSnap.data();
+            document.getElementById("modalVendor").innerHTML = `
+              <strong>${vendor.businessName || vendor.fullName || "Vendor"}</strong><br>
+              ${vendor.phone || ""}<br>
+              ${vendor.address || ""}
+            `;
+          }
+        } catch (err) {
+          console.log("Could not load vendor info:", err);
+        }
+      }
+
+      document.getElementById("productModal").classList.remove("hidden");
+    }
+
+    function closeModal() {
+      document.getElementById("productModal").classList.add("hidden");
+      selectedProduct = null;
+    }
+
+    function addToCartFromModal() {
+      if (selectedProduct) {
+        addToCart(selectedProduct.id);
+        closeModal();
+      }
+    }
+
+    function contactVendor() {
+      if (selectedProduct && selectedProduct.vendorId) {
+        window.location.href = `chat.html?uid=${selectedProduct.vendorId}`;
+      } else {
+        alert("Vendor information not available");
+      }
+    }
+
+    /* ---------------- CART FUNCTIONS ---------------- */
+    function addToCart(itemId) {
+      const item = allItems.find(i => i.id === itemId);
+      if (!item) return;
+
+      const existingItem = cart.find(c => c.id === itemId);
+      
+      if (existingItem) {
+        existingItem.qty = (existingItem.qty || 1) + 1;
+      } else {
+        cart.push({
+          id: item.id,
+          title: item.title,
+          price: item.price,
+          imageUrl: item.imageUrl,
+          qty: 1
+        });
+      }
+
+      localStorage.setItem("cart", JSON.stringify(cart));
+      updateCartCount();
+      
+      // Show feedback
+      const toast = document.createElement("div");
+      toast.className = "fixed top-20 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50";
+      toast.textContent = "Added to cart!";
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 2000);
+    }
+
+    function updateCartCount() {
+      const count = cart.reduce((sum, item) => sum + (item.qty || 1), 0);
+      document.getElementById("cartCount").textContent = count;
+    }
+
+    function viewCart() {
+      window.location.href = "checkout.html";
+    }
+
+    /* ---------------- EVENTS ---------------- */
+    searchInput.addEventListener("input", applyFilters);
+    categoryFilter.addEventListener("change", applyFilters);
+    sortFilter.addEventListener("change", applyFilters);
+
+    logoutBtn.onclick = async () => {
+      await auth.signOut();
+      window.location.href = "login.html";
+    };
+
+    // Close modal on escape key
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeModal();
+    });
+  </script>
+
+</body>
+</html>

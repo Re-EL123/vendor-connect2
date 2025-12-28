@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Edit Post — Street Connect</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 min-h-screen p-4">
+  <div class="max-w-xl mx-auto bg-white/90 backdrop-blur p-6 rounded-2xl shadow-xl">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-semibold text-indigo-700">Edit Post</h2>
+      <button onclick="window.history.back()" class="text-gray-600 hover:text-indigo-600">← Back</button>
+    </div>
+
+    <form id="editPostForm" class="space-y-4">
+      <input
+        type="text"
+        id="title"
+        placeholder="Post Title"
+        class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+        required
+      />
+      <textarea
+        id="description"
+        placeholder="Post Description"
+        class="w-full p-3 border rounded-lg h-32 focus:ring-2 focus:ring-indigo-500"
+        required
+      ></textarea>
+      
+      <!-- Added province and city fields -->
+      <div class="flex gap-2">
+        <select id="province" class="flex-1 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500" required>
+          <option value="">Select Province</option>
+          <option value="Gauteng">Gauteng</option>
+          <option value="Western Cape">Western Cape</option>
+          <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+          <option value="Eastern Cape">Eastern Cape</option>
+          <option value="Free State">Free State</option>
+          <option value="Limpopo">Limpopo</option>
+          <option value="Mpumalanga">Mpumalanga</option>
+          <option value="North West">North West</option>
+          <option value="Northern Cape">Northern Cape</option>
+        </select>
+        <input
+          type="text"
+          id="city"
+          placeholder="City"
+          class="flex-1 p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+          required
+        />
+      </div>
+      
+      <input type="file" id="image" accept="image/*" class="w-full" />
+
+      <button
+        type="submit"
+        class="w-full bg-indigo-600 text-white px-4 py-3 rounded-lg hover:bg-indigo-700 font-semibold"
+      >
+        <span id="submitBtnText">Save Changes</span>
+      </button>
+    </form>
+
+    <div class="mt-6">
+      <h3 class="text-xl font-semibold text-indigo-700 mb-2">Preview</h3>
+      <div class="border p-4 mt-2 rounded-lg bg-gray-50">
+        <h4 id="previewTitle" class="text-lg font-bold text-indigo-700"></h4>
+        <p id="previewLocation" class="text-xs text-gray-500 mb-2"></p>
+        <p id="previewDescription" class="text-gray-700 mb-2"></p>
+        <img
+          id="previewImage"
+          src="/placeholder.svg"
+          alt="Image Preview"
+          class="max-h-64 rounded-lg hidden"
+        />
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      updateDoc,
+      serverTimestamp,
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import {
+      getStorage,
+      ref as storageRef,
+      uploadBytes,
+      getDownloadURL,
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
+      authDomain: "online-mall-4422.firebaseapp.com",
+      databaseURL: "https://online-mall-4422-default-rtdb.firebaseio.com",
+      projectId: "online-mall-4422",
+      storageBucket: "online-mall-4422.appspot.com",
+      messagingSenderId: "947082232783",
+      appId: "1:947082232783:web:116206502e5fb38383c8ba",
+      measurementId: "G-LNTNZQBGL8",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+    const auth = getAuth(app);
+
+    const postId = new URLSearchParams(window.location.search).get("id");
+    if (!postId) {
+      alert("No post ID provided.");
+      window.location.href = "feed.html";
+    }
+
+    const form = document.getElementById("editPostForm");
+    const titleInput = document.getElementById("title");
+    const descInput = document.getElementById("description");
+    const provinceInput = document.getElementById("province");
+    const cityInput = document.getElementById("city");
+    const imageInput = document.getElementById("image");
+
+    const previewTitle = document.getElementById("previewTitle");
+    const previewDesc = document.getElementById("previewDescription");
+    const previewLocation = document.getElementById("previewLocation");
+    const previewImage = document.getElementById("previewImage");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      const postDocRef = doc(db, "posts", postId);
+      const postSnap = await getDoc(postDocRef);
+
+      if (!postSnap.exists()) {
+        alert("Post not found.");
+        window.location.href = "feed.html";
+        return;
+      }
+
+      const post = postSnap.data();
+
+      if (post.authorId !== user.uid) {
+        alert("You can only edit your own posts.");
+        window.location.href = "feed.html";
+        return;
+      }
+
+      titleInput.value = post.title;
+      descInput.value = post.description;
+      provinceInput.value = post.province || "";
+      cityInput.value = post.city || "";
+
+      previewTitle.textContent = post.title;
+      previewDesc.textContent = post.description;
+      previewLocation.textContent = post.city && post.province ? `${post.city}, ${post.province}` : "";
+
+      if (post.imageURL) {
+        previewImage.src = post.imageURL;
+        previewImage.classList.remove("hidden");
+      }
+    });
+
+    // Live preview handlers
+    titleInput.addEventListener("input", () => {
+      previewTitle.textContent = titleInput.value;
+    });
+
+    descInput.addEventListener("input", () => {
+      previewDesc.textContent = descInput.value;
+    });
+
+    provinceInput.addEventListener("change", updateLocationPreview);
+    cityInput.addEventListener("input", updateLocationPreview);
+
+    function updateLocationPreview() {
+      const city = cityInput.value.trim();
+      const province = provinceInput.value;
+      previewLocation.textContent = city && province ? `${city}, ${province}` : "";
+    }
+
+    imageInput.addEventListener("change", () => {
+      const file = imageInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          previewImage.src = e.target.result;
+          previewImage.classList.remove("hidden");
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const user = auth.currentUser;
+      if (!user) {
+        alert("Not authenticated");
+        window.location.href = "login.html";
+        return;
+      }
+
+      const submitBtn = document.getElementById("submitBtnText");
+      submitBtn.textContent = "Saving...";
+
+      const title = titleInput.value.trim();
+      const description = descInput.value.trim();
+      const province = provinceInput.value;
+      const city = cityInput.value.trim();
+
+      let imageURL = previewImage.src || "";
+
+      // If a new file is selected, upload it
+      if (imageInput.files.length > 0) {
+        const file = imageInput.files[0];
+        const storageReference = storageRef(
+          storage,
+          `posts/${user.uid}/${Date.now()}_${file.name}`
+        );
+        await uploadBytes(storageReference, file);
+        imageURL = await getDownloadURL(storageReference);
+      }
+
+      try {
+        const postDocRef = doc(db, "posts", postId);
+        await updateDoc(postDocRef, {
+          title,
+          description,
+          province,
+          city,
+          imageURL,
+          updatedAt: serverTimestamp(),
+        });
+        alert("Post updated successfully.");
+        window.location.href = "feed.html";
+      } catch (error) {
+        alert("Error updating post: " + error.message);
+        submitBtn.textContent = "Save Changes";
+      }
+    });
+  </script>
+</body>
+</html>

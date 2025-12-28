@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Street Connect Feed</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- React CDNs (future-ready, unused) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <!-- Tailwind animation (same as index) -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          animation: {
+            fadeUp: "fadeUp 0.8s ease-out forwards"
+          },
+          keyframes: {
+            fadeUp: {
+              "0%": { opacity: "0", transform: "translateY(20px)" },
+              "100%": { opacity: "1", transform: "translateY(0)" }
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .skeleton {
+      animation: pulse 1.5s infinite;
+      background-color: #e2e8f0;
+      height: 13rem;
+      border-radius: 1rem;
+    }
+    @keyframes pulse {
+      0%,100% { opacity:1 }
+      50% { opacity:.4 }
+    }
+  </style>
+</head>
+
+<body class="bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 min-h-screen flex flex-col">
+
+<!-- HEADER -->
+<header class="p-4 flex justify-between items-center bg-white/80 backdrop-blur shadow">
+  <h1 class="text-xl font-extrabold text-indigo-700">Street Connect</h1>
+  <nav class="flex gap-4 text-sm">
+    <button onclick="window.location.href='inbox.html'">📥 Inbox</button>
+    <button onclick="window.location.href='settings.html'">⚙️ Settings</button>
+    <button onclick="window.location.href='dashboard.html'">📊 Dashboard</button>
+    <button id="createPostBtn" class="bg-indigo-600 text-white px-3 py-1 rounded-lg">+ Post</button>
+  </nav>
+</header>
+
+<!-- MAIN -->
+<section class="p-4 max-w-4xl mx-auto flex flex-col flex-grow pb-28 animate-fadeUp">
+
+  <!-- Filters -->
+  <div class="mb-4 flex gap-2 bg-white/70 backdrop-blur p-3 rounded-xl shadow">
+    <select id="provinceFilter" class="border p-2 rounded w-48">
+      <option value="">All Provinces</option>
+      <option value="Gauteng">Gauteng</option>
+      <option value="Western Cape">Western Cape</option>
+      <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+      <option value="Eastern Cape">Eastern Cape</option>
+      <option value="Free State">Free State</option>
+      <option value="Limpopo">Limpopo</option>
+      <option value="Mpumalanga">Mpumalanga</option>
+      <option value="North West">North West</option>
+      <option value="Northern Cape">Northern Cape</option>
+    </select>
+
+    <select id="cityFilter" class="border p-2 rounded w-48">
+      <option value="">All Cities</option>
+      <option value="Johannesburg">Johannesburg</option>
+      <option value="Cape Town">Cape Town</option>
+    </select>
+  </div>
+
+  <!-- Upload Form -->
+  <form id="postUploadForm" class="hidden bg-white/80 backdrop-blur p-5 rounded-2xl shadow mb-6">
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="font-semibold text-indigo-700">Create Post</h2>
+      <button type="button" onclick="hidePostForm()" class="text-gray-500 text-xl">&times;</button>
+    </div>
+    <input id="postTitle" class="w-full border p-2 mb-2 rounded" placeholder="Title" required />
+    <textarea id="postDescription" class="w-full border p-2 mb-2 rounded h-24" placeholder="What's on your mind?" required></textarea>
+    <input id="postImage" type="file" accept="image/*" class="mb-2 w-full" />
+    <div class="flex gap-2 mb-3">
+      <select id="postProvince" class="border p-2 rounded flex-1" required>
+        <option value="">Select Province</option>
+        <option value="Gauteng">Gauteng</option>
+        <option value="Western Cape">Western Cape</option>
+        <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+        <option value="Eastern Cape">Eastern Cape</option>
+        <option value="Free State">Free State</option>
+        <option value="Limpopo">Limpopo</option>
+        <option value="Mpumalanga">Mpumalanga</option>
+        <option value="North West">North West</option>
+        <option value="Northern Cape">Northern Cape</option>
+      </select>
+      <input id="postCity" class="border p-2 rounded flex-1" placeholder="City" required />
+    </div>
+    <button type="submit" class="bg-indigo-600 text-white px-5 py-2 rounded w-full hover:bg-indigo-700">
+      <span id="uploadBtnText">Upload Post</span>
+    </button>
+  </form>
+
+  <!-- POSTS -->
+  <div id="postsContainer" class="grid gap-6"></div>
+
+  <!-- PAGINATION -->
+  <div class="flex justify-center gap-4 mt-6">
+    <button id="prevBtn" disabled class="px-4 py-2 bg-gray-300 rounded">Previous</button>
+    <span id="pageNum">1</span>
+    <button id="nextBtn" class="px-4 py-2 bg-gray-300 rounded">Next</button>
+  </div>
+
+</section>
+
+<!-- BOTTOM NAV -->
+<nav class="fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur border-t shadow">
+  <div class="max-w-4xl mx-auto flex justify-around py-3 text-sm">
+    <a href="feed.html">🏠 Feed</a>
+    <a href="marketplace.html">🛒 Marketplace</a>
+    <a href="wallet.html">💳 Wallet</a>
+  </div>
+</nav>
+
+<!-- FIREBASE + LOGIC -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc, doc, getDoc, updateDoc, deleteDoc, serverTimestamp, increment, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
+  authDomain: "online-mall-4422.firebaseapp.com",
+  projectId: "online-mall-4422",
+});
+
+const db = getFirestore(app);
+const auth = getAuth(app);
+const storage = getStorage(app);
+
+const postsContainer = document.getElementById("postsContainer");
+const provinceFilter = document.getElementById("provinceFilter");
+const cityFilter = document.getElementById("cityFilter");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const pageNum = document.getElementById("pageNum");
+const postForm = document.getElementById("postUploadForm");
+const createPostBtn = document.getElementById("createPostBtn");
+
+let allPosts = [];
+let currentPage = 1;
+const pageSize = 5;
+let currentUser = null;
+
+onAuthStateChanged(auth, async user => {
+  if (!user) return location.href = "login.html";
+  currentUser = user;
+  await fetchAllPosts();
+  renderPosts();
+});
+
+async function fetchAllPosts() {
+  const snap = await getDocs(collection(db, "posts"));
+  allPosts = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+    .sort((a,b) => b.createdAt?.seconds - a.createdAt?.seconds);
+}
+
+function renderPosts() {
+  postsContainer.innerHTML = "";
+  let filtered = allPosts.filter(p =>
+    (!provinceFilter.value || p.province === provinceFilter.value) &&
+    (!cityFilter.value || p.city === cityFilter.value)
+  );
+
+  const start = (currentPage - 1) * pageSize;
+  const pagePosts = filtered.slice(start, start + pageSize);
+
+  if (pagePosts.length === 0) {
+    postsContainer.innerHTML = '<p class="text-center text-gray-500 col-span-full">No posts found. Create the first one!</p>';
+    pageNum.textContent = "1";
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+    return;
+  }
+
+  pagePosts.forEach(p => {
+    const isLiked = p.likes && Array.isArray(p.likes) && p.likes.includes(currentUser.uid);
+    const likesCount = p.likes ? p.likes.length : 0;
+    const commentsCount = p.commentsCount || 0;
+    const isOwner = p.authorId === currentUser.uid;
+
+    const card = document.createElement("div");
+    card.className = "bg-white p-5 rounded-xl shadow-lg";
+    card.innerHTML = `
+      <div class="flex justify-between items-start mb-3">
+        <div>
+          <h2 class="font-bold text-lg text-indigo-700">${p.title}</h2>
+          <p class="text-xs text-gray-500">${p.city}, ${p.province}</p>
+          <p class="text-xs text-gray-400">${new Date(p.createdAt?.seconds * 1000 || Date.now()).toLocaleDateString()}</p>
+        </div>
+        ${isOwner ? `
+          <div class="flex gap-2">
+            <button onclick="editPost('${p.id}')" class="text-blue-600 text-sm">Edit</button>
+            <button onclick="deletePost('${p.id}')" class="text-red-600 text-sm">Delete</button>
+          </div>
+        ` : ''}
+      </div>
+      <p class="text-sm text-gray-700 mb-3">${p.description}</p>
+      ${p.imageURL ? `<img src="${p.imageURL}" class="mt-2 rounded-lg w-full h-64 object-cover"/>` : ""}
+      
+      <div class="flex items-center gap-4 mt-4 pt-3 border-t">
+        <button onclick="toggleLike('${p.id}')" class="flex items-center gap-1 ${isLiked ? 'text-red-500' : 'text-gray-600'} hover:text-red-500">
+          <span>${isLiked ? '❤️' : '🤍'}</span>
+          <span class="text-sm">${likesCount}</span>
+        </button>
+        <button onclick="viewComments('${p.id}')" class="flex items-center gap-1 text-gray-600 hover:text-indigo-600">
+          <span>💬</span>
+          <span class="text-sm">${commentsCount}</span>
+        </button>
+        <button onclick="sharePost('${p.id}')" class="flex items-center gap-1 text-gray-600 hover:text-indigo-600">
+          <span>🔗</span>
+          <span class="text-sm">Share</span>
+        </button>
+      </div>
+    `;
+    postsContainer.appendChild(card);
+  });
+
+  pageNum.textContent = currentPage;
+  prevBtn.disabled = currentPage === 1;
+  nextBtn.disabled = start + pageSize >= filtered.length;
+}
+
+createPostBtn.onclick = () => {
+  postForm.classList.toggle("hidden");
+};
+
+window.hidePostForm = () => {
+  postForm.classList.add("hidden");
+};
+
+document.getElementById("postUploadForm").onsubmit = async (e) => {
+  e.preventDefault();
+  
+  const title = document.getElementById("postTitle").value.trim();
+  const description = document.getElementById("postDescription").value.trim();
+  const province = document.getElementById("postProvince").value;
+  const city = document.getElementById("postCity").value.trim();
+  const imageFile = document.getElementById("postImage").files[0];
+  
+  const uploadBtn = document.getElementById("uploadBtnText");
+  uploadBtn.textContent = "Uploading...";
+  
+  try {
+    let imageURL = null;
+    
+    if (imageFile) {
+      const storageRef = ref(storage, `posts/${currentUser.uid}/${Date.now()}_${imageFile.name}`);
+      await uploadBytes(storageRef, imageFile);
+      imageURL = await getDownloadURL(storageRef);
+    }
+    
+    await addDoc(collection(db, "posts"), {
+      title,
+      description,
+      province,
+      city,
+      imageURL,
+      authorId: currentUser.uid,
+      authorEmail: currentUser.email,
+      likes: [],
+      commentsCount: 0,
+      createdAt: serverTimestamp()
+    });
+    
+    alert("Post created successfully!");
+    postForm.reset();
+    postForm.classList.add("hidden");
+    await fetchAllPosts();
+    renderPosts();
+  } catch (error) {
+    console.error("Error creating post:", error);
+    alert("Failed to create post: " + error.message);
+  } finally {
+    uploadBtn.textContent = "Upload Post";
+  }
+};
+
+window.toggleLike = async (postId) => {
+  try {
+    const postRef = doc(db, "posts", postId);
+    const postSnap = await getDoc(postRef);
+    
+    if (!postSnap.exists()) return;
+    
+    const postData = postSnap.data();
+    const likes = postData.likes || [];
+    const isLiked = likes.includes(currentUser.uid);
+    
+    if (isLiked) {
+      await updateDoc(postRef, {
+        likes: arrayRemove(currentUser.uid)
+      });
+    } else {
+      await updateDoc(postRef, {
+        likes: arrayUnion(currentUser.uid)
+      });
+    }
+    
+    await fetchAllPosts();
+    renderPosts();
+  } catch (error) {
+    console.error("Error toggling like:", error);
+  }
+};
+
+window.deletePost = async (postId) => {
+  if (!confirm("Are you sure you want to delete this post?")) return;
+  
+  try {
+    await deleteDoc(doc(db, "posts", postId));
+    alert("Post deleted successfully!");
+    await fetchAllPosts();
+    renderPosts();
+  } catch (error) {
+    console.error("Error deleting post:", error);
+    alert("Failed to delete post");
+  }
+};
+
+window.editPost = (postId) => {
+  window.location.href = `edit-post.html?id=${postId}`;
+};
+
+window.viewComments = (postId) => {
+  window.location.href = `post-details.html?id=${postId}`;
+};
+
+window.sharePost = async (postId) => {
+  const url = `${window.location.origin}/post-details.html?id=${postId}`;
+  
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: 'Check out this post on Street Connect',
+        url: url
+      });
+    } catch (error) {
+      console.log("Share cancelled");
+    }
+  } else {
+    navigator.clipboard.writeText(url);
+    alert("Link copied to clipboard!");
+  }
+};
+
+prevBtn.onclick = () => { currentPage--; renderPosts(); };
+nextBtn.onclick = () => { currentPage++; renderPosts(); };
+provinceFilter.onchange = cityFilter.onchange = () => {
+  currentPage = 1;
+  renderPosts();
+};
+</script>
+
+</body>
+</html>

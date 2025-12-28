@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Street Connect — Wallet</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- React (future ready) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <!-- Tailwind Animation -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          animation: {
+            fadeUp: "fadeUp 0.6s ease-out forwards"
+          },
+          keyframes: {
+            fadeUp: {
+              "0%": { opacity: "0", transform: "translateY(20px)" },
+              "100%": { opacity: "1", transform: "translateY(0)" }
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-gradient-to-br from-indigo-100 via-blue-100 to-purple-100 min-h-screen flex flex-col">
+
+  <!-- HEADER -->
+  <header class="p-4 bg-white/80 backdrop-blur shadow flex justify-between items-center">
+    <h1 class="text-xl font-extrabold text-indigo-700">Street Connect</h1>
+    <button id="logoutBtn" class="text-sm text-gray-600 hover:text-indigo-600">Logout</button>
+  </header>
+
+  <!-- MAIN -->
+  <main class="flex-grow p-4 max-w-3xl mx-auto w-full animate-fadeUp">
+
+    <!-- WALLET CARD -->
+    <div class="bg-white/80 backdrop-blur rounded-2xl shadow p-6 mb-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-2">Wallet Balance</h2>
+      <p id="balance" class="text-4xl font-extrabold text-indigo-700">R 0.00</p>
+
+      <div class="flex gap-4 mt-4">
+        <button class="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700">
+          Deposit
+        </button>
+        <button class="flex-1 bg-gray-200 py-2 rounded-lg hover:bg-gray-300">
+          Withdraw
+        </button>
+      </div>
+    </div>
+
+    <!-- TRANSACTIONS -->
+    <div class="bg-white/80 backdrop-blur rounded-2xl shadow p-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-4">Transactions</h2>
+
+      <div id="transactions" class="space-y-3 text-sm text-gray-700">
+        <p class="text-gray-400 text-center">No transactions yet</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- BOTTOM NAV -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur border-t shadow">
+    <div class="max-w-3xl mx-auto flex justify-around py-3 text-sm font-medium">
+      <a href="feed.html" class="flex flex-col items-center hover:text-indigo-600">
+        🏠
+        <span>Feed</span>
+      </a>
+      <a href="marketplace.html" class="flex flex-col items-center hover:text-indigo-600">
+        🛒
+        <span>Marketplace</span>
+      </a>
+      <a href="wallet.html" class="flex flex-col items-center text-indigo-600">
+        💳
+        <span>Wallet</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- FIREBASE LOGIC -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
+      authDomain: "online-mall-4422.firebaseapp.com",
+      databaseURL: "https://online-mall-4422-default-rtdb.firebaseio.com",
+      projectId: "online-mall-4422",
+      storageBucket: "online-mall-4422.appspot.com",
+      messagingSenderId: "947082232783",
+      appId: "1:947082232783:web:116206502e5fb38383c8ba"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    const balanceEl = document.getElementById("balance");
+    const transactionsEl = document.getElementById("transactions");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      const uid = user.uid;
+
+      // Fetch wallet balance
+      db.ref(`users/${uid}/wallet/balance`).on("value", snap => {
+        const balance = snap.val() || 0;
+        balanceEl.textContent = `R ${Number(balance).toFixed(2)}`;
+      });
+
+      // Fetch transactions
+      db.ref(`transactions/${uid}`).on("value", snap => {
+        transactionsEl.innerHTML = "";
+
+        if (!snap.exists()) {
+          transactionsEl.innerHTML = `<p class="text-gray-400 text-center">No transactions yet</p>`;
+          return;
+        }
+
+        const txns = Object.values(snap.val());
+
+        txns
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .forEach(txn => {
+            const div = document.createElement("div");
+            div.className = "flex justify-between bg-gray-50 p-3 rounded-lg";
+
+            div.innerHTML = `
+              <span class="capitalize">${txn.type}</span>
+              <span class="font-semibold ${txn.type === 'deposit' ? 'text-green-600' : 'text-red-500'}">
+                ${txn.type === 'deposit' ? '+' : '-'}R ${txn.amount}
+              </span>
+            `;
+
+            transactionsEl.appendChild(div);
+          });
+      });
+    });
+
+    logoutBtn.onclick = async () => {
+      await auth.signOut();
+      window.location.href = "login.html";
+    };
+  </script>
+
+</body>
+</html>
