@@ -3,108 +3,126 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Street Connect - Inbox</title>
+  <title>Inbox - VendorConnect</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 min-h-screen">
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
 
-  <!-- HEADER -->
-  <header class="p-4 bg-white/80 backdrop-blur shadow">
-    <div class="max-w-4xl mx-auto flex justify-between items-center">
-      <h1 class="text-xl font-extrabold text-indigo-700">Street Connect</h1>
-      <button onclick="window.location.href='feed.html'" class="text-sm text-gray-600 hover:text-indigo-600">← Back to Feed</button>
+  <!-- Header -->
+  <header class="bg-white/90 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <button onclick="window.location.href='feed.html'" class="flex items-center gap-2 text-gray-600 hover:text-gray-800">
+        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        <span class="font-semibold">Back</span>
+      </button>
+      <h1 class="text-xl font-bold text-gray-800">Messages</h1>
+      <button onclick="window.location.href='search.html?tab=vendors'" class="flex items-center gap-2 text-blue-600 hover:text-blue-700">
+        <i data-lucide="plus-circle" class="w-5 h-5"></i>
+        <span class="font-semibold hidden sm:inline">New</span>
+      </button>
     </div>
   </header>
 
-  <!-- MAIN -->
-  <div class="max-w-4xl mx-auto py-8 px-4">
-    <div class="bg-white/80 backdrop-blur rounded-2xl shadow-xl p-6">
-      <h2 class="text-2xl font-bold text-indigo-700 mb-6">Your Messages</h2>
-      <div id="chatList" class="space-y-3">
-        <div class="text-center py-8">
-          <div class="animate-pulse">
+  <!-- Main -->
+  <div class="max-w-4xl mx-auto py-6 px-4">
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+      
+      <!-- Search -->
+      <div class="p-4 border-b border-gray-200">
+        <div class="relative">
+          <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+          <input type="text" id="searchInput" placeholder="Search conversations..." 
+            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+        </div>
+      </div>
+
+      <!-- Chat List -->
+      <div id="chatList" class="divide-y divide-gray-100">
+        <div class="text-center py-12">
+          <div class="animate-pulse space-y-3">
             <div class="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
+            <div class="h-4 bg-gray-200 rounded w-48 mx-auto"></div>
           </div>
-          <p class="text-gray-500 mt-2">Loading chats...</p>
+          <p class="text-gray-500 mt-4">Loading conversations...</p>
         </div>
       </div>
     </div>
   </div>
 
-  <script>
-    const firebaseConfig = {
+  <script type="module">
+    lucide.createIcons();
+    
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, collection, query, where, onSnapshot, doc, getDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const app = initializeApp({
       apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
       authDomain: "online-mall-4422.firebaseapp.com",
-      databaseURL: "https://online-mall-4422-default-rtdb.firebaseio.com",
-      projectId: "online-mall-4422",
-      storageBucket: "online-mall-4422.appspot.com",
-      messagingSenderId: "947082232783",
-      appId: "1:947082232783:web:116206502e5fb38383c8ba",
-      measurementId: "G-LNTNZQBGL8"
-    };
+      projectId: "online-mall-4422"
+    });
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
+    const auth = getAuth(app);
+    const db = getFirestore(app);
     const chatList = document.getElementById("chatList");
+    const searchInput = document.getElementById("searchInput");
+    
     let currentUser;
+    let allChats = [];
 
-    auth.onAuthStateChanged(async user => {
+    onAuthStateChanged(auth, async user => {
       if (!user) {
         window.location.href = "login.html";
         return;
       }
-
       currentUser = user;
-      try {
-        await loadChats();
-      } catch (err) {
-        console.error("Error loading chats:", err);
-        chatList.innerHTML = `<div class="text-center py-8"><p class="text-red-600">Failed to load chats: ${err.message}</p></div>`;
-      }
+      loadChats();
     });
 
-    async function loadChats() {
-      const chatsRef = db.collection("chats").where("users", "array-contains", currentUser.uid);
+    function loadChats() {
+      const chatsQuery = query(
+        collection(db, "chats"),
+        where("users", "array-contains", currentUser.uid)
+      );
       
-      chatsRef.onSnapshot(async snapshot => {
+      onSnapshot(chatsQuery, async snapshot => {
         if (snapshot.empty) {
           chatList.innerHTML = `
-            <div class="text-center py-12">
-              <div class="text-6xl mb-4">💬</div>
-              <p class="text-gray-600 text-lg">No conversations yet</p>
-              <p class="text-gray-500 text-sm mt-2">Start chatting with vendors from the marketplace</p>
+            <div class="text-center py-16 px-4">
+              <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="message-circle" class="w-10 h-10 text-blue-600"></i>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-800 mb-2">No conversations yet</h3>
+              <p class="text-gray-600 text-sm mb-6">Start chatting with businesses from the marketplace</p>
+              <button onclick="window.location.href='search.html?tab=vendors'" 
+                class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all">
+                <i data-lucide="search" class="w-5 h-5"></i>
+                Find Businesses
+              </button>
             </div>
           `;
+          lucide.createIcons();
           return;
         }
 
-        chatList.innerHTML = "";
-        
-        const chatPromises = snapshot.docs.map(async (doc) => {
-          const chat = doc.data();
+        const chatPromises = snapshot.docs.map(async (chatDoc) => {
+          const chat = { id: chatDoc.id, ...chatDoc.data() };
           const partnerId = chat.users.find(uid => uid !== currentUser.uid);
 
           try {
-            const partnerDoc = await db.collection("users").doc(partnerId).get();
-            const partner = partnerDoc.data() || {};
-
-            const partnerName = partner.businessName || partner.fullName || partner.name || "Unknown User";
-            const lastMessage = chat.lastMessage || "No messages yet";
-            const timestamp = chat.timestamp ? chat.timestamp.toDate() : new Date();
-            
-            const timeAgo = getTimeAgo(timestamp);
+            const partnerDoc = await getDoc(doc(db, "users", partnerId));
+            const partner = partnerDoc.exists() ? partnerDoc.data() : {};
 
             return {
+              id: chat.id,
               partnerId,
-              partnerName,
-              lastMessage,
-              timeAgo,
-              timestamp
+              partnerName: partner.businessName || partner.name || "Unknown User",
+              partnerCategory: partner.category || "",
+              partnerImage: partner.profileImage || "",
+              lastMessage: chat.lastMessage || "No messages yet",
+              timestamp: chat.timestamp?.toDate() || new Date(0),
+              unread: chat[`unread_${currentUser.uid}`] || 0
             };
           } catch (err) {
             console.warn("Could not load chat partner:", err);
@@ -112,50 +130,89 @@
           }
         });
 
-        const chats = (await Promise.all(chatPromises))
+        allChats = (await Promise.all(chatPromises))
           .filter(chat => chat !== null)
           .sort((a, b) => b.timestamp - a.timestamp);
 
-        chats.forEach(chat => {
-          const chatItem = document.createElement("div");
-          chatItem.className = "bg-white p-4 rounded-xl shadow hover:shadow-lg transition cursor-pointer border border-gray-100";
-          chatItem.onclick = () => window.location.href = `chat.html?uid=${chat.partnerId}`;
-
-          chatItem.innerHTML = `
-            <div class="flex items-center justify-between">
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-1">
-                  <div class="w-10 h-10 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
-                    ${chat.partnerName.charAt(0).toUpperCase()}
-                  </div>
-                  <div class="flex-1">
-                    <p class="font-semibold text-gray-800">${chat.partnerName}</p>
-                    <p class="text-sm text-gray-600 truncate">${chat.lastMessage}</p>
-                  </div>
-                </div>
-              </div>
-              <div class="text-right ml-4">
-                <p class="text-xs text-gray-400">${chat.timeAgo}</p>
-                <span class="text-indigo-600 text-xl">→</span>
-              </div>
-            </div>
-          `;
-
-          chatList.appendChild(chatItem);
-        });
+        renderChats(allChats);
       });
+    }
+
+    function renderChats(chats) {
+      if (chats.length === 0) {
+        chatList.innerHTML = `
+          <div class="text-center py-12 px-4">
+            <p class="text-gray-500">No conversations found</p>
+          </div>
+        `;
+        return;
+      }
+
+      chatList.innerHTML = "";
+      
+      chats.forEach(chat => {
+        const chatItem = document.createElement("div");
+        chatItem.className = "p-4 hover:bg-gray-50 transition cursor-pointer relative";
+        chatItem.onclick = () => window.location.href = `chat.html?uid=${chat.partnerId}`;
+
+        const timeAgo = getTimeAgo(chat.timestamp);
+        const initial = chat.partnerName.charAt(0).toUpperCase();
+
+        chatItem.innerHTML = `
+          <div class="flex items-start gap-3">
+            <div class="relative flex-shrink-0">
+              ${chat.partnerImage ? 
+                `<img src="${chat.partnerImage}" class="w-12 h-12 rounded-full object-cover" />` :
+                `<div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">${initial}</div>`
+              }
+              ${chat.unread > 0 ? `
+                <div class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                  ${chat.unread}
+                </div>
+              ` : ''}
+            </div>
+            
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between mb-1">
+                <div class="flex-1 min-w-0">
+                  <h3 class="font-semibold text-gray-800 truncate">${chat.partnerName}</h3>
+                  ${chat.partnerCategory ? `<p class="text-xs text-gray-500">${chat.partnerCategory}</p>` : ''}
+                </div>
+                <span class="text-xs text-gray-400 ml-2 flex-shrink-0">${timeAgo}</span>
+              </div>
+              <p class="text-sm text-gray-600 truncate">${chat.lastMessage}</p>
+            </div>
+            
+            <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400 flex-shrink-0"></i>
+          </div>
+        `;
+
+        chatList.appendChild(chatItem);
+      });
+      
+      lucide.createIcons();
     }
 
     function getTimeAgo(date) {
       const seconds = Math.floor((new Date() - date) / 1000);
       
       if (seconds < 60) return "Just now";
-      if (seconds < 3600) return Math.floor(seconds / 60) + "m ago";
-      if (seconds < 86400) return Math.floor(seconds / 3600) + "h ago";
-      if (seconds < 604800) return Math.floor(seconds / 86400) + "d ago";
+      if (seconds < 3600) return Math.floor(seconds / 60) + "m";
+      if (seconds < 86400) return Math.floor(seconds / 3600) + "h";
+      if (seconds < 604800) return Math.floor(seconds / 86400) + "d";
       
-      return date.toLocaleDateString();
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
+
+    searchInput.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      const filtered = allChats.filter(chat => 
+        chat.partnerName.toLowerCase().includes(searchTerm) ||
+        chat.lastMessage.toLowerCase().includes(searchTerm)
+      );
+      renderChats(filtered);
+    });
   </script>
+
 </body>
 </html>

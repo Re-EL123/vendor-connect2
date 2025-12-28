@@ -3,295 +3,434 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Profile - Street Connect</title>
+  <title>Profile - VendorConnect</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
-<body class="bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 min-h-screen">
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
 
-  <!-- HEADER -->
-  <header class="p-4 bg-white/80 backdrop-blur shadow">
-    <div class="max-w-4xl mx-auto flex justify-between items-center">
-      <h1 class="text-xl font-extrabold text-indigo-700">Street Connect</h1>
-      <button onclick="window.location.href='feed.html'" class="text-sm text-gray-600 hover:text-indigo-600">← Back to Feed</button>
+  <!-- Header -->
+  <header class="bg-white/90 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <button onclick="window.history.back()" class="flex items-center gap-2 text-gray-600 hover:text-gray-800">
+        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        <span class="font-semibold">Back</span>
+      </button>
+      <h1 class="text-xl font-bold text-gray-800">Profile</h1>
+      <div class="w-20"></div>
     </div>
   </header>
 
-  <!-- MAIN -->
-  <div class="max-w-4xl mx-auto p-4 py-8">
+  <div class="max-w-6xl mx-auto px-4 py-6">
     
     <!-- Profile Header -->
-    <div class="bg-white/80 backdrop-blur rounded-2xl shadow-xl p-6 mb-6">
-      <div class="flex items-center gap-6">
-        <div class="w-24 h-24 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center text-white text-4xl font-bold">
-          <span id="profileInitial">U</span>
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-6">
+      <div class="h-32 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+      <div class="px-6 pb-6">
+        <div class="flex items-end justify-between -mt-16 mb-4">
+          <div id="profileAvatar" class="w-32 h-32 bg-white rounded-full border-4 border-white shadow-lg flex items-center justify-center text-4xl font-bold text-white bg-gradient-to-br from-blue-600 to-purple-600">
+            U
+          </div>
+          <div id="actionButtons" class="flex gap-2 mb-2"></div>
         </div>
-        <div class="flex-1">
-          <h2 id="profileName" class="text-2xl font-bold text-indigo-700">Loading...</h2>
-          <p id="profileEmail" class="text-gray-600">loading@example.com</p>
-          <p id="profileType" class="text-sm text-indigo-600 mt-1">User Account</p>
+        
+        <div>
+          <h1 id="profileName" class="text-2xl font-bold text-gray-800 mb-1">Loading...</h1>
+          <p id="profileCategory" class="text-gray-600 mb-2"></p>
+          <p id="profileBio" class="text-gray-700 mb-3"></p>
+          
+          <div class="flex flex-wrap gap-4 text-sm text-gray-600">
+            <div class="flex items-center gap-1">
+              <i data-lucide="map-pin" class="w-4 h-4"></i>
+              <span id="profileLocation">—</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <i data-lucide="calendar" class="w-4 h-4"></i>
+              <span id="profileJoined">—</span>
+            </div>
+            <div id="profileContact" class="flex items-center gap-1"></div>
+          </div>
         </div>
-        <button onclick="window.location.href='settings.html'" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
-          Edit Profile
-        </button>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid md:grid-cols-3 gap-6">
       
-      <!-- User Stats -->
-      <div class="lg:col-span-1">
-        <div class="bg-white/80 backdrop-blur rounded-2xl shadow-xl p-6 mb-6">
-          <h3 class="text-lg font-semibold text-indigo-700 mb-4">Activity Stats</h3>
-          <div class="space-y-4">
-            <div>
-              <p class="text-sm text-gray-600">Posts Created</p>
-              <p id="statsPostsCount" class="text-2xl font-bold text-indigo-700">0</p>
+      <!-- Stats Sidebar -->
+      <aside class="md:col-span-1 space-y-6">
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+          <h3 class="font-bold text-gray-800 mb-4">Stats</h3>
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-gray-600">Posts</span>
+              <span id="statPosts" class="font-bold text-blue-600">0</span>
             </div>
-            <div>
-              <p class="text-sm text-gray-600">Total Likes Received</p>
-              <p id="statsLikesCount" class="text-2xl font-bold text-purple-700">0</p>
+            <div class="flex items-center justify-between">
+              <span class="text-gray-600">Followers</span>
+              <span id="statFollowers" class="font-bold text-purple-600">0</span>
             </div>
-            <div>
-              <p class="text-sm text-gray-600">Comments Made</p>
-              <p id="statsCommentsCount" class="text-2xl font-bold text-blue-700">0</p>
+            <div class="flex items-center justify-between">
+              <span class="text-gray-600">Likes</span>
+              <span id="statLikes" class="font-bold text-pink-600">0</span>
             </div>
           </div>
         </div>
-
-        <!-- Quick Actions -->
-        <div class="bg-white/80 backdrop-blur rounded-2xl shadow-xl p-6">
-          <h3 class="text-lg font-semibold text-indigo-700 mb-4">Quick Actions</h3>
-          <div class="space-y-2">
-            <button onclick="window.location.href='feed.html'" class="w-full bg-indigo-100 text-indigo-700 px-4 py-2 rounded-lg hover:bg-indigo-200 text-left">
-              📝 Create Post
-            </button>
-            <button onclick="window.location.href='marketplace.html'" class="w-full bg-purple-100 text-purple-700 px-4 py-2 rounded-lg hover:bg-purple-200 text-left">
-              🛒 Browse Marketplace
-            </button>
-            <button onclick="window.location.href='wallet.html'" class="w-full bg-blue-100 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-200 text-left">
-              💳 View Wallet
-            </button>
-            <button onclick="window.location.href='inbox.html'" class="w-full bg-green-100 text-green-700 px-4 py-2 rounded-lg hover:bg-green-200 text-left">
-              💬 Messages
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- User Posts & Activity -->
-      <div class="lg:col-span-2">
         
+        <div id="catalogSection" class="hidden bg-white rounded-2xl shadow-lg p-6">
+          <h3 class="font-bold text-gray-800 mb-4">Catalog</h3>
+          <div id="catalogItems" class="space-y-3">
+            <p class="text-sm text-gray-500">No products yet</p>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="md:col-span-2">
         <!-- Tabs -->
-        <div class="bg-white/80 backdrop-blur rounded-t-2xl shadow-xl p-4">
-          <div class="flex gap-4 border-b">
-            <button onclick="switchTab('posts')" id="tabPosts" class="pb-2 px-4 font-semibold border-b-2 border-indigo-600 text-indigo-600">
-              My Posts
-            </button>
-            <button onclick="switchTab('liked')" id="tabLiked" class="pb-2 px-4 font-semibold text-gray-600 hover:text-indigo-600">
-              Liked Posts
-            </button>
-          </div>
-        </div>
-
-        <!-- Tab Content -->
-        <div class="bg-white/80 backdrop-blur rounded-b-2xl shadow-xl p-6">
-          
-          <!-- My Posts Tab -->
-          <div id="contentPosts">
-            <div id="userPosts" class="space-y-4">
-              <p class="text-gray-500 text-center py-8">Loading your posts...</p>
-            </div>
+        <div class="bg-white rounded-2xl shadow-lg mb-6">
+          <div class="border-b border-gray-200">
+            <nav class="flex">
+              <button onclick="switchTab('posts')" data-tab="posts" 
+                class="tab-btn border-b-2 border-blue-600 text-blue-600 px-6 py-4 font-semibold">
+                Posts
+              </button>
+              <button onclick="switchTab('media')" data-tab="media" 
+                class="tab-btn border-b-2 border-transparent text-gray-600 hover:text-gray-800 px-6 py-4 font-semibold">
+                Media
+              </button>
+            </nav>
           </div>
 
-          <!-- Liked Posts Tab -->
-          <div id="contentLiked" class="hidden">
-            <div id="likedPosts" class="space-y-4">
-              <p class="text-gray-500 text-center py-8">Loading liked posts...</p>
+          <!-- Tab Content -->
+          <div class="p-6">
+            <!-- Posts Tab -->
+            <div id="postsTab" class="tab-content">
+              <div id="postsList" class="space-y-4">
+                <p class="text-center text-gray-500 py-8">Loading posts...</p>
+              </div>
+            </div>
+
+            <!-- Media Tab -->
+            <div id="mediaTab" class="tab-content hidden">
+              <div id="mediaGrid" class="grid grid-cols-3 gap-3">
+                <p class="col-span-3 text-center text-gray-500 py-8">Loading media...</p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   </div>
 
-  <script>
-    const firebaseConfig = {
+  <script type="module">
+    lucide.createIcons();
+    
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, collection, query, where, getDocs, doc, getDoc, setDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const app = initializeApp({
       apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
       authDomain: "online-mall-4422.firebaseapp.com",
-      databaseURL: "https://online-mall-4422-default-rtdb.firebaseio.com",
-      projectId: "online-mall-4422",
-      storageBucket: "online-mall-4422.appspot.com",
-      messagingSenderId: "947082232783",
-      appId: "1:947082232783:web:116206502e5fb38383c8ba",
-      measurementId: "G-LNTNZQBGL8"
-    };
+      projectId: "online-mall-4422"
+    });
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-    const realtimeDb = firebase.database();
-
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const profileUid = urlParams.get("uid");
+    
     let currentUser = null;
+    let profileData = null;
     let userPosts = [];
-    let likedPosts = [];
+    let isOwnProfile = false;
+    let isFollowing = false;
 
-    auth.onAuthStateChanged(async user => {
+    onAuthStateChanged(auth, async user => {
       if (!user) {
         window.location.href = "login.html";
         return;
       }
       currentUser = user;
+      isOwnProfile = !profileUid || profileUid === currentUser.uid;
+      
       await loadProfile();
+      await loadPosts();
+      await loadStats();
     });
 
     async function loadProfile() {
-      // Load user data
-      const userDoc = await db.collection("users").doc(currentUser.uid).get();
-      let userData = { email: currentUser.email };
+      const uid = profileUid || currentUser.uid;
+      const userDoc = await getDoc(doc(db, "users", uid));
       
-      if (userDoc.exists) {
-        userData = { ...userData, ...userDoc.data() };
+      if (!userDoc.exists()) {
+        alert("User not found");
+        window.location.href = "feed.html";
+        return;
       }
-
-      // Also try realtime database
-      const rtdbSnap = await realtimeDb.ref(`users/${currentUser.uid}`).once("value");
-      if (rtdbSnap.exists()) {
-        userData = { ...userData, ...rtdbSnap.val() };
-      }
-
-      // Update profile display
-      const name = userData.fullName || userData.name || userData.businessName || "User";
-      document.getElementById("profileName").textContent = name;
-      document.getElementById("profileEmail").textContent = userData.email;
-      document.getElementById("profileInitial").textContent = name.charAt(0).toUpperCase();
       
-      if (userData.isVendor) {
-        document.getElementById("profileType").textContent = `Vendor - ${userData.subscriptionType || 'basic'} plan`;
+      profileData = { uid, ...userDoc.data() };
+      
+      // Update UI
+      const name = profileData.businessName || profileData.name || "User";
+      const initial = name.charAt(0).toUpperCase();
+      
+      document.getElementById('profileName').textContent = name;
+      document.getElementById('profileAvatar').textContent = initial;
+      
+      if (profileData.category) {
+        document.getElementById('profileCategory').textContent = profileData.category;
       }
-
-      // Load posts
-      await loadUserPosts();
-      await loadLikedPosts();
-      updateStats();
+      
+      if (profileData.businessDescription) {
+        document.getElementById('profileBio').textContent = profileData.businessDescription;
+      }
+      
+      if (profileData.city && profileData.province) {
+        document.getElementById('profileLocation').textContent = `${profileData.city}, ${profileData.province}`;
+      }
+      
+      if (profileData.createdAt) {
+        const date = new Date(profileData.createdAt.seconds * 1000);
+        document.getElementById('profileJoined').textContent = `Joined ${date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
+      }
+      
+      if (profileData.phone) {
+        document.getElementById('profileContact').innerHTML = `
+          <i data-lucide="phone" class="w-4 h-4"></i>
+          <span>${profileData.phone}</span>
+        `;
+      }
+      
+      // Action buttons
+      const actionButtons = document.getElementById('actionButtons');
+      
+      if (isOwnProfile) {
+        actionButtons.innerHTML = `
+          <button onclick="window.location.href='settings.html'" 
+            class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2">
+            <i data-lucide="settings" class="w-4 h-4"></i>
+            Edit Profile
+          </button>
+        `;
+      } else {
+        // Check if following
+        const followDoc = await getDoc(doc(db, "follows", `${currentUser.uid}_${uid}`));
+        isFollowing = followDoc.exists();
+        
+        actionButtons.innerHTML = `
+          <button onclick="toggleFollow()" id="followBtn"
+            class="px-4 py-2 ${isFollowing ? 'bg-gray-200 text-gray-800' : 'bg-blue-600 text-white'} rounded-lg hover:opacity-90 transition-colors flex items-center gap-2">
+            <i data-lucide="${isFollowing ? 'user-check' : 'user-plus'}" class="w-4 h-4"></i>
+            ${isFollowing ? 'Following' : 'Follow'}
+          </button>
+          <button onclick="window.location.href='chat.html?uid=${uid}'" 
+            class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2">
+            <i data-lucide="message-circle" class="w-4 h-4"></i>
+            Message
+          </button>
+        `;
+      }
+      
+      // Show catalog for vendors
+      if (profileData.isVendor) {
+        document.getElementById('catalogSection').classList.remove('hidden');
+        await loadCatalog(uid);
+      }
+      
+      lucide.createIcons();
     }
 
-    async function loadUserPosts() {
-      const postsSnap = await db.collection("posts")
-        .where("authorId", "==", currentUser.uid)
-        .get();
+    async function loadPosts() {
+      const uid = profileUid || currentUser.uid;
+      const postsQuery = query(collection(db, "posts"), where("uid", "==", uid));
+      const postsSnap = await getDocs(postsQuery);
       
-      userPosts = postsSnap.docs.map(d => ({ id: d.id, ...d.data() }))
-        .sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds);
-
-      renderUserPosts();
+      userPosts = [];
+      for (const postDoc of postsSnap.docs) {
+        const post = { id: postDoc.id, ...postDoc.data() };
+        userPosts.push(post);
+      }
+      
+      userPosts.sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds);
+      
+      renderPosts();
+      renderMedia();
     }
 
-    async function loadLikedPosts() {
-      const allPostsSnap = await db.collection("posts").get();
-      
-      likedPosts = allPostsSnap.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .filter(post => post.likes && post.likes.includes(currentUser.uid))
-        .sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds);
-
-      renderLikedPosts();
-    }
-
-    function renderUserPosts() {
-      const container = document.getElementById("userPosts");
+    function renderPosts() {
+      const container = document.getElementById('postsList');
       
       if (userPosts.length === 0) {
         container.innerHTML = `
           <div class="text-center py-12">
-            <p class="text-6xl mb-4">📝</p>
-            <p class="text-gray-500 text-lg mb-4">You haven't created any posts yet</p>
-            <button onclick="window.location.href='feed.html'" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">
-              Create Your First Post
-            </button>
+            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i data-lucide="file-text" class="w-8 h-8 text-gray-400"></i>
+            </div>
+            <p class="text-gray-600">${isOwnProfile ? 'You haven\'t' : 'This user hasn\'t'} created any posts yet</p>
           </div>
         `;
+        lucide.createIcons();
         return;
       }
-
-      container.innerHTML = userPosts.map(post => `
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <div class="flex justify-between items-start mb-2">
-            <h3 class="font-semibold text-indigo-700">${post.title}</h3>
-            <button onclick="window.location.href='edit-post.html?id=${post.id}'" class="text-blue-600 text-sm hover:underline">
-              Edit
-            </button>
+      
+      container.innerHTML = '';
+      
+      userPosts.forEach(post => {
+        const postCard = document.createElement('div');
+        postCard.className = 'bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-colors cursor-pointer';
+        postCard.onclick = () => window.location.href = `post-details.html?id=${post.id}`;
+        
+        postCard.innerHTML = `
+          ${post.imageURL ? `<img src="${post.imageURL}" class="w-full h-48 object-cover rounded-lg mb-3" />` : ''}
+          <p class="text-gray-700 mb-3">${post.description || post.title || ''}</p>
+          <div class="flex items-center gap-4 text-sm text-gray-600">
+            <span class="flex items-center gap-1">
+              <i data-lucide="heart" class="w-4 h-4"></i>
+              ${(post.likes || []).length}
+            </span>
+            <span class="flex items-center gap-1">
+              <i data-lucide="message-circle" class="w-4 h-4"></i>
+              ${post.commentsCount || 0}
+            </span>
+            <span class="text-xs text-gray-500 ml-auto">
+              ${new Date(post.createdAt?.seconds * 1000).toLocaleDateString()}
+            </span>
           </div>
-          <p class="text-sm text-gray-600 mb-2">${post.description}</p>
-          <div class="flex gap-4 text-sm text-gray-500">
-            <span>❤️ ${post.likes?.length || 0} likes</span>
-            <span>💬 ${post.commentsCount || 0} comments</span>
-            <span>📍 ${post.city}, ${post.province}</span>
-          </div>
-        </div>
-      `).join('');
+        `;
+        
+        container.appendChild(postCard);
+      });
+      
+      lucide.createIcons();
     }
 
-    function renderLikedPosts() {
-      const container = document.getElementById("likedPosts");
+    function renderMedia() {
+      const container = document.getElementById('mediaGrid');
+      const mediaPosts = userPosts.filter(p => p.imageURL);
       
-      if (likedPosts.length === 0) {
+      if (mediaPosts.length === 0) {
         container.innerHTML = `
-          <div class="text-center py-12">
-            <p class="text-6xl mb-4">❤️</p>
-            <p class="text-gray-500 text-lg">You haven't liked any posts yet</p>
+          <div class="col-span-3 text-center py-12">
+            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i data-lucide="image" class="w-8 h-8 text-gray-400"></i>
+            </div>
+            <p class="text-gray-600">No media posts</p>
           </div>
         `;
+        lucide.createIcons();
         return;
       }
-
-      container.innerHTML = likedPosts.map(post => `
-        <div class="bg-gray-50 p-4 rounded-lg cursor-pointer hover:bg-gray-100" onclick="window.location.href='post-details.html?id=${post.id}'">
-          <h3 class="font-semibold text-indigo-700 mb-2">${post.title}</h3>
-          <p class="text-sm text-gray-600 mb-2">${post.description}</p>
-          <div class="flex gap-4 text-sm text-gray-500">
-            <span>❤️ ${post.likes?.length || 0} likes</span>
-            <span>💬 ${post.commentsCount || 0} comments</span>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function updateStats() {
-      document.getElementById("statsPostsCount").textContent = userPosts.length;
       
-      const totalLikes = userPosts.reduce((sum, post) => sum + (post.likes?.length || 0), 0);
-      document.getElementById("statsLikesCount").textContent = totalLikes;
-
-      // Count total comments made by user (would need to traverse all post comments)
-      document.getElementById("statsCommentsCount").textContent = "—";
+      container.innerHTML = '';
+      
+      mediaPosts.forEach(post => {
+        const mediaItem = document.createElement('div');
+        mediaItem.className = 'aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity';
+        mediaItem.onclick = () => window.location.href = `post-details.html?id=${post.id}`;
+        
+        mediaItem.innerHTML = `
+          <img src="${post.imageURL}" class="w-full h-full object-cover" />
+        `;
+        
+        container.appendChild(mediaItem);
+      });
     }
 
-    function switchTab(tab) {
-      // Update tab buttons
-      document.getElementById("tabPosts").classList.remove("border-b-2", "border-indigo-600", "text-indigo-600");
-      document.getElementById("tabPosts").classList.add("text-gray-600");
-      document.getElementById("tabLiked").classList.remove("border-b-2", "border-indigo-600", "text-indigo-600");
-      document.getElementById("tabLiked").classList.add("text-gray-600");
+    async function loadStats() {
+      const uid = profileUid || currentUser.uid;
+      
+      // Posts count
+      document.getElementById('statPosts').textContent = userPosts.length;
+      
+      // Followers count
+      const followersQuery = query(collection(db, "follows"), where("vendorId", "==", uid));
+      const followersSnap = await getDocs(followersQuery);
+      document.getElementById('statFollowers').textContent = followersSnap.size;
+      
+      // Total likes
+      const totalLikes = userPosts.reduce((sum, p) => sum + ((p.likes || []).length), 0);
+      document.getElementById('statLikes').textContent = totalLikes;
+    }
 
-      // Update content
-      document.getElementById("contentPosts").classList.add("hidden");
-      document.getElementById("contentLiked").classList.add("hidden");
-
-      if (tab === "posts") {
-        document.getElementById("tabPosts").classList.add("border-b-2", "border-indigo-600", "text-indigo-600");
-        document.getElementById("tabPosts").classList.remove("text-gray-600");
-        document.getElementById("contentPosts").classList.remove("hidden");
-      } else {
-        document.getElementById("tabLiked").classList.add("border-b-2", "border-indigo-600", "text-indigo-600");
-        document.getElementById("tabLiked").classList.remove("text-gray-600");
-        document.getElementById("contentLiked").classList.remove("hidden");
+    async function loadCatalog(uid) {
+      const vendorDoc = await getDoc(doc(db, "vendors", uid));
+      
+      if (!vendorDoc.exists()) return;
+      
+      const productsQuery = query(collection(db, `vendors/${uid}/products`));
+      const productsSnap = await getDocs(productsQuery);
+      
+      const container = document.getElementById('catalogItems');
+      
+      if (productsSnap.empty) {
+        container.innerHTML = '<p class="text-sm text-gray-500">No products yet</p>';
+        return;
       }
+      
+      container.innerHTML = '';
+      
+      productsSnap.docs.slice(0, 5).forEach(prodDoc => {
+        const product = prodDoc.data();
+        const item = document.createElement('div');
+        item.className = 'flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer';
+        item.onclick = () => window.location.href = `marketplace.html?vendor=${uid}`;
+        
+        item.innerHTML = `
+          ${product.imageURL ? 
+            `<img src="${product.imageURL}" class="w-12 h-12 rounded-lg object-cover" />` :
+            `<div class="w-12 h-12 bg-gray-200 rounded-lg"></div>`
+          }
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-gray-800 truncate">${product.name}</p>
+            <p class="text-xs text-gray-600">R${product.price}</p>
+          </div>
+        `;
+        
+        container.appendChild(item);
+      });
     }
+
+    window.toggleFollow = async () => {
+      const uid = profileUid || currentUser.uid;
+      const followId = `${currentUser.uid}_${uid}`;
+      
+      try {
+        if (isFollowing) {
+          await deleteDoc(doc(db, "follows", followId));
+          isFollowing = false;
+        } else {
+          await setDoc(doc(db, "follows", followId), {
+            uid: currentUser.uid,
+            vendorId: uid,
+            timestamp: serverTimestamp()
+          });
+          isFollowing = true;
+        }
+        
+        await loadProfile();
+        await loadStats();
+      } catch (error) {
+        console.error('Error toggling follow:', error);
+        alert('Failed to update follow status');
+      }
+    };
+
+    window.switchTab = function(tabName) {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('border-blue-600', 'text-blue-600');
+        btn.classList.add('border-transparent', 'text-gray-600');
+      });
+      document.querySelector(`[data-tab="${tabName}"]`).classList.remove('border-transparent', 'text-gray-600');
+      document.querySelector(`[data-tab="${tabName}"]`).classList.add('border-blue-600', 'text-blue-600');
+      
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.add('hidden');
+      });
+      document.getElementById(`${tabName}Tab`).classList.remove('hidden');
+    };
   </script>
 
 </body>

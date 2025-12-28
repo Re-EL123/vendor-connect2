@@ -3,125 +3,637 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Street Link - Admin Dashboard</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <title>Admin Dashboard - VendorConnect</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-gray-100 text-gray-900">
-  <div class="max-w-5xl mx-auto py-10 px-4">
-    <h1 class="text-4xl font-bold text-center mb-10">Admin Dashboard</h1>
-    <div id="loginContainer" class="max-w-md mx-auto bg-white p-6 rounded shadow">
-      <h2 class="text-2xl font-semibold mb-4">Admin Login</h2>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+
+  <!-- Login Container -->
+  <div id="loginContainer" class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8">
+      <div class="text-center mb-8">
+        <div class="w-16 h-16 bg-gradient-to-r from-red-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="shield" class="w-8 h-8 text-white"></i>
+        </div>
+        <h1 class="text-2xl font-extrabold text-gray-800">Admin Access</h1>
+        <p class="text-sm text-gray-600 mt-2">VendorConnect Management Portal</p>
+      </div>
+      
       <form id="loginForm" class="space-y-4">
-        <input type="email" id="adminEmail" placeholder="Admin Email" class="w-full p-3 border rounded" required>
-        <input type="password" id="adminPassword" placeholder="Password" class="w-full p-3 border rounded" required>
-        <button type="submit" class="w-full bg-green-600 text-white p-3 rounded hover:bg-green-700">Login</button>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input type="email" id="adminEmail" required
+            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            placeholder="admin@vendorconnect.com" />
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <input type="password" id="adminPassword" required
+            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            placeholder="••••••••" />
+        </div>
+        
+        <button type="submit" 
+          class="w-full bg-gradient-to-r from-red-600 to-pink-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2">
+          <i data-lucide="lock-keyhole" class="w-5 h-5"></i>
+          Login
+        </button>
       </form>
+      
+      <p id="loginError" class="text-red-500 text-sm mt-4 text-center hidden"></p>
     </div>
-    <div class="text-right mt-4 hidden" id="logoutSection">
-      <button onclick="logout()" class="text-sm text-red-600 underline">Logout</button>
-    </div>
-    <div id="vendorList" class="space-y-6 hidden"></div>
   </div>
 
-  <script>
-    const firebaseConfig = {
+  <!-- Admin Dashboard -->
+  <div id="dashboardContainer" class="hidden">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-gradient-to-r from-red-600 to-pink-600 rounded-lg flex items-center justify-center">
+            <i data-lucide="shield" class="w-6 h-6 text-white"></i>
+          </div>
+          <div>
+            <h1 class="text-xl font-bold text-gray-800">Admin Dashboard</h1>
+            <p id="adminName" class="text-xs text-gray-500"></p>
+          </div>
+        </div>
+        
+        <button onclick="logout()" 
+          class="flex items-center gap-2 text-red-600 hover:text-red-700 font-semibold">
+          <i data-lucide="log-out" class="w-5 h-5"></i>
+          Logout
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 py-6">
+      
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-sm font-medium text-gray-600">Total Users</h3>
+            <i data-lucide="users" class="w-5 h-5 text-blue-600"></i>
+          </div>
+          <p id="totalUsers" class="text-3xl font-bold text-gray-800">0</p>
+          <p class="text-xs text-gray-500 mt-1">Registered accounts</p>
+        </div>
+        
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-sm font-medium text-gray-600">Active Vendors</h3>
+            <i data-lucide="store" class="w-5 h-5 text-purple-600"></i>
+          </div>
+          <p id="activeVendors" class="text-3xl font-bold text-gray-800">0</p>
+          <p class="text-xs text-gray-500 mt-1">Approved businesses</p>
+        </div>
+        
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-sm font-medium text-gray-600">Total Posts</h3>
+            <i data-lucide="file-text" class="w-5 h-5 text-green-600"></i>
+          </div>
+          <p id="totalPosts" class="text-3xl font-bold text-gray-800">0</p>
+          <p class="text-xs text-gray-500 mt-1">Content created</p>
+        </div>
+        
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-sm font-medium text-gray-600">Pending Approvals</h3>
+            <i data-lucide="clock" class="w-5 h-5 text-orange-600"></i>
+          </div>
+          <p id="pendingApprovals" class="text-3xl font-bold text-gray-800">0</p>
+          <p class="text-xs text-gray-500 mt-1">Awaiting review</p>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="bg-white rounded-2xl shadow-lg mb-6">
+        <div class="border-b border-gray-200">
+          <nav class="flex -mb-px">
+            <button onclick="switchTab('users')" data-tab="users" 
+              class="tab-btn border-b-2 border-blue-600 text-blue-600 px-6 py-4 font-semibold flex items-center gap-2">
+              <i data-lucide="users" class="w-5 h-5"></i>
+              Users
+            </button>
+            <button onclick="switchTab('vendors')" data-tab="vendors" 
+              class="tab-btn border-b-2 border-transparent text-gray-600 hover:text-gray-800 px-6 py-4 font-semibold flex items-center gap-2">
+              <i data-lucide="store" class="w-5 h-5"></i>
+              Vendors
+            </button>
+            <button onclick="switchTab('posts')" data-tab="posts" 
+              class="tab-btn border-b-2 border-transparent text-gray-600 hover:text-gray-800 px-6 py-4 font-semibold flex items-center gap-2">
+              <i data-lucide="file-text" class="w-5 h-5"></i>
+              Posts
+            </button>
+            <button onclick="switchTab('reports')" data-tab="reports" 
+              class="tab-btn border-b-2 border-transparent text-gray-600 hover:text-gray-800 px-6 py-4 font-semibold flex items-center gap-2">
+              <i data-lucide="flag" class="w-5 h-5"></i>
+              Reports
+            </button>
+          </nav>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="p-6">
+          <!-- Users Tab -->
+          <div id="usersTab" class="tab-content">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-xl font-bold text-gray-800">User Management</h2>
+              <input type="text" id="usersSearch" placeholder="Search users..." 
+                class="px-4 py-2 border border-gray-300 rounded-xl w-64" />
+            </div>
+            <div id="usersList" class="space-y-3">
+              <p class="text-center text-gray-500 py-8">Loading users...</p>
+            </div>
+          </div>
+
+          <!-- Vendors Tab -->
+          <div id="vendorsTab" class="tab-content hidden">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-xl font-bold text-gray-800">Vendor Approvals</h2>
+              <select id="vendorFilter" class="px-4 py-2 border border-gray-300 rounded-xl">
+                <option value="all">All Vendors</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+            <div id="vendorsList" class="space-y-3">
+              <p class="text-center text-gray-500 py-8">Loading vendors...</p>
+            </div>
+          </div>
+
+          <!-- Posts Tab -->
+          <div id="postsTab" class="tab-content hidden">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-xl font-bold text-gray-800">Content Management</h2>
+              <input type="text" id="postsSearch" placeholder="Search posts..." 
+                class="px-4 py-2 border border-gray-300 rounded-xl w-64" />
+            </div>
+            <div id="postsList" class="space-y-3">
+              <p class="text-center text-gray-500 py-8">Loading posts...</p>
+            </div>
+          </div>
+
+          <!-- Reports Tab -->
+          <div id="reportsTab" class="tab-content hidden">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-xl font-bold text-gray-800">User Reports</h2>
+              <select id="reportFilter" class="px-4 py-2 border border-gray-300 rounded-xl">
+                <option value="all">All Reports</option>
+                <option value="pending">Pending</option>
+                <option value="reviewed">Reviewed</option>
+                <option value="resolved">Resolved</option>
+              </select>
+            </div>
+            <div id="reportsList" class="space-y-3">
+              <p class="text-center text-gray-500 py-8">Loading reports...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    lucide.createIcons();
+    
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const app = initializeApp({
       apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
       authDomain: "online-mall-4422.firebaseapp.com",
-      databaseURL: "https://online-mall-4422-default-rtdb.firebaseio.com",
-      projectId: "online-mall-4422",
-      storageBucket: "online-mall-4422.appspot.com",
-      messagingSenderId: "947082232783",
-      appId: "1:947082232783:web:116206502e5fb38383c8ba",
-      measurementId: "G-LNTNZQBGL8"
-    };
+      projectId: "online-mall-4422"
+    });
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    const ADMIN_UIDS = ["1t4KXsqAPEUoRthpvxGM2kO0dT52"];
+    let currentAdmin = null;
+    let allUsers = [];
+    let allVendors = [];
+    let allPosts = [];
+    let allReports = [];
 
-    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+    // Login
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = document.getElementById("adminEmail").value;
-      const password = document.getElementById("adminPassword").value;
-
+      const email = document.getElementById('adminEmail').value;
+      const password = document.getElementById('adminPassword').value;
+      const errorEl = document.getElementById('loginError');
+      
       try {
-        const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        const uid = userCredential.user.uid;
-        if (!ADMIN_UIDS.includes(uid)) {
-          alert("Access denied. Not an authorized admin.");
-          auth.signOut();
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+        
+        if (userDoc.exists() && userDoc.data().role === 'admin') {
+          document.getElementById('loginContainer').classList.add('hidden');
+          document.getElementById('dashboardContainer').classList.remove('hidden');
+          await loadDashboard();
         } else {
-          document.getElementById("loginContainer").classList.add("hidden");
-          document.getElementById("logoutSection").classList.remove("hidden");
-          document.getElementById("vendorList").classList.remove("hidden");
-          loadVendors();
+          errorEl.textContent = "Access denied. Admin role required.";
+          errorEl.classList.remove('hidden');
+          await signOut(auth);
         }
       } catch (error) {
-        alert("Login failed: " + error.message);
+        errorEl.textContent = "Login failed: " + error.message;
+        errorEl.classList.remove('hidden');
       }
     });
 
-    async function loadVendors() {
-      const vendorList = document.getElementById("vendorList");
-      vendorList.innerHTML = "<p>Loading vendors...</p>";
-
-      const querySnapshot = await db.collection("vendors").orderBy("createdAt", "desc").get();
-      vendorList.innerHTML = "";
-
-      for (const doc of querySnapshot.docs) {
-        const data = doc.data();
-        const subSnap = await db.collection("subscriptions").doc(data.uid).get();
-        const subData = subSnap.exists ? subSnap.data() : {};
-
-        const vendorCard = document.createElement("div");
-        vendorCard.className = "bg-white p-4 rounded shadow";
-        vendorCard.innerHTML = `
-          <div class="flex justify-between items-center mb-2">
-            <h2 class="text-xl font-semibold">${data.name}</h2>
-            <span class="text-sm text-gray-500">${data.category}</span>
-          </div>
-          <p class="text-sm text-gray-600 mb-2">${data.description}</p>
-          <p class="text-sm mb-2">📞 ${data.phone} | ✉️ ${data.email}</p>
-          <p class="text-sm mb-2">Approval: ${data.isApproved ? '✅ Approved' : '⏳ Pending'}</p>
-          <p class="text-sm mb-2">Subscription: ${data.subscriptionStatus}</p>
-          ${subData.paymentProofURL ? `<a href="${subData.paymentProofURL}" target="_blank" class="text-blue-600 text-sm underline mb-2 inline-block">View Payment Proof</a>` : '<p class="text-sm text-gray-400">No payment proof uploaded.</p>'}
-          <div class="flex space-x-2 mt-2">
-            <button onclick="approveVendor('${data.uid}')" class="bg-green-600 text-white px-4 py-2 rounded">Approve</button>
-            <button onclick="rejectVendor('${data.uid}')" class="bg-red-600 text-white px-4 py-2 rounded">Reject</button>
-          </div>
-        `;
-        vendorList.appendChild(vendorCard);
+    onAuthStateChanged(auth, async user => {
+      if (user) {
+        currentAdmin = user;
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists() && userDoc.data().role === 'admin') {
+          document.getElementById('adminName').textContent = userDoc.data().name || user.email;
+        }
       }
+    });
+
+    async function loadDashboard() {
+      await loadStats();
+      await loadUsers();
+      lucide.createIcons();
     }
 
-    async function approveVendor(uid) {
-      await db.collection("vendors").doc(uid).update({
+    async function loadStats() {
+      // Total Users
+      const usersSnap = await getDocs(collection(db, "users"));
+      document.getElementById('totalUsers').textContent = usersSnap.size;
+      
+      // Active Vendors
+      const vendorsQuery = query(collection(db, "vendors"), where("isApproved", "==", true));
+      const vendorsSnap = await getDocs(vendorsQuery);
+      document.getElementById('activeVendors').textContent = vendorsSnap.size;
+      
+      // Total Posts
+      const postsSnap = await getDocs(collection(db, "posts"));
+      document.getElementById('totalPosts').textContent = postsSnap.size;
+      
+      // Pending Approvals
+      const pendingQuery = query(collection(db, "vendors"), where("isApproved", "==", false));
+      const pendingSnap = await getDocs(pendingQuery);
+      document.getElementById('pendingApprovals').textContent = pendingSnap.size;
+    }
+
+    async function loadUsers() {
+      const usersSnap = await getDocs(collection(db, "users"));
+      allUsers = usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderUsers(allUsers);
+    }
+
+    function renderUsers(users) {
+      const container = document.getElementById('usersList');
+      container.innerHTML = '';
+      
+      if (users.length === 0) {
+        container.innerHTML = '<p class="text-center text-gray-500 py-8">No users found</p>';
+        return;
+      }
+      
+      users.forEach(user => {
+        const userCard = document.createElement('div');
+        userCard.className = 'bg-gray-50 rounded-xl p-4 flex items-center justify-between';
+        userCard.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+              ${(user.name || 'U').charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <h3 class="font-semibold text-gray-800">${user.name || 'Unknown'}</h3>
+              <p class="text-sm text-gray-600">${user.email}</p>
+              <div class="flex items-center gap-2 mt-1">
+                <span class="text-xs px-2 py-1 rounded-full ${user.role === 'admin' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}">
+                  ${user.role || 'basic'}
+                </span>
+                <span class="text-xs px-2 py-1 rounded-full ${user.isVendor ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700'}">
+                  ${user.subscriptionType || 'basic'}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="viewUser('${user.id}')" class="text-blue-600 hover:text-blue-700">
+              <i data-lucide="eye" class="w-5 h-5"></i>
+            </button>
+            ${user.role !== 'admin' ? `
+              <button onclick="deleteUser('${user.id}')" class="text-red-600 hover:text-red-700">
+                <i data-lucide="trash-2" class="w-5 h-5"></i>
+              </button>
+            ` : ''}
+          </div>
+        `;
+        container.appendChild(userCard);
+      });
+      
+      lucide.createIcons();
+    }
+
+    window.switchTab = async function(tabName) {
+      // Update tab buttons
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('border-blue-600', 'text-blue-600');
+        btn.classList.add('border-transparent', 'text-gray-600');
+      });
+      document.querySelector(`[data-tab="${tabName}"]`).classList.remove('border-transparent', 'text-gray-600');
+      document.querySelector(`[data-tab="${tabName}"]`).classList.add('border-blue-600', 'text-blue-600');
+      
+      // Update tab content
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.add('hidden');
+      });
+      document.getElementById(`${tabName}Tab`).classList.remove('hidden');
+      
+      // Load data
+      if (tabName === 'vendors' && allVendors.length === 0) await loadVendors();
+      if (tabName === 'posts' && allPosts.length === 0) await loadPosts();
+      if (tabName === 'reports' && allReports.length === 0) await loadReports();
+      
+      lucide.createIcons();
+    };
+
+    async function loadVendors() {
+      const vendorsSnap = await getDocs(collection(db, "vendors"));
+      allVendors = vendorsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderVendors(allVendors);
+    }
+
+    function renderVendors(vendors) {
+      const container = document.getElementById('vendorsList');
+      container.innerHTML = '';
+      
+      if (vendors.length === 0) {
+        container.innerHTML = '<p class="text-center text-gray-500 py-8">No vendors found</p>';
+        return;
+      }
+      
+      vendors.forEach(vendor => {
+        const statusColor = vendor.isApproved ? 'green' : vendor.subscriptionStatus === 'rejected' ? 'red' : 'yellow';
+        const vendorCard = document.createElement('div');
+        vendorCard.className = 'bg-gray-50 rounded-xl p-4';
+        vendorCard.innerHTML = `
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex-1">
+              <h3 class="font-bold text-gray-800 text-lg">${vendor.name}</h3>
+              <p class="text-sm text-gray-600 mb-2">${vendor.description || 'No description'}</p>
+              <div class="flex flex-wrap gap-2 text-sm">
+                <span class="text-gray-600"><i data-lucide="tag" class="w-4 h-4 inline"></i> ${vendor.category}</span>
+                <span class="text-gray-600"><i data-lucide="phone" class="w-4 h-4 inline"></i> ${vendor.phone}</span>
+                <span class="text-gray-600"><i data-lucide="mail" class="w-4 h-4 inline"></i> ${vendor.email}</span>
+              </div>
+            </div>
+            <span class="text-xs px-3 py-1 rounded-full bg-${statusColor}-100 text-${statusColor}-700 font-semibold">
+              ${vendor.isApproved ? 'Approved' : vendor.subscriptionStatus === 'rejected' ? 'Rejected' : 'Pending'}
+            </span>
+          </div>
+          <div class="flex gap-2">
+            ${!vendor.isApproved && vendor.subscriptionStatus !== 'rejected' ? `
+              <button onclick="approveVendor('${vendor.id}')" 
+                class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2">
+                <i data-lucide="check" class="w-4 h-4"></i>
+                Approve
+              </button>
+              <button onclick="rejectVendor('${vendor.id}')" 
+                class="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2">
+                <i data-lucide="x" class="w-4 h-4"></i>
+                Reject
+              </button>
+            ` : ''}
+            <button onclick="deleteVendor('${vendor.id}')" 
+              class="px-4 py-2 border border-red-600 text-red-600 rounded-lg hover:bg-red-50 transition-colors flex items-center gap-2">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(vendorCard);
+      });
+      
+      lucide.createIcons();
+    }
+
+    async function loadPosts() {
+      const postsSnap = await getDocs(query(collection(db, "posts"), orderBy("createdAt", "desc")));
+      allPosts = [];
+      
+      for (const postDoc of postsSnap.docs) {
+        const post = { id: postDoc.id, ...postDoc.data() };
+        const authorDoc = await getDoc(doc(db, "users", post.uid));
+        if (authorDoc.exists()) {
+          post.authorName = authorDoc.data().name;
+        }
+        allPosts.push(post);
+      }
+      
+      renderPosts(allPosts);
+    }
+
+    function renderPosts(posts) {
+      const container = document.getElementById('postsList');
+      container.innerHTML = '';
+      
+      if (posts.length === 0) {
+        container.innerHTML = '<p class="text-center text-gray-500 py-8">No posts found</p>';
+        return;
+      }
+      
+      posts.forEach(post => {
+        const postCard = document.createElement('div');
+        postCard.className = 'bg-gray-50 rounded-xl p-4';
+        postCard.innerHTML = `
+          <div class="flex items-start gap-3">
+            ${post.imageURL ? `<img src="${post.imageURL}" class="w-20 h-20 rounded-lg object-cover" />` : ''}
+            <div class="flex-1">
+              <p class="text-sm text-gray-700 mb-2">${post.description || post.title || 'No content'}</p>
+              <p class="text-xs text-gray-500">By ${post.authorName || 'Unknown'} • ${new Date(post.createdAt?.seconds * 1000).toLocaleDateString()}</p>
+              <div class="flex gap-4 mt-2 text-xs text-gray-600">
+                <span><i data-lucide="heart" class="w-4 h-4 inline"></i> ${(post.likes || []).length}</span>
+                <span><i data-lucide="eye" class="w-4 h-4 inline"></i> ${post.views || 0}</span>
+              </div>
+            </div>
+            <button onclick="deletePost('${post.id}')" class="text-red-600 hover:text-red-700">
+              <i data-lucide="trash-2" class="w-5 h-5"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(postCard);
+      });
+      
+      lucide.createIcons();
+    }
+
+    async function loadReports() {
+      const reportsSnap = await getDocs(collection(db, "reports"));
+      allReports = reportsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderReports(allReports);
+    }
+
+    function renderReports(reports) {
+      const container = document.getElementById('reportsList');
+      container.innerHTML = '';
+      
+      if (reports.length === 0) {
+        container.innerHTML = '<p class="text-center text-gray-500 py-8">No reports found</p>';
+        return;
+      }
+      
+      reports.forEach(report => {
+        const reportCard = document.createElement('div');
+        reportCard.className = 'bg-gray-50 rounded-xl p-4';
+        reportCard.innerHTML = `
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <h3 class="font-semibold text-gray-800 mb-1">${report.reason}</h3>
+              <p class="text-sm text-gray-600 mb-2">${report.description}</p>
+              <p class="text-xs text-gray-500">Target: ${report.targetType} • Status: ${report.status}</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="resolveReport('${report.id}')" 
+                class="text-green-600 hover:text-green-700">
+                <i data-lucide="check-circle" class="w-5 h-5"></i>
+              </button>
+              <button onclick="deleteReport('${report.id}')" 
+                class="text-red-600 hover:text-red-700">
+                <i data-lucide="trash-2" class="w-5 h-5"></i>
+              </button>
+            </div>
+          </div>
+        `;
+        container.appendChild(reportCard);
+      });
+      
+      lucide.createIcons();
+    }
+
+    // Actions
+    window.approveVendor = async (id) => {
+      if (!confirm('Approve this vendor?')) return;
+      await updateDoc(doc(db, "vendors", id), {
         isApproved: true,
         subscriptionStatus: "active"
       });
-      alert("Vendor approved.");
-      loadVendors();
-    }
+      await updateDoc(doc(db, "users", id), {
+        isVendor: true
+      });
+      await addDoc(collection(db, "admin_logs"), {
+        adminId: currentAdmin.uid,
+        action: "approve_vendor",
+        targetId: id,
+        timestamp: serverTimestamp()
+      });
+      alert('Vendor approved');
+      await loadVendors();
+      await loadStats();
+    };
 
-    async function rejectVendor(uid) {
-      await db.collection("vendors").doc(uid).update({
+    window.rejectVendor = async (id) => {
+      if (!confirm('Reject this vendor?')) return;
+      await updateDoc(doc(db, "vendors", id), {
         isApproved: false,
         subscriptionStatus: "rejected"
       });
-      alert("Vendor rejected.");
-      loadVendors();
-    }
-
-    function logout() {
-      auth.signOut().then(() => {
-        window.location.reload();
+      await addDoc(collection(db, "admin_logs"), {
+        adminId: currentAdmin.uid,
+        action: "reject_vendor",
+        targetId: id,
+        timestamp: serverTimestamp()
       });
-    }
+      alert('Vendor rejected');
+      await loadVendors();
+    };
+
+    window.deleteUser = async (id) => {
+      if (!confirm('Delete this user? This action cannot be undone.')) return;
+      await deleteDoc(doc(db, "users", id));
+      await addDoc(collection(db, "admin_logs"), {
+        adminId: currentAdmin.uid,
+        action: "delete_user",
+        targetId: id,
+        timestamp: serverTimestamp()
+      });
+      alert('User deleted');
+      await loadUsers();
+      await loadStats();
+    };
+
+    window.deleteVendor = async (id) => {
+      if (!confirm('Delete this vendor? This action cannot be undone.')) return;
+      await deleteDoc(doc(db, "vendors", id));
+      alert('Vendor deleted');
+      await loadVendors();
+      await loadStats();
+    };
+
+    window.deletePost = async (id) => {
+      if (!confirm('Delete this post?')) return;
+      await deleteDoc(doc(db, "posts", id));
+      await addDoc(collection(db, "admin_logs"), {
+        adminId: currentAdmin.uid,
+        action: "delete_post",
+        targetId: id,
+        timestamp: serverTimestamp()
+      });
+      alert('Post deleted');
+      await loadPosts();
+      await loadStats();
+    };
+
+    window.resolveReport = async (id) => {
+      await updateDoc(doc(db, "reports", id), {
+        status: "resolved",
+        resolvedAt: serverTimestamp(),
+        resolvedBy: currentAdmin.uid
+      });
+      alert('Report resolved');
+      await loadReports();
+    };
+
+    window.deleteReport = async (id) => {
+      await deleteDoc(doc(db, "reports", id));
+      alert('Report deleted');
+      await loadReports();
+    };
+
+    window.logout = async () => {
+      await signOut(auth);
+      window.location.reload();
+    };
+
+    // Search and Filters
+    document.getElementById('usersSearch').addEventListener('input', (e) => {
+      const term = e.target.value.toLowerCase();
+      const filtered = allUsers.filter(u => 
+        u.name?.toLowerCase().includes(term) || 
+        u.email?.toLowerCase().includes(term)
+      );
+      renderUsers(filtered);
+    });
+
+    document.getElementById('vendorFilter').addEventListener('change', (e) => {
+      const filter = e.target.value;
+      const filtered = filter === 'all' ? allVendors : 
+        filter === 'pending' ? allVendors.filter(v => !v.isApproved && v.subscriptionStatus !== 'rejected') :
+        filter === 'approved' ? allVendors.filter(v => v.isApproved) :
+        allVendors.filter(v => v.subscriptionStatus === 'rejected');
+      renderVendors(filtered);
+    });
+
+    document.getElementById('postsSearch').addEventListener('input', (e) => {
+      const term = e.target.value.toLowerCase();
+      const filtered = allPosts.filter(p => 
+        p.description?.toLowerCase().includes(term) ||
+        p.authorName?.toLowerCase().includes(term)
+      );
+      renderPosts(filtered);
+    });
   </script>
+
 </body>
 </html>

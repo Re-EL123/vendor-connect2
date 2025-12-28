@@ -3,48 +3,76 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Post Details - Street Connect</title>
+  <title>Post Details - VendorConnect</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
-<body class="bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 min-h-screen">
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
 
-<header class="p-4 bg-white/80 backdrop-blur shadow">
-  <div class="max-w-4xl mx-auto flex justify-between items-center">
-    <h1 class="text-xl font-extrabold text-indigo-700">Street Connect</h1>
-    <button onclick="window.history.back()" class="text-sm text-gray-600 hover:text-indigo-600">← Back</button>
+<header class="bg-white/90 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50">
+  <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+    <button onclick="window.history.back()" class="flex items-center gap-2 text-gray-600 hover:text-gray-800">
+      <i data-lucide="arrow-left" class="w-5 h-5"></i>
+      <span class="font-semibold">Back</span>
+    </button>
+    <h1 class="text-xl font-bold text-gray-800">Post</h1>
+    <div class="w-20"></div>
   </div>
 </header>
 
-<main class="p-4 max-w-4xl mx-auto">
-  <div id="postContainer" class="bg-white rounded-xl shadow-lg p-6 mb-6">
-    <p class="text-center text-gray-500">Loading post...</p>
+<main class="p-4 max-w-4xl mx-auto pb-20">
+  <!-- Post Container -->
+  <div id="postContainer" class="bg-white rounded-2xl shadow-xl p-6 mb-6">
+    <div class="text-center py-12">
+      <div class="animate-pulse">
+        <div class="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
+      </div>
+      <p class="text-gray-500 mt-4">Loading post...</p>
+    </div>
   </div>
 
-  <div class="bg-white rounded-xl shadow-lg p-6">
-    <h2 class="text-lg font-semibold mb-4">Comments</h2>
+  <!-- Comments Section -->
+  <div class="bg-white rounded-2xl shadow-xl p-6">
+    <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+      <i data-lucide="message-circle" class="w-6 h-6 text-blue-600"></i>
+      Comments
+    </h2>
     
-    <form id="commentForm" class="mb-6">
-      <textarea
-        id="commentText"
-        placeholder="Write a comment..."
-        class="w-full border rounded-lg p-3 mb-2 h-20"
-        required
-      ></textarea>
-      <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
-        Post Comment
-      </button>
+    <!-- Enhanced comment form with better styling -->
+    <form id="commentForm" class="mb-8">
+      <div class="flex gap-3">
+        <div id="userAvatar" class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold flex-shrink-0">
+          U
+        </div>
+        <div class="flex-1">
+          <textarea
+            id="commentText"
+            placeholder="Write a comment..."
+            class="w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            rows="3"
+            required
+          ></textarea>
+          <button type="submit" 
+            class="mt-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center gap-2">
+            <i data-lucide="send" class="w-4 h-4"></i>
+            Post Comment
+          </button>
+        </div>
+      </div>
     </form>
 
     <div id="commentsContainer" class="space-y-4">
-      <p class="text-gray-500 text-center">No comments yet</p>
+      <p class="text-gray-500 text-center py-8">No comments yet. Be the first to comment!</p>
     </div>
   </div>
 </main>
 
 <script type="module">
+lucide.createIcons();
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, getDoc, collection, addDoc, getDocs, serverTimestamp, updateDoc, increment, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc, collection, addDoc, getDocs, serverTimestamp, updateDoc, increment, query, orderBy, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const app = initializeApp({
@@ -59,10 +87,20 @@ const auth = getAuth(app);
 const urlParams = new URLSearchParams(window.location.search);
 const postId = urlParams.get("id");
 let currentUser = null;
+let postData = null;
 
 onAuthStateChanged(auth, async user => {
   if (!user) return location.href = "login.html";
   currentUser = user;
+  
+  // Set user avatar
+  const userDoc = await getDoc(doc(db, "users", user.uid));
+  if (userDoc.exists()) {
+    const userData = userDoc.data();
+    const initial = (userData.name || 'U').charAt(0).toUpperCase();
+    document.getElementById('userAvatar').textContent = initial;
+  }
+  
   await loadPost();
   await loadComments();
 });
@@ -73,65 +111,189 @@ async function loadPost() {
     const postSnap = await getDoc(postRef);
     
     if (!postSnap.exists()) {
-      document.getElementById("postContainer").innerHTML = '<p class="text-red-500 text-center">Post not found</p>';
+      document.getElementById("postContainer").innerHTML = `
+        <div class="text-center py-12">
+          <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i data-lucide="alert-circle" class="w-8 h-8 text-red-600"></i>
+          </div>
+          <p class="text-red-600 font-semibold">Post not found</p>
+        </div>
+      `;
+      lucide.createIcons();
       return;
     }
     
-    const post = postSnap.data();
-    const likesCount = post.likes ? post.likes.length : 0;
-    const commentsCount = post.commentsCount || 0;
+    postData = { id: postId, ...postSnap.data() };
+    
+    let authorName = "Unknown User";
+    let authorCategory = "";
+    
+    if (postData.uid) {
+      const authorDoc = await getDoc(doc(db, "users", postData.uid));
+      if (authorDoc.exists()) {
+        const authorData = authorDoc.data();
+        authorName = authorData.businessName || authorData.name || "Unknown User";
+        authorCategory = authorData.category || "";
+      }
+    }
+    
+    const isLiked = postData.likes && postData.likes.includes(currentUser.uid);
+    const likesCount = postData.likes ? postData.likes.length : 0;
+    const commentsCount = postData.commentsCount || 0;
+    const isOwner = postData.uid === currentUser.uid;
+    const authorInitial = authorName.charAt(0).toUpperCase();
     
     document.getElementById("postContainer").innerHTML = `
-      <div class="mb-4">
-        <h1 class="text-2xl font-bold text-indigo-700 mb-2">${post.title}</h1>
-        <p class="text-sm text-gray-500">${post.city}, ${post.province}</p>
-        <p class="text-xs text-gray-400">${new Date(post.createdAt?.seconds * 1000 || Date.now()).toLocaleDateString()}</p>
+      <!-- Author Header -->
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='profile.html?uid=${postData.uid}'">
+          <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+            ${authorInitial}
+          </div>
+          <div>
+            <h3 class="font-bold text-gray-800">${authorName}</h3>
+            ${authorCategory ? `<p class="text-sm text-gray-500">${authorCategory}</p>` : ''}
+            <p class="text-xs text-gray-400">${new Date(postData.createdAt?.seconds * 1000 || Date.now()).toLocaleDateString()}</p>
+          </div>
+        </div>
+        ${isOwner ? `
+          <button onclick="deletePost()" class="text-red-600 hover:text-red-700 p-2">
+            <i data-lucide="trash-2" class="w-5 h-5"></i>
+          </button>
+        ` : ''}
       </div>
       
-      ${post.imageURL ? `<img src="${post.imageURL}" class="rounded-lg w-full mb-4" />` : ''}
+      <!-- Post Content -->
+      <div class="mb-4">
+        <p class="text-gray-700 leading-relaxed whitespace-pre-wrap">${postData.description || postData.title || ''}</p>
+      </div>
       
-      <p class="text-gray-700 mb-4 leading-relaxed">${post.description}</p>
+      ${postData.imageURL ? `
+        <img src="${postData.imageURL}" class="rounded-xl w-full mb-4 cursor-pointer" 
+          onclick="window.open('${postData.imageURL}', '_blank')" />
+      ` : ''}
       
-      <div class="flex gap-4 pt-3 border-t">
-        <span class="text-gray-600">❤️ ${likesCount} likes</span>
-        <span class="text-gray-600">💬 ${commentsCount} comments</span>
+      <!-- Location -->
+      ${postData.city && postData.province ? `
+        <div class="flex items-center gap-1 text-sm text-gray-500 mb-4">
+          <i data-lucide="map-pin" class="w-4 h-4"></i>
+          <span>${postData.city}, ${postData.province}</span>
+        </div>
+      ` : ''}
+      
+      <!-- Actions -->
+      <div class="flex items-center gap-6 pt-4 border-t border-gray-100">
+        <button onclick="toggleLike()" id="likeBtn"
+          class="flex items-center gap-2 ${isLiked ? 'text-red-500' : 'text-gray-600'} hover:text-red-500 transition-colors">
+          <i data-lucide="heart" class="w-5 h-5 ${isLiked ? 'fill-current' : ''}"></i>
+          <span class="font-medium" id="likesCount">${likesCount}</span>
+        </button>
+        <button onclick="document.getElementById('commentText').focus()" 
+          class="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors">
+          <i data-lucide="message-circle" class="w-5 h-5"></i>
+          <span class="font-medium" id="commentsCountDisplay">${commentsCount}</span>
+        </button>
+        <button onclick="sharePost()" 
+          class="flex items-center gap-2 text-gray-600 hover:text-purple-600 transition-colors ml-auto">
+          <i data-lucide="share-2" class="w-5 h-5"></i>
+        </button>
       </div>
     `;
+    
+    lucide.createIcons();
   } catch (error) {
     console.error("Error loading post:", error);
-    document.getElementById("postContainer").innerHTML = '<p class="text-red-500 text-center">Error loading post</p>';
+    document.getElementById("postContainer").innerHTML = `
+      <div class="text-center py-12">
+        <p class="text-red-500">Error loading post</p>
+      </div>
+    `;
   }
 }
 
 async function loadComments() {
   try {
-    const commentsRef = collection(db, "posts", postId, "comments");
-    const q = query(commentsRef, orderBy("createdAt", "desc"));
-    const snapshot = await getDocs(q);
+    const commentsQuery = query(
+      collection(db, "comments"),
+      orderBy("timestamp", "desc")
+    );
+    const snapshot = await getDocs(commentsQuery);
     
     const container = document.getElementById("commentsContainer");
     
-    if (snapshot.empty) {
-      container.innerHTML = '<p class="text-gray-500 text-center">No comments yet. Be the first to comment!</p>';
+    // Filter comments for this post
+    const postComments = [];
+    for (const commentDoc of snapshot.docs) {
+      const comment = commentDoc.data();
+      if (comment.postId === postId) {
+        // Fetch commenter info
+        if (comment.userId) {
+          const userDoc = await getDoc(doc(db, "users", comment.userId));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            comment.userName = userData.businessName || userData.name || "Unknown User";
+          }
+        }
+        postComments.push({ id: commentDoc.id, ...comment });
+      }
+    }
+    
+    if (postComments.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-8">
+          <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i data-lucide="message-circle" class="w-8 h-8 text-gray-400"></i>
+          </div>
+          <p class="text-gray-600">No comments yet</p>
+          <p class="text-sm text-gray-500 mt-1">Be the first to comment!</p>
+        </div>
+      `;
+      lucide.createIcons();
       return;
     }
     
     container.innerHTML = "";
     
-    snapshot.forEach(doc => {
-      const comment = doc.data();
+    postComments.forEach(comment => {
       const div = document.createElement("div");
-      div.className = "bg-gray-50 p-4 rounded-lg";
+      div.className = "bg-gray-50 rounded-xl p-4";
+      
+      const initial = (comment.userName || 'U').charAt(0).toUpperCase();
+      const timeAgo = getTimeAgo(comment.timestamp?.toDate());
+      
       div.innerHTML = `
-        <p class="text-sm font-semibold text-indigo-700 mb-1">${comment.authorEmail}</p>
-        <p class="text-gray-700">${comment.text}</p>
-        <p class="text-xs text-gray-400 mt-1">${new Date(comment.createdAt?.seconds * 1000 || Date.now()).toLocaleString()}</p>
+        <div class="flex gap-3">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold flex-shrink-0">
+            ${initial}
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <p class="font-semibold text-gray-800">${comment.userName || 'Unknown User'}</p>
+              <span class="text-xs text-gray-400">${timeAgo}</span>
+            </div>
+            <p class="text-gray-700">${comment.comment}</p>
+          </div>
+        </div>
       `;
       container.appendChild(div);
     });
+    
+    lucide.createIcons();
   } catch (error) {
     console.error("Error loading comments:", error);
   }
+}
+
+function getTimeAgo(date) {
+  if (!date) return '';
+  const seconds = Math.floor((new Date() - date) / 1000);
+  
+  if (seconds < 60) return 'Just now';
+  if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago';
+  if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ago';
+  if (seconds < 604800) return Math.floor(seconds / 86400) + 'd ago';
+  
+  return date.toLocaleDateString();
 }
 
 document.getElementById("commentForm").onsubmit = async (e) => {
@@ -141,12 +303,11 @@ document.getElementById("commentForm").onsubmit = async (e) => {
   if (!commentText) return;
   
   try {
-    const commentsRef = collection(db, "posts", postId, "comments");
-    await addDoc(commentsRef, {
-      text: commentText,
-      authorId: currentUser.uid,
-      authorEmail: currentUser.email,
-      createdAt: serverTimestamp()
+    await addDoc(collection(db, "comments"), {
+      postId: postId,
+      userId: currentUser.uid,
+      comment: commentText,
+      timestamp: serverTimestamp()
     });
     
     const postRef = doc(db, "posts", postId);
@@ -154,12 +315,89 @@ document.getElementById("commentForm").onsubmit = async (e) => {
       commentsCount: increment(1)
     });
     
+    if (postData.uid !== currentUser.uid) {
+      await addDoc(collection(db, "notifications"), {
+        recipientId: postData.uid,
+        senderId: currentUser.uid,
+        type: 'comment',
+        postId: postId,
+        read: false,
+        createdAt: serverTimestamp()
+      });
+    }
+    
     document.getElementById("commentText").value = "";
     await loadComments();
     await loadPost();
   } catch (error) {
     console.error("Error posting comment:", error);
     alert("Failed to post comment");
+  }
+};
+
+window.toggleLike = async () => {
+  try {
+    const postRef = doc(db, "posts", postId);
+    const isLiked = postData.likes && postData.likes.includes(currentUser.uid);
+    
+    if (isLiked) {
+      await updateDoc(postRef, {
+        likes: arrayRemove(currentUser.uid)
+      });
+    } else {
+      await updateDoc(postRef, {
+        likes: arrayUnion(currentUser.uid)
+      });
+      
+      // Create notification
+      if (postData.uid !== currentUser.uid) {
+        await addDoc(collection(db, "notifications"), {
+          recipientId: postData.uid,
+          senderId: currentUser.uid,
+          type: 'like',
+          postId: postId,
+          read: false,
+          createdAt: serverTimestamp()
+        });
+      }
+    }
+    
+    await loadPost();
+  } catch (error) {
+    console.error("Error toggling like:", error);
+  }
+};
+
+window.deletePost = async () => {
+  if (!confirm('Delete this post? This action cannot be undone.')) return;
+  
+  try {
+    await deleteDoc(doc(db, "posts", postId));
+    alert('Post deleted successfully');
+    window.location.href = 'feed.html';
+  } catch (error) {
+    console.error("Error deleting post:", error);
+    alert('Failed to delete post');
+  }
+};
+
+window.sharePost = async () => {
+  const url = `${window.location.origin}/post-details.html?id=${postId}`;
+  
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: 'Check out this post on VendorConnect',
+        url: url
+      });
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error('Error sharing:', error);
+      }
+    }
+  } else {
+    await navigator.clipboard.writeText(url);
+    alert('Link copied to clipboard!');
   }
 };
 </script>

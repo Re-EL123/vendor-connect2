@@ -3,99 +3,339 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Street Connect - Settings</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <title>Settings - VendorConnect</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-gray-100 text-gray-900">
-  <div class="max-w-2xl mx-auto py-10 px-4">
-    <h1 class="text-3xl font-bold mb-6">Account Settings</h1>
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
 
-    <div class="bg-white p-6 rounded shadow mb-6">
-      <h2 class="text-xl font-semibold mb-4">Subscription</h2>
-      <p id="currentPlan" class="mb-4 text-sm">Loading subscription info...</p>
-      <label for="planSelect" class="block mb-2">Upgrade Plan:</label>
-      <select id="planSelect" class="w-full p-3 border rounded">
-        <option value="basic">Basic - Free</option>
-        <option value="pro">Pro - R100/month</option>
-        <option value="business">Business - R300/month</option>
-      </select>
-      <button id="updatePlanBtn" class="mt-4 w-full bg-green-600 text-white p-3 rounded hover:bg-green-700">Update Plan</button>
+  <!-- Header -->
+  <header class="bg-white/90 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <button onclick="window.location.href='feed.html'" class="flex items-center gap-2 text-gray-600 hover:text-gray-800">
+        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        <span class="font-semibold">Back</span>
+      </button>
+      <h1 class="text-xl font-bold text-gray-800">Settings</h1>
+      <div class="w-20"></div>
+    </div>
+  </header>
+
+  <div class="max-w-4xl mx-auto px-4 py-6">
+    
+    <!-- Profile Settings -->
+    <div class="bg-white rounded-2xl shadow-xl p-6 mb-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+        <i data-lucide="user" class="w-6 h-6 text-blue-600"></i>
+        Profile Information
+      </h2>
+      
+      <form id="profileForm" class="space-y-4">
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+            <input type="text" id="name" required
+              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input type="email" id="email" disabled
+              class="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-500" />
+          </div>
+        </div>
+        
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+            <input type="tel" id="phone" required
+              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">City</label>
+            <input type="text" id="city" required
+              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Province</label>
+          <select id="province" required
+            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option value="">Select Province</option>
+            <option value="Gauteng">Gauteng</option>
+            <option value="Western Cape">Western Cape</option>
+            <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+            <option value="Eastern Cape">Eastern Cape</option>
+            <option value="Free State">Free State</option>
+            <option value="Limpopo">Limpopo</option>
+            <option value="Mpumalanga">Mpumalanga</option>
+            <option value="North West">North West</option>
+            <option value="Northern Cape">Northern Cape</option>
+          </select>
+        </div>
+        
+        <div id="businessFields" class="hidden space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Business Name</label>
+            <input type="text" id="businessName"
+              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Business Category</label>
+            <select id="category"
+              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option value="">Select Category</option>
+              <option value="Food">Food & Beverage</option>
+              <option value="Tech">Technology & Software</option>
+              <option value="Fashion">Fashion & Apparel</option>
+              <option value="Beauty">Beauty & Wellness</option>
+              <option value="Home">Home & Garden</option>
+              <option value="Services">Professional Services</option>
+              <option value="Health">Health & Fitness</option>
+              <option value="Education">Education & Training</option>
+              <option value="Entertainment">Entertainment & Events</option>
+              <option value="Automotive">Automotive</option>
+              <option value="Construction">Construction & Trades</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Business Description</label>
+            <textarea id="businessDescription" rows="3"
+              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+          </div>
+        </div>
+        
+        <button type="submit" 
+          class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2">
+          <i data-lucide="save" class="w-5 h-5"></i>
+          Save Changes
+        </button>
+      </form>
     </div>
 
-    <div class="bg-white p-6 rounded shadow">
-      <h2 class="text-xl font-semibold mb-4">Become a Vendor</h2>
-      <p class="text-sm mb-4">Upgrade to Pro or Business to register your business on Street Connect.</p>
-      <button id="becomeVendorBtn" class="w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-700">Register Business</button>
+    <!-- Subscription -->
+    <div class="bg-white rounded-2xl shadow-xl p-6 mb-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+        <i data-lucide="crown" class="w-6 h-6 text-purple-600"></i>
+        Subscription
+      </h2>
+      
+      <div class="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl mb-4">
+        <div>
+          <p class="text-sm text-gray-600">Current Plan</p>
+          <p id="currentPlan" class="text-2xl font-bold text-gray-800">Loading...</p>
+        </div>
+        <button onclick="window.location.href='subscription.html'" 
+          class="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all">
+          Upgrade
+        </button>
+      </div>
     </div>
 
-    <div class="text-right mt-6">
-      <button onclick="logout()" class="text-sm text-red-600 underline">Logout</button>
+    <!-- Security -->
+    <div class="bg-white rounded-2xl shadow-xl p-6 mb-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+        <i data-lucide="shield" class="w-6 h-6 text-green-600"></i>
+        Security
+      </h2>
+      
+      <button onclick="changePassword()" 
+        class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition-colors text-left flex items-center justify-between">
+        <span class="font-medium text-gray-800">Change Password</span>
+        <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+      </button>
+    </div>
+
+    <!-- Legal -->
+    <div class="bg-white rounded-2xl shadow-xl p-6 mb-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+        <i data-lucide="file-text" class="w-6 h-6 text-orange-600"></i>
+        Legal
+      </h2>
+      
+      <div class="space-y-3">
+        <button onclick="window.location.href='terms.html'" 
+          class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition-colors text-left flex items-center justify-between">
+          <span class="font-medium text-gray-800">Terms & Conditions</span>
+          <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+        </button>
+        
+        <button onclick="window.location.href='privacy.html'" 
+          class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition-colors text-left flex items-center justify-between">
+          <span class="font-medium text-gray-800">Privacy Policy</span>
+          <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="bg-white rounded-2xl shadow-xl p-6 mb-6 border-2 border-red-200">
+      <h2 class="text-xl font-bold text-red-600 mb-6 flex items-center gap-2">
+        <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+        Danger Zone
+      </h2>
+      
+      <button onclick="deleteAccount()" 
+        class="w-full px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-semibold">
+        Delete Account
+      </button>
+    </div>
+
+    <!-- Logout -->
+    <div class="text-center">
+      <button onclick="logout()" 
+        class="text-red-600 hover:text-red-700 font-semibold flex items-center gap-2 mx-auto">
+        <i data-lucide="log-out" class="w-5 h-5"></i>
+        Logout
+      </button>
     </div>
   </div>
 
-  <script>
-    const firebaseConfig = {
+  <script type="module">
+    lucide.createIcons();
+    
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut, sendPasswordResetEmail, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const app = initializeApp({
       apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
       authDomain: "online-mall-4422.firebaseapp.com",
-      databaseURL: "https://online-mall-4422-default-rtdb.firebaseio.com",
-      projectId: "online-mall-4422",
-      storageBucket: "online-mall-4422.appspot.com",
-      messagingSenderId: "947082232783",
-      appId: "1:947082232783:web:116206502e5fb38383c8ba",
-      measurementId: "G-LNTNZQBGL8"
-    };
+      projectId: "online-mall-4422"
+    });
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    
+    let currentUser = null;
+    let userData = null;
 
-    let currentUser;
-
-    auth.onAuthStateChanged(async user => {
+    onAuthStateChanged(auth, async user => {
       if (!user) {
         window.location.href = "login.html";
         return;
       }
       currentUser = user;
+      await loadUserData();
+    });
 
-      const doc = await db.collection("users").doc(user.uid).get();
-      if (doc.exists) {
-        const data = doc.data();
-        document.getElementById("currentPlan").innerText = `Current Plan: ${data.subscriptionType.charAt(0).toUpperCase() + data.subscriptionType.slice(1)}`;
-        document.getElementById("planSelect").value = data.subscriptionType;
+    async function loadUserData() {
+      const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+      
+      if (!userDoc.exists()) {
+        alert("User data not found");
+        return;
       }
-    });
-
-    document.getElementById("updatePlanBtn").addEventListener("click", async () => {
-      const newPlan = document.getElementById("planSelect").value;
-      await db.collection("users").doc(currentUser.uid).update({
-        subscriptionType: newPlan
-      });
-      alert("Subscription updated to " + newPlan);
-      location.reload();
-    });
-
-    document.getElementById("becomeVendorBtn").addEventListener("click", async () => {
-      const userRef = db.collection("users").doc(currentUser.uid);
-      const userData = (await userRef.get()).data();
-
-      if (userData.subscriptionType === "pro" || userData.subscriptionType === "business") {
-        await userRef.update({
-          isVendor: true
-        });
-        alert("You're now a vendor! Business settings unlocked.");
-        window.location.href = "vendor-dashboard.html";
-      } else {
-        alert("Please upgrade to Pro or Business to become a vendor.");
+      
+      userData = userDoc.data();
+      
+      // Fill form
+      document.getElementById('name').value = userData.name || '';
+      document.getElementById('email').value = userData.email || currentUser.email;
+      document.getElementById('phone').value = userData.phone || '';
+      document.getElementById('city').value = userData.city || '';
+      document.getElementById('province').value = userData.province || '';
+      
+      // Show business fields if vendor
+      if (userData.isVendor) {
+        document.getElementById('businessFields').classList.remove('hidden');
+        document.getElementById('businessName').value = userData.businessName || '';
+        document.getElementById('category').value = userData.category || '';
+        document.getElementById('businessDescription').value = userData.businessDescription || '';
       }
-    });
-
-    function logout() {
-      auth.signOut().then(() => window.location.href = "login.html");
+      
+      // Show subscription
+      const planName = (userData.subscriptionType || 'basic').charAt(0).toUpperCase() + (userData.subscriptionType || 'basic').slice(1);
+      document.getElementById('currentPlan').textContent = planName;
+      
+      lucide.createIcons();
     }
+
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const updates = {
+        name: document.getElementById('name').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        city: document.getElementById('city').value.trim(),
+        province: document.getElementById('province').value,
+        updatedAt: serverTimestamp()
+      };
+      
+      if (userData.isVendor) {
+        updates.businessName = document.getElementById('businessName').value.trim();
+        updates.category = document.getElementById('category').value;
+        updates.businessDescription = document.getElementById('businessDescription').value.trim();
+      }
+      
+      try {
+        await updateDoc(doc(db, "users", currentUser.uid), updates);
+        
+        if (userData.isVendor) {
+          await updateDoc(doc(db, "vendors", currentUser.uid), {
+            name: updates.businessName,
+            description: updates.businessDescription,
+            category: updates.category
+          });
+        }
+        
+        alert('Profile updated successfully!');
+        await loadUserData();
+      } catch (error) {
+        console.error('Error updating profile:', error);
+        alert('Failed to update profile');
+      }
+    });
+
+    window.changePassword = async () => {
+      if (!confirm('Send password reset email to ' + currentUser.email + '?')) return;
+      
+      try {
+        await sendPasswordResetEmail(auth, currentUser.email);
+        alert('Password reset email sent! Check your inbox.');
+      } catch (error) {
+        console.error('Error sending reset email:', error);
+        alert('Failed to send reset email');
+      }
+    };
+
+    window.deleteAccount = async () => {
+      const confirmation = prompt('Type DELETE to confirm account deletion:');
+      if (confirmation !== 'DELETE') return;
+      
+      try {
+        await deleteDoc(doc(db, "users", currentUser.uid));
+        
+        if (userData.isVendor) {
+          await deleteDoc(doc(db, "vendors", currentUser.uid));
+        }
+        
+        await deleteUser(currentUser);
+        
+        alert('Account deleted successfully');
+        window.location.href = 'index.html';
+      } catch (error) {
+        console.error('Error deleting account:', error);
+        alert('Failed to delete account. You may need to re-authenticate.');
+      }
+    };
+
+    window.logout = async () => {
+      if (!confirm('Are you sure you want to logout?')) return;
+      
+      try {
+        await signOut(auth);
+        window.location.href = 'login.html';
+      } catch (error) {
+        console.error('Error logging out:', error);
+      }
+    };
   </script>
+
 </body>
 </html>

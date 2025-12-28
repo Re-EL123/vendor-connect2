@@ -3,170 +3,351 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Street Connect - Chat</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <title>Chat - VendorConnect</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .message-enter {
+      animation: slideUp 0.3s ease-out;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
-<body class="bg-gray-100 text-gray-900">
-  <div class="max-w-3xl mx-auto py-6 px-4">
-    <h1 class="text-2xl font-bold mb-1">Chat with Vendor</h1>
-    <h2 id="vendorName" class="text-lg text-gray-600 mb-4"></h2>
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 h-screen flex flex-col">
 
-    <div id="chatBox" class="bg-white p-4 rounded shadow h-96 overflow-y-auto space-y-2 mb-4">
-      <p class="text-gray-500 text-center">Loading messages...</p>
-    </div>
-
-    <form id="chatForm" class="flex items-center space-x-2">
-      <input
-        type="text"
-        id="messageInput"
-        placeholder="Type your message..."
-        class="flex-1 p-2 border rounded"
-        autocomplete="off"
-      />
-      <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-        Send
+  <!-- Header -->
+  <header class="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <button onclick="window.location.href='inbox.html'" class="flex items-center gap-2 text-gray-600 hover:text-gray-800">
+        <i data-lucide="arrow-left" class="w-5 h-5"></i>
       </button>
-    </form>
+      
+      <div id="partnerInfo" class="flex items-center gap-3 flex-1 mx-4">
+        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold"></div>
+        <div class="flex-1 min-w-0">
+          <h2 id="partnerName" class="font-semibold text-gray-800 truncate">Loading...</h2>
+          <p id="partnerStatus" class="text-xs text-gray-500">...</p>
+        </div>
+      </div>
+      
+      <button onclick="viewPartnerProfile()" class="text-gray-600 hover:text-blue-600">
+        <i data-lucide="info" class="w-5 h-5"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Messages Container -->
+  <div id="messagesContainer" class="flex-1 overflow-y-auto px-4 py-6 max-w-4xl mx-auto w-full">
+    <div class="text-center py-12">
+      <div class="animate-pulse">
+        <div class="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
+      </div>
+      <p class="text-gray-500 mt-2">Loading messages...</p>
+    </div>
   </div>
 
-  <script>
-    const firebaseConfig = {
+  <!-- Message Input -->
+  <div class="bg-white border-t border-gray-200 flex-shrink-0">
+    <div class="max-w-4xl mx-auto px-4 py-3">
+      <form id="messageForm" class="flex items-end gap-3">
+        <button type="button" onclick="attachImage()" class="p-2 text-gray-600 hover:text-blue-600 transition-colors">
+          <i data-lucide="image" class="w-6 h-6"></i>
+        </button>
+        
+        <div class="flex-1">
+          <textarea id="messageInput" rows="1" placeholder="Type a message..." 
+            class="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            style="max-height: 120px;"></textarea>
+        </div>
+        
+        <button type="submit" id="sendBtn"
+          class="p-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full hover:shadow-lg transition-all disabled:opacity-50">
+          <i data-lucide="send" class="w-5 h-5"></i>
+        </button>
+      </form>
+      
+      <input type="file" id="imageInput" accept="image/*" class="hidden" />
+      
+      <div id="imagePreview" class="hidden mt-2">
+        <div class="relative inline-block">
+          <img id="previewImg" class="rounded-xl max-h-32" />
+          <button onclick="removeImage()" class="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    lucide.createIcons();
+    
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, collection, query, orderBy, onSnapshot, doc, getDoc, setDoc, addDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+    const app = initializeApp({
       apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
       authDomain: "online-mall-4422.firebaseapp.com",
-      databaseURL: "https://online-mall-4422-default-rtdb.firebaseio.com",
       projectId: "online-mall-4422",
-      storageBucket: "online-mall-4422.appspot.com",
-      messagingSenderId: "947082232783",
-      appId: "1:947082232783:web:116206502e5fb38383c8ba",
-      measurementId: "G-LNTNZQBGL8",
-    };
+      storageBucket: "online-mall-4422.appspot.com"
+    });
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+    
     const urlParams = new URLSearchParams(window.location.search);
-    const vendorId = urlParams.get("uid");
-
+    const partnerId = urlParams.get("uid");
+    
     let currentUser;
+    let chatId;
+    let partnerData;
 
-    const chatBox = document.getElementById("chatBox");
+    const messagesContainer = document.getElementById("messagesContainer");
+    const messageForm = document.getElementById("messageForm");
     const messageInput = document.getElementById("messageInput");
-    const chatForm = document.getElementById("chatForm");
-    const vendorNameEl = document.getElementById("vendorName");
+    const imageInput = document.getElementById("imageInput");
+    const sendBtn = document.getElementById("sendBtn");
 
-    async function fetchVendorName() {
-      if (!vendorId) {
-        vendorNameEl.textContent = "Invalid vendor";
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        window.location.href = "login.html";
         return;
       }
-      try {
-        const doc = await db.collection("users").doc(vendorId).get();
-        if (doc.exists) {
-          const data = doc.data();
-          vendorNameEl.textContent = data.businessName || "Unknown Business";
-        } else {
-          vendorNameEl.textContent = "Vendor Not Found";
-        }
-      } catch (err) {
-        vendorNameEl.textContent = "Error loading vendor";
-        console.error("Error fetching vendor:", err);
-      }
-    }
-
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) return window.location.href = "login.html";
+      
       currentUser = user;
-
-      if (!vendorId || vendorId === currentUser.uid) {
+      
+      if (!partnerId || partnerId === currentUser.uid) {
         alert("Invalid chat partner");
         window.location.href = "inbox.html";
         return;
       }
-
-      await fetchVendorName();
-      listenForMessages();
+      
+      chatId = [currentUser.uid, partnerId].sort().join("_");
+      
+      await loadPartnerInfo();
+      listenToMessages();
     });
 
-    function listenForMessages() {
-      if (!vendorId || !currentUser) return;
-
-      const chatId = [currentUser.uid, vendorId].sort().join("_");
-
-      db.collection("chats")
-        .doc(chatId)
-        .collection("messages")
-        .orderBy("timestamp")
-        .onSnapshot(
-          (snapshot) => {
-            chatBox.innerHTML = "";
-            if (snapshot.empty) {
-              chatBox.innerHTML = '<p class="text-center text-gray-500">No messages yet.</p>';
-              return;
-            }
-
-            snapshot.forEach((doc) => {
-              const msg = doc.data();
-              const isOwn = msg.sender === currentUser.uid;
-              const msgDiv = document.createElement("div");
-              msgDiv.className = `p-2 rounded max-w-sm ${
-                isOwn ? "bg-blue-200 self-end ml-auto" : "bg-gray-200"
-              }`;
-              msgDiv.innerText = msg.text;
-              chatBox.appendChild(msgDiv);
-            });
-            chatBox.scrollTop = chatBox.scrollHeight;
-          },
-          (error) => {
-            console.error("Listen failed:", error);
-            chatBox.innerHTML = '<p class="text-red-600 text-center">Error loading messages. Check your permissions.</p>';
-          }
-        );
+    async function loadPartnerInfo() {
+      try {
+        const partnerDoc = await getDoc(doc(db, "users", partnerId));
+        if (partnerDoc.exists()) {
+          partnerData = partnerDoc.data();
+          const name = partnerData.businessName || partnerData.name || "Unknown User";
+          const category = partnerData.category || "";
+          const initial = name.charAt(0).toUpperCase();
+          
+          document.getElementById("partnerName").textContent = name;
+          document.getElementById("partnerStatus").textContent = category || "User";
+          document.querySelector("#partnerInfo .w-10").textContent = initial;
+        }
+      } catch (error) {
+        console.error("Error loading partner info:", error);
+      }
     }
 
-    chatForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!vendorId || !currentUser) return;
+    function listenToMessages() {
+      const chatRef = doc(db, "chats", chatId);
+      const messagesQuery = query(
+        collection(chatRef, "messages"),
+        orderBy("timestamp", "asc")
+      );
+      
+      onSnapshot(messagesQuery, snapshot => {
+        messagesContainer.innerHTML = "";
+        
+        if (snapshot.empty) {
+          messagesContainer.innerHTML = `
+            <div class="text-center py-12">
+              <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="message-circle" class="w-8 h-8 text-blue-600"></i>
+              </div>
+              <p class="text-gray-600">No messages yet</p>
+              <p class="text-sm text-gray-500 mt-1">Start the conversation!</p>
+            </div>
+          `;
+          lucide.createIcons();
+          return;
+        }
 
-      const text = messageInput.value.trim();
-      if (!text) return;
-
-      const chatId = [currentUser.uid, vendorId].sort().join("_");
-      const chatRef = db.collection("chats").doc(chatId);
-
-      try {
-        await db.runTransaction(async (transaction) => {
-          const chatDoc = await transaction.get(chatRef);
-          if (!chatDoc.exists) {
-            transaction.set(chatRef, {
-              users: [currentUser.uid, vendorId],
-              lastMessage: text,
-              timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            });
-          } else {
-            transaction.update(chatRef, {
-              lastMessage: text,
-              timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            });
+        let lastDate = null;
+        
+        snapshot.forEach(msgDoc => {
+          const msg = msgDoc.data();
+          const isOwn = msg.senderId === currentUser.uid;
+          const msgDate = msg.timestamp?.toDate();
+          
+          // Add date separator
+          if (msgDate) {
+            const dateStr = msgDate.toLocaleDateString();
+            if (dateStr !== lastDate) {
+              const dateSeparator = document.createElement("div");
+              dateSeparator.className = "text-center my-4";
+              dateSeparator.innerHTML = `
+                <span class="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                  ${getDateLabel(msgDate)}
+                </span>
+              `;
+              messagesContainer.appendChild(dateSeparator);
+              lastDate = dateStr;
+            }
           }
-
-          const messagesRef = chatRef.collection("messages").doc();
-          transaction.set(messagesRef, {
-            sender: currentUser.uid,
-            receiver: vendorId,
-            text,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-          });
+          
+          const messageDiv = document.createElement("div");
+          messageDiv.className = `flex ${isOwn ? 'justify-end' : 'justify-start'} mb-3 message-enter`;
+          
+          const bubble = document.createElement("div");
+          bubble.className = `max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
+            isOwn 
+              ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-br-sm' 
+              : 'bg-white text-gray-800 rounded-bl-sm shadow'
+          }`;
+          
+          if (msg.imageURL) {
+            bubble.innerHTML = `
+              <img src="${msg.imageURL}" class="rounded-lg mb-2 max-w-full cursor-pointer" 
+                onclick="window.open('${msg.imageURL}', '_blank')" />
+            `;
+          }
+          
+          if (msg.text) {
+            const textEl = document.createElement("p");
+            textEl.className = "text-sm break-words";
+            textEl.textContent = msg.text;
+            bubble.appendChild(textEl);
+          }
+          
+          const timeEl = document.createElement("p");
+          timeEl.className = `text-xs mt-1 ${isOwn ? 'text-blue-100' : 'text-gray-500'}`;
+          timeEl.textContent = msgDate ? msgDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '';
+          bubble.appendChild(timeEl);
+          
+          messageDiv.appendChild(bubble);
+          messagesContainer.appendChild(messageDiv);
         });
+        
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      });
+    }
 
+    messageForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      await sendMessage();
+    });
+
+    async function sendMessage() {
+      const text = messageInput.value.trim();
+      const imageFile = imageInput.files[0];
+      
+      if (!text && !imageFile) return;
+      
+      sendBtn.disabled = true;
+      
+      try {
+        let imageURL = null;
+        
+        if (imageFile) {
+          const storageRef = ref(storage, `chats/${chatId}/${Date.now()}_${imageFile.name}`);
+          await uploadBytes(storageRef, imageFile);
+          imageURL = await getDownloadURL(storageRef);
+        }
+        
+        const chatRef = doc(db, "chats", chatId);
+        const chatDoc = await getDoc(chatRef);
+        
+        if (!chatDoc.exists()) {
+          await setDoc(chatRef, {
+            users: [currentUser.uid, partnerId],
+            lastMessage: text || "Image",
+            timestamp: serverTimestamp(),
+            [`unread_${partnerId}`]: 1
+          });
+        } else {
+          await updateDoc(chatRef, {
+            lastMessage: text || "Image",
+            timestamp: serverTimestamp(),
+            [`unread_${partnerId}`]: (chatDoc.data()[`unread_${partnerId}`] || 0) + 1
+          });
+        }
+        
+        await addDoc(collection(chatRef, "messages"), {
+          senderId: currentUser.uid,
+          receiverId: partnerId,
+          text: text || "",
+          imageURL,
+          read: false,
+          timestamp: serverTimestamp()
+        });
+        
+        // Create notification
+        await addDoc(collection(db, "notifications"), {
+          recipientId: partnerId,
+          senderId: currentUser.uid,
+          type: 'message',
+          message: text || "Sent you an image",
+          read: false,
+          createdAt: serverTimestamp()
+        });
+        
         messageInput.value = "";
-      } catch (err) {
-        console.error("Error sending message:", err);
+        removeImage();
+      } catch (error) {
+        console.error("Error sending message:", error);
+        alert("Failed to send message");
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+
+    // Auto-resize textarea
+    messageInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+
+    window.attachImage = () => {
+      imageInput.click();
+    };
+
+    imageInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          document.getElementById('previewImg').src = ev.target.result;
+          document.getElementById('imagePreview').classList.remove('hidden');
+          lucide.createIcons();
+        };
+        reader.readAsDataURL(file);
       }
     });
+
+    window.removeImage = () => {
+      imageInput.value = "";
+      document.getElementById('imagePreview').classList.add('hidden');
+    };
+
+    window.viewPartnerProfile = () => {
+      window.location.href = `profile.html?uid=${partnerId}`;
+    };
+
+    function getDateLabel(date) {
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      if (date.toDateString() === today.toDateString()) return "Today";
+      if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
+      
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
   </script>
+
 </body>
 </html>

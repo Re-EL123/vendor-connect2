@@ -3,79 +3,248 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Notifications</title>
+  <title>Notifications - VendorConnect</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-gray-100 text-gray-800">
-  <div class="max-w-2xl mx-auto p-4">
-    <h1 class="text-2xl font-bold mb-4">Your Notifications</h1>
-    <div id="notificationsList" class="space-y-4">
-      <!-- Notifications will appear here -->
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-white/90 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <button onclick="window.history.back()" class="flex items-center gap-2 text-gray-600 hover:text-gray-800">
+        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        <span class="font-semibold">Back</span>
+      </button>
+      <h1 class="text-xl font-bold text-gray-800">Notifications</h1>
+      <button onclick="markAllRead()" class="text-sm text-blue-600 hover:text-blue-700 font-semibold">
+        Mark all read
+      </button>
+    </div>
+  </header>
+
+  <div class="max-w-4xl mx-auto px-4 py-6">
+    
+    <!-- Filter Tabs -->
+    <div class="bg-white rounded-2xl shadow-lg mb-6">
+      <div class="flex border-b border-gray-200">
+        <button onclick="filterNotifications('all')" data-filter="all" 
+          class="filter-btn flex-1 py-3 font-semibold border-b-2 border-blue-600 text-blue-600">
+          All
+        </button>
+        <button onclick="filterNotifications('likes')" data-filter="likes" 
+          class="filter-btn flex-1 py-3 font-semibold border-b-2 border-transparent text-gray-600 hover:text-gray-800">
+          Likes
+        </button>
+        <button onclick="filterNotifications('comments')" data-filter="comments" 
+          class="filter-btn flex-1 py-3 font-semibold border-b-2 border-transparent text-gray-600 hover:text-gray-800">
+          Comments
+        </button>
+        <button onclick="filterNotifications('follows')" data-filter="follows" 
+          class="filter-btn flex-1 py-3 font-semibold border-b-2 border-transparent text-gray-600 hover:text-gray-800">
+          Follows
+        </button>
+      </div>
+    </div>
+
+    <!-- Notifications List -->
+    <div id="notificationsList" class="space-y-3">
+      <div class="text-center py-12">
+        <div class="animate-pulse">
+          <div class="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
+        </div>
+        <p class="text-gray-500 mt-4">Loading notifications...</p>
+      </div>
     </div>
   </div>
 
-  <script>
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
+  <script type="module">
+    lucide.createIcons();
+    
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, collection, query, where, orderBy, onSnapshot, doc, getDoc, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+    const app = initializeApp({
+      apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
+      authDomain: "online-mall-4422.firebaseapp.com",
+      projectId: "online-mall-4422"
+    });
 
-    // Format timestamp
-    function formatTimestamp(timestamp) {
-      if (!timestamp) return "";
-      const date = timestamp.toDate();
-      return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    
+    let currentUser = null;
+    let allNotifications = [];
+    let currentFilter = 'all';
+
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      currentUser = user;
+      loadNotifications();
+    });
+
+    function loadNotifications() {
+      const notifQuery = query(
+        collection(db, "notifications"),
+        where("recipientId", "==", currentUser.uid),
+        orderBy("createdAt", "desc")
+      );
+      
+      onSnapshot(notifQuery, async snapshot => {
+        allNotifications = [];
+        
+        for (const notifDoc of snapshot.docs) {
+          const notif = { id: notifDoc.id, ...notifDoc.data() };
+          
+          // Get sender info
+          if (notif.senderId) {
+            const senderDoc = await getDoc(doc(db, "users", notif.senderId));
+            if (senderDoc.exists()) {
+              notif.senderName = senderDoc.data().businessName || senderDoc.data().name;
+            }
+          }
+          
+          allNotifications.push(notif);
+        }
+        
+        renderNotifications();
+      });
     }
 
-    // Load notifications
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        db.collection("notifications")
-          .where("userId", "==", user.uid)
-          .orderBy("timestamp", "desc")
-          .onSnapshot(snapshot => {
-            const list = document.getElementById("notificationsList");
-            list.innerHTML = "";
-
-            if (snapshot.empty) {
-              list.innerHTML = `<p class="text-gray-500">No notifications yet.</p>`;
-              return;
-            }
-
-            snapshot.forEach(doc => {
-              const notif = doc.data();
-              const item = document.createElement("div");
-              item.className = "bg-white p-4 rounded shadow";
-
-              item.innerHTML = `
-                <p class="font-medium">${notif.message || "New notification"}</p>
-                <p class="text-sm text-gray-500">${formatTimestamp(notif.timestamp)}</p>
-              `;
-              list.appendChild(item);
-            });
-          }, error => {
-            console.error("Error fetching notifications:", error);
-            document.getElementById("notificationsList").innerHTML =
-              `<p class="text-red-500">Error loading notifications.</p>`;
-          });
-      } else {
-        document.getElementById("notificationsList").innerHTML =
-          `<p class="text-gray-500">You must be logged in to see notifications.</p>`;
+    function renderNotifications() {
+      const container = document.getElementById('notificationsList');
+      
+      let filtered = allNotifications;
+      if (currentFilter !== 'all') {
+        filtered = allNotifications.filter(n => n.type === currentFilter.slice(0, -1)); // Remove 's' from filter
       }
-    });
+      
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-16">
+            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i data-lucide="bell-off" class="w-10 h-10 text-gray-400"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">No notifications</h3>
+            <p class="text-gray-600">You're all caught up!</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+      
+      container.innerHTML = '';
+      
+      filtered.forEach(notif => {
+        const notifCard = document.createElement('div');
+        notifCard.className = `bg-white rounded-xl shadow p-4 flex items-start gap-3 cursor-pointer hover:shadow-lg transition-shadow ${notif.read ? 'opacity-60' : ''}`;
+        notifCard.onclick = () => handleNotificationClick(notif);
+        
+        const icon = getNotificationIcon(notif.type);
+        const message = getNotificationMessage(notif);
+        const timeAgo = getTimeAgo(notif.createdAt?.toDate());
+        
+        notifCard.innerHTML = `
+          <div class="w-12 h-12 rounded-full ${icon.bgColor} flex items-center justify-center flex-shrink-0">
+            <i data-lucide="${icon.name}" class="w-6 h-6 ${icon.color}"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-gray-800 font-medium mb-1">
+              <span class="font-bold">${notif.senderName || 'Someone'}</span>
+              ${message}
+            </p>
+            <p class="text-sm text-gray-500">${timeAgo}</p>
+          </div>
+          ${!notif.read ? '<div class="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 mt-2"></div>' : ''}
+        `;
+        
+        container.appendChild(notifCard);
+      });
+      
+      lucide.createIcons();
+    }
+
+    function getNotificationIcon(type) {
+      const icons = {
+        'like': { name: 'heart', bgColor: 'bg-red-100', color: 'text-red-600' },
+        'comment': { name: 'message-circle', bgColor: 'bg-blue-100', color: 'text-blue-600' },
+        'follow': { name: 'user-plus', bgColor: 'bg-purple-100', color: 'text-purple-600' },
+        'message': { name: 'mail', bgColor: 'bg-green-100', color: 'text-green-600' },
+        'admin': { name: 'shield', bgColor: 'bg-orange-100', color: 'text-orange-600' }
+      };
+      return icons[type] || { name: 'bell', bgColor: 'bg-gray-100', color: 'text-gray-600' };
+    }
+
+    function getNotificationMessage(notif) {
+      const messages = {
+        'like': ' liked your post',
+        'comment': ' commented on your post',
+        'follow': ' started following you',
+        'message': ' sent you a message',
+        'admin': ' ' + (notif.message || 'sent you a notification')
+      };
+      return messages[notif.type] || ' interacted with you';
+    }
+
+    function getTimeAgo(date) {
+      if (!date) return '';
+      const seconds = Math.floor((new Date() - date) / 1000);
+      
+      if (seconds < 60) return 'Just now';
+      if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago';
+      if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ago';
+      if (seconds < 604800) return Math.floor(seconds / 86400) + 'd ago';
+      
+      return date.toLocaleDateString();
+    }
+
+    async function handleNotificationClick(notif) {
+      // Mark as read
+      if (!notif.read) {
+        await updateDoc(doc(db, "notifications", notif.id), { read: true });
+      }
+      
+      // Navigate based on type
+      if (notif.postId) {
+        window.location.href = `post-details.html?id=${notif.postId}`;
+      } else if (notif.type === 'message') {
+        window.location.href = `chat.html?uid=${notif.senderId}`;
+      } else if (notif.type === 'follow') {
+        window.location.href = `profile.html?uid=${notif.senderId}`;
+      }
+    }
+
+    window.filterNotifications = function(filter) {
+      currentFilter = filter;
+      
+      // Update buttons
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('border-blue-600', 'text-blue-600');
+        btn.classList.add('border-transparent', 'text-gray-600');
+      });
+      
+      const activeBtn = document.querySelector(`[data-filter="${filter}"]`);
+      activeBtn.classList.remove('border-transparent', 'text-gray-600');
+      activeBtn.classList.add('border-blue-600', 'text-blue-600');
+      
+      renderNotifications();
+    };
+
+    window.markAllRead = async function() {
+      const batch = writeBatch(db);
+      const unreadNotifs = allNotifications.filter(n => !n.read);
+      
+      unreadNotifs.forEach(notif => {
+        batch.update(doc(db, "notifications", notif.id), { read: true });
+      });
+      
+      await batch.commit();
+    };
   </script>
+
 </body>
 </html>
