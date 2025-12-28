@@ -6,6 +6,14 @@
   <title>Notifications - VendorConnect</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in { animation: fadeIn 0.3s ease-out; }
+  </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
 
@@ -50,10 +58,8 @@
     <!-- Notifications List -->
     <div id="notificationsList" class="space-y-3">
       <div class="text-center py-12">
-        <div class="animate-pulse">
-          <div class="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
-        </div>
-        <p class="text-gray-500 mt-4">Loading notifications...</p>
+        <i data-lucide="loader" class="w-8 h-8 text-blue-600 animate-spin mx-auto mb-3"></i>
+        <p class="text-gray-500">Loading notifications...</p>
       </div>
     </div>
   </div>
@@ -63,12 +69,13 @@
     
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, collection, query, where, orderBy, onSnapshot, doc, getDoc, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const app = initializeApp({
       apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
       authDomain: "online-mall-4422.firebaseapp.com",
-      projectId: "online-mall-4422"
+      projectId: "online-mall-4422",
+      storageBucket: "online-mall-4422.appspot.com"
     });
 
     const auth = getAuth(app);
@@ -84,35 +91,66 @@
         return;
       }
       currentUser = user;
-      loadNotifications();
+      await loadNotifications();
     });
 
-    function loadNotifications() {
-      const notifQuery = query(
-        collection(db, "notifications"),
-        where("recipientId", "==", currentUser.uid),
-        orderBy("createdAt", "desc")
-      );
-      
-      onSnapshot(notifQuery, async snapshot => {
+    async function loadNotifications() {
+      try {
+        // Fetch all notifications for the current user (no orderBy to avoid index requirement)
+        const notifQuery = query(
+          collection(db, "notifications"),
+          where("recipientId", "==", currentUser.uid)
+        );
+        
+        const notifSnapshot = await getDocs(notifQuery);
+        
+        // Fetch all users once to avoid multiple calls
+        const usersSnap = await getDocs(collection(db, "users"));
+        const usersMap = {};
+        usersSnap.forEach(userDoc => {
+          usersMap[userDoc.id] = userDoc.data();
+        });
+        
         allNotifications = [];
         
-        for (const notifDoc of snapshot.docs) {
+        notifSnapshot.forEach(notifDoc => {
           const notif = { id: notifDoc.id, ...notifDoc.data() };
           
-          // Get sender info
-          if (notif.senderId) {
-            const senderDoc = await getDoc(doc(db, "users", notif.senderId));
-            if (senderDoc.exists()) {
-              notif.senderName = senderDoc.data().businessName || senderDoc.data().name;
-            }
+          // Get sender info from map
+          if (notif.senderId && usersMap[notif.senderId]) {
+            notif.senderName = usersMap[notif.senderId].businessName || usersMap[notif.senderId].name || 'Someone';
+          } else {
+            notif.senderName = 'Someone';
           }
           
           allNotifications.push(notif);
-        }
+        });
+        
+        // Sort by creation date (newest first) - client-side sorting
+        allNotifications.sort((a, b) => {
+          const timeA = a.createdAt?.seconds || 0;
+          const timeB = b.createdAt?.seconds || 0;
+          return timeB - timeA;
+        });
         
         renderNotifications();
-      });
+      } catch (error) {
+        console.error('Error loading notifications:', error);
+        const container = document.getElementById('notificationsList');
+        container.innerHTML = `
+          <div class="text-center py-16">
+            <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i data-lucide="alert-circle" class="w-10 h-10 text-red-600"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Error loading notifications</h3>
+            <p class="text-gray-600 mb-4">Please try refreshing the page</p>
+            <button onclick="location.reload()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              Refresh
+            </button>
+          </div>
+        `;
+        lucide.createIcons();
+      }
     }
 
     function renderNotifications() {
@@ -120,12 +158,15 @@
       
       let filtered = allNotifications;
       if (currentFilter !== 'all') {
-        filtered = allNotifications.filter(n => n.type === currentFilter.slice(0, -1)); // Remove 's' from filter
+        const filterType = currentFilter === 'likes' ? 'like' : 
+                          currentFilter === 'comments' ? 'comment' : 
+                          currentFilter === 'follows' ? 'follow' : '';
+        filtered = allNotifications.filter(n => n.type === filterType);
       }
       
       if (filtered.length === 0) {
         container.innerHTML = `
-          <div class="text-center py-16">
+          <div class="text-center py-16 fade-in">
             <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <i data-lucide="bell-off" class="w-10 h-10 text-gray-400"></i>
             </div>
@@ -141,12 +182,12 @@
       
       filtered.forEach(notif => {
         const notifCard = document.createElement('div');
-        notifCard.className = `bg-white rounded-xl shadow p-4 flex items-start gap-3 cursor-pointer hover:shadow-lg transition-shadow ${notif.read ? 'opacity-60' : ''}`;
+        notifCard.className = `bg-white rounded-xl shadow p-4 flex items-start gap-3 cursor-pointer hover:shadow-lg transition-shadow fade-in ${notif.read ? 'opacity-60' : ''}`;
         notifCard.onclick = () => handleNotificationClick(notif);
         
         const icon = getNotificationIcon(notif.type);
         const message = getNotificationMessage(notif);
-        const timeAgo = getTimeAgo(notif.createdAt?.toDate());
+        const timeAgo = getTimeAgo(notif.createdAt);
         
         notifCard.innerHTML = `
           <div class="w-12 h-12 rounded-full ${icon.bgColor} flex items-center justify-center flex-shrink-0">
@@ -190,8 +231,11 @@
       return messages[notif.type] || ' interacted with you';
     }
 
-    function getTimeAgo(date) {
-      if (!date) return '';
+    function getTimeAgo(timestamp) {
+      if (!timestamp) return '';
+      
+      // Handle Firestore timestamp
+      const date = timestamp.seconds ? new Date(timestamp.seconds * 1000) : new Date(timestamp);
       const seconds = Math.floor((new Date() - date) / 1000);
       
       if (seconds < 60) return 'Just now';
@@ -203,18 +247,27 @@
     }
 
     async function handleNotificationClick(notif) {
-      // Mark as read
-      if (!notif.read) {
-        await updateDoc(doc(db, "notifications", notif.id), { read: true });
-      }
-      
-      // Navigate based on type
-      if (notif.postId) {
-        window.location.href = `post-details.html?id=${notif.postId}`;
-      } else if (notif.type === 'message') {
-        window.location.href = `chat.html?uid=${notif.senderId}`;
-      } else if (notif.type === 'follow') {
-        window.location.href = `profile.html?uid=${notif.senderId}`;
+      try {
+        // Mark as read
+        if (!notif.read) {
+          await updateDoc(doc(db, "notifications", notif.id), { read: true });
+          // Update local cache
+          const index = allNotifications.findIndex(n => n.id === notif.id);
+          if (index !== -1) {
+            allNotifications[index].read = true;
+          }
+        }
+        
+        // Navigate based on type
+        if (notif.postId) {
+          window.location.href = `post-details.html?id=${notif.postId}`;
+        } else if (notif.type === 'message') {
+          window.location.href = `chat.html?uid=${notif.senderId}`;
+        } else if (notif.type === 'follow') {
+          window.location.href = `profile.html?uid=${notif.senderId}`;
+        }
+      } catch (error) {
+        console.error('Error handling notification click:', error);
       }
     }
 
@@ -228,21 +281,42 @@
       });
       
       const activeBtn = document.querySelector(`[data-filter="${filter}"]`);
-      activeBtn.classList.remove('border-transparent', 'text-gray-600');
-      activeBtn.classList.add('border-blue-600', 'text-blue-600');
+      if (activeBtn) {
+        activeBtn.classList.remove('border-transparent', 'text-gray-600');
+        activeBtn.classList.add('border-blue-600', 'text-blue-600');
+      }
       
       renderNotifications();
     };
 
     window.markAllRead = async function() {
-      const batch = writeBatch(db);
-      const unreadNotifs = allNotifications.filter(n => !n.read);
-      
-      unreadNotifs.forEach(notif => {
-        batch.update(doc(db, "notifications", notif.id), { read: true });
-      });
-      
-      await batch.commit();
+      try {
+        const unreadNotifs = allNotifications.filter(n => !n.read);
+        
+        if (unreadNotifs.length === 0) {
+          alert('All notifications are already read');
+          return;
+        }
+        
+        const batch = writeBatch(db);
+        
+        unreadNotifs.forEach(notif => {
+          batch.update(doc(db, "notifications", notif.id), { read: true });
+        });
+        
+        await batch.commit();
+        
+        // Update local cache
+        allNotifications.forEach(notif => {
+          notif.read = true;
+        });
+        
+        renderNotifications();
+        alert('All notifications marked as read');
+      } catch (error) {
+        console.error('Error marking all as read:', error);
+        alert('Failed to mark all as read. Please try again.');
+      }
     };
   </script>
 
