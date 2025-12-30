@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -65,45 +66,14 @@
       <aside class="md:col-span-1 space-y-4">
         <!-- User Info Card -->
         <div class="bg-white rounded-2xl shadow-lg p-6">
-          <h2 class="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">Vendor Info</h2>
-          <div id="userInfo" class="space-y-3 text-sm">
-            <div class="flex items-center gap-3 p-3 bg-blue-50 rounded-xl">
-              <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg">
-                TM
-              </div>
-              <div>
-                <p id="vendorName" class="font-semibold text-gray-800">Loading...</p>
-                <p id="vendorBusiness" class="text-xs text-gray-500">Loading...</p>
-              </div>
-            </div>
-            <div class="grid grid-cols-2 gap-2 text-xs">
-              <div class="p-2 bg-gray-50 rounded-lg">
-                <p class="text-gray-500">Email</p>
-                <p id="vendorEmail" class="font-medium">Loading...</p>
-              </div>
-              <div class="p-2 bg-gray-50 rounded-lg">
-                <p class="text-gray-500">Phone</p>
-                <p id="vendorPhone" class="font-medium">Loading...</p>
-              </div>
-              <div class="p-2 bg-gray-50 rounded-lg">
-                <p class="text-gray-500">Category</p>
-                <p id="vendorCategory" class="font-medium">Loading...</p>
-              </div>
-              <div class="p-2 bg-gray-50 rounded-lg">
-                <p class="text-gray-500">Status</p>
-                <p id="vendorStatus" class="font-medium text-green-600">Loading...</p>
-              </div>
-            </div>
-            <button onclick="editVendorInfo()" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-3 rounded-xl font-semibold hover:shadow-lg transition-all mt-4">
-              Edit Vendor Info
-            </button>
-          </div>
+          <h2 class="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">User Info</h2>
+          <div id="userInfo" class="space-y-2 text-sm"></div>
         </div>
 
         <!-- Subscription Card -->
         <div class="bg-white rounded-2xl shadow-lg p-6">
           <h2 class="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">Subscription</h2>
-          <p id="subscriptionType" class="mb-4 text-lg font-medium text-green-600">Loading...</p>
+          <p id="subscriptionType" class="mb-4 text-lg font-medium">Loading...</p>
           <button onclick="goToSettings()" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-3 rounded-xl font-semibold hover:shadow-lg transition-all">
             Upgrade / Manage
           </button>
@@ -121,9 +91,9 @@
               <i data-lucide="shopping-bag" class="w-5 h-5"></i>
               <span class="text-xs font-semibold">Market</span>
             </button>
-            <button onclick="showAddProductModal()" class="flex flex-col items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-green-600 text-white p-4 rounded-xl hover:shadow-lg transition-all">
-              <i data-lucide="plus-circle" class="w-5 h-5"></i>
-              <span class="text-xs font-semibold">Add Product</span>
+            <button onclick="window.location.href='wallet.html'" class="flex flex-col items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white p-4 rounded-xl hover:shadow-lg transition-all">
+              <i data-lucide="wallet" class="w-5 h-5"></i>
+              <span class="text-xs font-semibold">Wallet</span>
             </button>
             <button onclick="window.location.href='inbox.html'" class="flex flex-col items-center justify-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white p-4 rounded-xl hover:shadow-lg transition-all">
               <i data-lucide="message-circle" class="w-5 h-5"></i>
@@ -133,46 +103,38 @@
         </div>
       </aside>
 
-      <!-- Right Column - Products Section -->
-      <div class="md:col-span-2 space-y-6">
-        <!-- Products Stats -->
-        <div class="bg-white rounded-2xl shadow-lg p-6">
-          <h2 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">Products Overview</h2>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="productsStats">
-            <div class="text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
-              <p class="text-3xl font-bold text-blue-600" id="totalProducts">0</p>
-              <p class="text-sm font-medium text-gray-600 mt-1">Total Products</p>
-            </div>
-            <div class="text-center p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl">
-              <p class="text-3xl font-bold text-green-600" id="approvedProducts">0</p>
-              <p class="text-sm font-medium text-gray-600 mt-1">Approved</p>
-            </div>
-            <div class="text-center p-6 bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl">
-              <p class="text-3xl font-bold text-orange-600" id="pendingProducts">0</p>
-              <p class="text-sm font-medium text-gray-600 mt-1">Pending Review</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Products List -->
+      <!-- Right Column - Orders Section -->
+      <div class="md:col-span-2">
         <div class="bg-white rounded-2xl shadow-lg p-6">
           <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">My Products</h2>
-            <select id="productFilter" class="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
-              <option value="all">All Products</option>
-              <option value="approved">Approved</option>
+            <h2 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">My Orders</h2>
+            <select id="orderFilter" class="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+              <option value="all">All Orders</option>
               <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="shipped">Shipped</option>
+              <option value="delivered">Delivered</option>
+              <option value="cancelled">Cancelled</option>
             </select>
           </div>
 
-          <div id="productsContainer" class="space-y-4 min-h-[400px]">
-            <div class="text-center py-12 text-gray-500">
-              <i data-lucide="package" class="w-16 h-16 mx-auto mb-4 text-gray-300"></i>
-              <p class="text-lg font-semibold">No products found</p>
-              <p class="text-gray-400 mt-2">Add your first product to get started</p>
-              <button onclick="showAddProductModal()" class="mt-4 bg-gradient-to-r from-emerald-600 to-green-600 text-white px-6 py-3 rounded-xl hover:shadow-lg font-semibold transition-all">
-                Add Product
-              </button>
+          <!-- Upgrade Prompt for Basic Users -->
+          <div id="upgradePrompt" class="hidden text-center py-12">
+            <div class="mb-4">
+              <i data-lucide="lock" class="w-20 h-20 mx-auto text-gray-300"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-700 mb-2">Upgrade to View Orders</h3>
+            <p class="text-gray-600 mb-6">Order management is available for Business and Premium subscribers</p>
+            <button onclick="window.location.href='subscription.html'" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:shadow-lg font-semibold transition-all">
+              Upgrade Now
+            </button>
+          </div>
+
+          <!-- Orders List -->
+          <div id="ordersContainer" class="space-y-4">
+            <div class="text-center py-8 text-gray-500">
+              <i data-lucide="loader" class="w-8 h-8 animate-spin mx-auto mb-3"></i>
+              <p>Loading orders...</p>
             </div>
           </div>
         </div>
@@ -180,112 +142,21 @@
     </div>
   </div>
 
-  <!-- Edit Vendor Modal -->
-  <div id="vendorModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-2xl p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center mb-6">
-        <h3 class="text-2xl font-bold text-gray-800">Edit Vendor Info</h3>
-        <button onclick="closeVendorModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+  <!-- Order Details Modal -->
+  <div id="orderModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-2xl font-bold text-gray-800">Order Details</h3>
+        <button onclick="closeOrderModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
       </div>
-      <form id="vendorForm">
-        <div class="space-y-4 mb-6">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Business Name</label>
-            <input type="text" id="editBusinessName" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-            <input type="text" id="editFullName" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-            <input type="email" id="editEmail" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-            <input type="tel" id="editPhone" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
-            <input type="text" id="editAddress" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Street address">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
-            <input type="text" id="editCity" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Province</label>
-            <input type="text" id="editProvince" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
-            <select id="editCategory" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-              <option value="Food">Food</option>
-              <option value="Clothing">Clothing</option>
-              <option value="Electronics">Electronics</option>
-              <option value="Beauty">Beauty</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-        </div>
-        <div class="flex gap-3">
-          <button type="button" onclick="closeVendorModal()" class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 font-semibold transition-colors">
-            Cancel
-          </button>
-          <button type="submit" class="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-lg font-semibold transition-all">
-            Save Changes
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
 
-  <!-- Add/Edit Product Modal -->
-  <div id="productModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center mb-6">
-        <h3 id="productModalTitle" class="text-2xl font-bold text-gray-800">Add New Product</h3>
-        <button onclick="closeProductModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+      <div id="orderDetailsContent"></div>
+
+      <div class="mt-6 flex gap-3">
+        <button onclick="closeOrderModal()" class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 font-semibold transition-colors">
+          Close
+        </button>
       </div>
-      <form id="productForm">
-        <input type="hidden" id="editProductId">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
-            <input type="text" id="productName" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Price (R)</label>
-            <input type="number" id="productPrice" step="0.01" min="0" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
-            <select id="productCategory" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-              <option value="Food">Food</option>
-              <option value="Clothing">Clothing</option>
-              <option value="Electronics">Electronics</option>
-              <option value="Beauty">Beauty</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Image URL</label>
-            <input type="url" id="productImage" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          </div>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
-          <textarea id="productDescription" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"></textarea>
-        </div>
-        <div class="flex gap-3 mt-8">
-          <button type="button" onclick="closeProductModal()" class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 font-semibold transition-colors">
-            Cancel
-          </button>
-          <button type="submit" class="flex-1 px-4 py-3 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-xl hover:shadow-lg font-semibold transition-all">
-            Save Product
-          </button>
-        </div>
-      </form>
     </div>
   </div>
 
@@ -337,8 +208,7 @@
 
     let currentUser = null;
     let userSubscription = 'basic';
-    let allProducts = [];
-    let vendorData = {};
+    let allOrders = [];
 
     auth.onAuthStateChanged(async user => {
       if (!user) {
@@ -351,303 +221,57 @@
       
       try {
         const doc = await firestoreDb.collection("users").doc(uid).get();
-        const vendorDoc = await firestoreDb.collection("vendors").doc(uid).get();
 
-        if (!vendorDoc.exists) {
+        if (!doc.exists) {
           document.getElementById("userInfo").innerHTML = `
-            <div class="text-center py-12">
-              <i data-lucide="alert-circle" class="w-16 h-16 mx-auto text-orange-400 mb-4"></i>
-              <p class="text-lg font-semibold text-gray-700 mb-2">Vendor profile not found</p>
-              <p class="text-gray-600 mb-4">Apply to become a vendor in settings</p>
-              <button onclick="window.location.href='settings.html'" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:shadow-lg font-semibold transition-all">
-                Go to Settings
-              </button>
-            </div>
+            <p><strong>Email:</strong> ${user.email}</p>
+            <p class="text-gray-600 mt-2">Complete your profile in settings</p>
           `;
           document.getElementById("subscriptionType").innerText = "Basic Plan (Free)";
-          document.getElementById("userAvatar").textContent = user.email.charAt(0).toUpperCase();
+          userSubscription = 'basic';
+          showUpgradePrompt();
+          
+          const displayName = user.email.split('@')[0];
+          const initial = displayName.charAt(0).toUpperCase();
+          document.getElementById("userAvatar").textContent = initial;
+          
           lucide.createIcons();
           return;
         }
 
-        const userData = doc.exists ? doc.data() : {};
-        vendorData = vendorDoc.data();
-        userSubscription = vendorData.subscriptionType || 'basic';
+        const data = doc.data();
+        userSubscription = data.subscriptionType || 'basic';
 
-        const displayName = vendorData.businessName || vendorData.name || "Vendor";
+        const displayName = data.businessName || data.name || data.fullName || "User";
         const initial = displayName.charAt(0).toUpperCase();
         document.getElementById("userAvatar").textContent = initial;
 
-        // Populate vendor info
-        document.getElementById("vendorName").textContent = vendorData.name || "Not set";
-        document.getElementById("vendorBusiness").textContent = vendorData.businessName || "Not set";
-        document.getElementById("vendorEmail").textContent = vendorData.email || user.email;
-        document.getElementById("vendorPhone").textContent = vendorData.phone || "Not set";
-        document.getElementById("vendorCategory").textContent = vendorData.category || "Not set";
-        document.getElementById("vendorStatus").textContent = vendorData.isApproved ? "Approved" : "Pending";
+        document.getElementById("userInfo").innerHTML = `
+          <p><strong>Name:</strong> ${data.name || data.fullName || "Not set"}</p>
+          <p><strong>Email:</strong> ${data.email || user.email}</p>
+          <p><strong>Phone:</strong> ${data.phone || "Not set"}</p>
+          <p><strong>Location:</strong> ${data.city || "Not set"}, ${data.province || "Not set"}</p>
+          <p><strong>Role:</strong> ${data.isVendor ? 'Vendor (' + (data.subscriptionType || 'basic') + ')' : 'User (basic)'}</p>
+        `;
 
-        document.getElementById("subscriptionType").innerText = `${(userSubscription || 'basic').charAt(0).toUpperCase() + (userSubscription || 'basic').slice(1)} Plan (${vendorData.subscriptionStatus || 'active'})`;
+        document.getElementById("subscriptionType").innerText = `${(data.subscriptionType || 'basic').charAt(0).toUpperCase() + (data.subscriptionType || 'basic').slice(1)} Plan`;
 
-        // Load products
-        loadProducts();
-        
-        // Populate edit form with current data
-        populateVendorEditForm();
+        if (userSubscription === 'basic') {
+          showUpgradePrompt();
+        } else {
+          loadOrders();
+        }
 
         await fetchUnreadNotifications();
         await fetchUnreadMessages();
 
         lucide.createIcons();
       } catch (error) {
-        console.error("Error loading vendor data:", error);
+        console.error("Error loading user data:", error);
         alert("Error loading profile. Please refresh the page.");
       }
     });
 
-    function populateVendorEditForm() {
-      document.getElementById("editBusinessName").value = vendorData.businessName || '';
-      document.getElementById("editFullName").value = vendorData.name || '';
-      document.getElementById("editEmail").value = vendorData.email || '';
-      document.getElementById("editPhone").value = vendorData.phone || '';
-      document.getElementById("editAddress").value = vendorData.address || '';
-      document.getElementById("editCity").value = vendorData.city || '';
-      document.getElementById("editProvince").value = vendorData.province || '';
-      document.getElementById("editCategory").value = vendorData.category || 'Food';
-    }
-
-    async function loadProducts() {
-      try {
-        const vendorDoc = await firestoreDb.collection("vendors").doc(currentUser.uid).get();
-        if (!vendorDoc.exists || !vendorDoc.data().products) {
-          renderProducts([]);
-          return;
-        }
-
-        const products = vendorDoc.data().products || [];
-        allProducts = products.map(product => ({ id: product, ...product }));
-        
-        updateProductStats();
-        renderProducts(allProducts);
-      } catch (error) {
-        console.error("Error loading products:", error);
-      }
-    }
-
-    function updateProductStats() {
-      const total = allProducts.length;
-      const approved = allProducts.filter(p => p.isApproved).length;
-      const pending = total - approved;
-
-      document.getElementById("totalProducts").textContent = total;
-      document.getElementById("approvedProducts").textContent = approved;
-      document.getElementById("pendingProducts").textContent = pending;
-    }
-
-    function renderProducts(products) {
-      const container = document.getElementById("productsContainer");
-
-      if (products.length === 0) {
-        container.innerHTML = `
-          <div class="text-center py-12 text-gray-500">
-            <i data-lucide="package" class="w-16 h-16 mx-auto mb-4 text-gray-300"></i>
-            <p class="text-lg font-semibold">No products found</p>
-            <p class="text-gray-400 mt-2">Add your first product to get started</p>
-            <button onclick="showAddProductModal()" class="mt-4 bg-gradient-to-r from-emerald-600 to-green-600 text-white px-6 py-3 rounded-xl hover:shadow-lg font-semibold transition-all">
-              Add Product
-            </button>
-          </div>
-        `;
-        lucide.createIcons();
-        return;
-      }
-
-      container.innerHTML = products.map(product => {
-        const date = new Date(product.createdAt);
-        const statusClass = product.isApproved ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
-
-        return `
-          <div class="border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all fade-in group">
-            <div class="flex items-start justify-between mb-4">
-              <div class="flex-1">
-                <div class="flex items-center gap-3 mb-2">
-                  <span class="text-sm font-mono text-gray-500">${product.id.substring(0, 8)}</span>
-                  <span class="px-3 py-1 rounded-full text-sm font-semibold ${statusClass}">
-                    ${product.isApproved ? 'Approved' : 'Pending'}
-                  </span>
-                </div>
-                <h3 class="text-xl font-bold text-gray-800 mb-1">${product.name}</h3>
-                <p class="text-sm text-gray-600">${date.toLocaleDateString()}</p>
-              </div>
-              <div class="text-right">
-                <p class="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">R ${parseFloat(product.price || 0).toFixed(2)}</p>
-              </div>
-            </div>
-
-            ${product.imageURL ? `
-              <div class="w-full h-48 bg-gray-100 rounded-xl overflow-hidden mb-4">
-                <img src="${product.imageURL}" class="w-full h-full object-cover" />
-              </div>
-            ` : `
-              <div class="w-full h-48 bg-gray-200 rounded-xl mb-4 flex items-center justify-center">
-                <i data-lucide="image" class="w-16 h-16 text-gray-400"></i>
-              </div>
-            `}
-
-            <p class="text-gray-700 mb-4 line-clamp-3">${product.description || 'No description'}</p>
-
-            <div class="flex gap-2">
-              <button onclick="editProduct('${product.id}')" class="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:shadow-lg text-sm font-semibold transition-all">
-                Edit
-              </button>
-              <button onclick="deleteProduct('${product.id}')" class="px-4 py-3 bg-red-100 text-red-600 border-2 border-red-200 rounded-xl hover:bg-red-200 text-sm font-semibold transition-all">
-                Delete
-              </button>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      lucide.createIcons();
-    }
-
-    // Modal Functions
-    window.editVendorInfo = function() {
-      document.getElementById("vendorModal").classList.remove("hidden");
-    };
-
-    window.closeVendorModal = function() {
-      document.getElementById("vendorModal").classList.add("hidden");
-    };
-
-    window.showAddProductModal = function() {
-      document.getElementById("productModalTitle").textContent = "Add New Product";
-      document.getElementById("productForm").reset();
-      document.getElementById("editProductId").value = "";
-      document.getElementById("productModal").classList.remove("hidden");
-    };
-
-    window.editProduct = function(productId) {
-      const product = allProducts.find(p => p.id === productId);
-      if (!product) return;
-
-      document.getElementById("productModalTitle").textContent = "Edit Product";
-      document.getElementById("editProductId").value = productId;
-      document.getElementById("productName").value = product.name;
-      document.getElementById("productPrice").value = product.price;
-      document.getElementById("productCategory").value = product.category;
-      document.getElementById("productImage").value = product.imageURL || '';
-      document.getElementById("productDescription").value = product.description || '';
-      document.getElementById("productModal").classList.remove("hidden");
-    };
-
-    window.closeProductModal = function() {
-      document.getElementById("productModal").classList.add("hidden");
-    };
-
-    // Form Handlers
-    document.getElementById("vendorForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const updates = {
-        businessName: document.getElementById("editBusinessName").value,
-        name: document.getElementById("editFullName").value,
-        email: document.getElementById("editEmail").value,
-        phone: document.getElementById("editPhone").value,
-        address: document.getElementById("editAddress").value,
-        city: document.getElementById("editCity").value,
-        province: document.getElementById("editProvince").value,
-        category: document.getElementById("editCategory").value,
-        updatedAt: new Date().toISOString()
-      };
-
-      try {
-        await firestoreDb.collection("vendors").doc(currentUser.uid).update(updates);
-        alert("Vendor information updated successfully!");
-        closeVendorModal();
-        location.reload(); // Refresh to show updated info
-      } catch (error) {
-        console.error("Error updating vendor info:", error);
-        alert("Failed to update vendor information");
-      }
-    });
-
-    document.getElementById("productForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const productId = document.getElementById("editProductId").value;
-      const productData = {
-        name: document.getElementById("productName").value,
-        price: parseFloat(document.getElementById("productPrice").value),
-        category: document.getElementById("productCategory").value,
-        imageURL: document.getElementById("productImage").value,
-        description: document.getElementById("productDescription").value,
-        createdAt: productId ? allProducts.find(p => p.id === productId)?.createdAt : new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        isApproved: false
-      };
-
-      try {
-        const vendorRef = firestoreDb.collection("vendors").doc(currentUser.uid);
-        const vendorSnap = await vendorRef.get();
-        const vendorData = vendorSnap.data();
-
-        let products = vendorData.products || [];
-        
-        if (productId) {
-          // Update existing product
-          const index = products.findIndex(p => p.id === productId);
-          if (index !== -1) {
-            products[index] = { id: productId, ...productData };
-          }
-        } else {
-          // Add new product
-          const newId = firestoreDb.collection("products").doc().id;
-          products.push({ id: newId, ...productData });
-        }
-
-        await vendorRef.update({ products });
-        alert(productId ? "Product updated successfully!" : "Product added successfully! It will be reviewed shortly.");
-        closeProductModal();
-        loadProducts();
-      } catch (error) {
-        console.error("Error saving product:", error);
-        alert("Failed to save product");
-      }
-    });
-
-    window.deleteProduct = async function(productId) {
-      if (!confirm("Are you sure you want to delete this product?")) return;
-
-      try {
-        const vendorRef = firestoreDb.collection("vendors").doc(currentUser.uid);
-        const vendorSnap = await vendorRef.get();
-        const vendorData = vendorSnap.data();
-
-        let products = vendorData.products || [];
-        products = products.filter(p => p.id !== productId);
-
-        await vendorRef.update({ products });
-        alert("Product deleted successfully!");
-        loadProducts();
-      } catch (error) {
-        console.error("Error deleting product:", error);
-        alert("Failed to delete product");
-      }
-    };
-
-    // Filter
-    document.getElementById("productFilter").addEventListener("change", function() {
-      const filter = this.value;
-      if (filter === "all") {
-        renderProducts(allProducts);
-      } else {
-        const filtered = allProducts.filter(p => 
-          (filter === "approved" && p.isApproved) ||
-          (filter === "pending" && !p.isApproved)
-        );
-        renderProducts(filtered);
-      }
-    });
-
-    // Notification and message functions (preserved from original)
     async function fetchUnreadNotifications() {
       try {
         const notifQuery = firestoreDb.collection("notifications")
@@ -695,6 +319,270 @@
       } catch (error) {
         console.error('Error fetching unread messages:', error);
       }
+    }
+
+    function showUpgradePrompt() {
+      document.getElementById("upgradePrompt").classList.remove("hidden");
+      document.getElementById("ordersContainer").classList.add("hidden");
+      lucide.createIcons();
+    }
+
+    async function loadOrders() {
+      try {
+        document.getElementById("upgradePrompt").classList.add("hidden");
+        document.getElementById("ordersContainer").classList.remove("hidden");
+
+        const ordersRef = realtimeDb.ref("orders");
+        ordersRef.orderByChild("userId").equalTo(currentUser.uid).on("value", snapshot => {
+          allOrders = [];
+
+          if (!snapshot.exists()) {
+            renderOrders([]);
+            return;
+          }
+
+          snapshot.forEach(childSnapshot => {
+            allOrders.push({
+              id: childSnapshot.key,
+              ...childSnapshot.val()
+            });
+          });
+
+          allOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          renderOrders(allOrders);
+        });
+      } catch (error) {
+        console.error("Error loading orders:", error);
+        document.getElementById("ordersContainer").innerHTML = `
+          <div class="text-center py-8 text-red-600">
+            <p>Error loading orders. Please refresh the page.</p>
+          </div>
+        `;
+      }
+    }
+
+    function renderOrders(orders) {
+      const container = document.getElementById("ordersContainer");
+
+      if (orders.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12">
+            <div class="mb-4">
+              <i data-lucide="shopping-bag" class="w-20 h-20 mx-auto text-gray-300"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">No Orders Yet</h3>
+            <p class="text-gray-600 mb-4">Start shopping in the marketplace to see your orders here</p>
+            <button onclick="window.location.href='marketplace.html'" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:shadow-lg font-semibold transition-all">
+              Browse Marketplace
+            </button>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = orders.map(order => {
+        const date = new Date(order.createdAt);
+        const statusColors = {
+          pending: 'bg-yellow-100 text-yellow-800',
+          confirmed: 'bg-blue-100 text-blue-800',
+          shipped: 'bg-purple-100 text-purple-800',
+          delivered: 'bg-green-100 text-green-800',
+          cancelled: 'bg-red-100 text-red-800'
+        };
+
+        const itemCount = order.items ? order.items.length : 0;
+        const firstItem = order.items && order.items.length > 0 ? order.items[0] : null;
+
+        return `
+          <div class="border border-gray-200 rounded-xl p-5 hover:shadow-lg transition-all fade-in">
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-xs font-mono text-gray-500">Order #${order.id.substring(0, 8)}</span>
+                  <span class="text-xs px-3 py-1 rounded-full font-semibold ${statusColors[order.status] || 'bg-gray-100 text-gray-800'}">
+                    ${(order.status || 'pending').charAt(0).toUpperCase() + (order.status || 'pending').slice(1)}
+                  </span>
+                </div>
+                <p class="text-sm text-gray-600">${date.toLocaleDateString()} at ${date.toLocaleTimeString()}</p>
+                <p class="text-sm text-gray-600 mt-1">${itemCount} item${itemCount !== 1 ? 's' : ''}</p>
+              </div>
+              <div class="text-right">
+                <p class="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">R ${parseFloat(order.total || 0).toFixed(2)}</p>
+              </div>
+            </div>
+
+            ${firstItem ? `
+              <div class="flex items-center gap-3 mb-3 p-3 bg-gray-50 rounded-xl">
+                ${firstItem.imageURL ? `<img src="${firstItem.imageURL}" class="w-14 h-14 rounded-lg object-cover" />` : '<div class="w-14 h-14 bg-gray-200 rounded-lg"></div>'}
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold text-gray-800 truncate">${firstItem.name || 'Product'}</p>
+                  <p class="text-xs text-gray-600">Qty: ${firstItem.qty || 1} × R${parseFloat(firstItem.price || 0).toFixed(2)}</p>
+                </div>
+              </div>
+              ${itemCount > 1 ? `<p class="text-xs text-gray-500 mb-3">+ ${itemCount - 1} more item${itemCount - 1 !== 1 ? 's' : ''}</p>` : ''}
+            ` : ''}
+
+            <div class="flex gap-2">
+              <button onclick="viewOrderDetails('${order.id}')" class="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-lg text-sm font-semibold transition-all">
+                View Details
+              </button>
+              ${order.status === 'pending' ? `
+                <button onclick="cancelOrder('${order.id}')" class="px-4 py-3 border-2 border-red-600 text-red-600 rounded-xl hover:bg-red-50 text-sm font-semibold transition-all">
+                  Cancel
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    window.viewOrderDetails = function(orderId) {
+      const order = allOrders.find(o => o.id === orderId);
+      if (!order) return;
+
+      const date = new Date(order.createdAt);
+      const statusColors = {
+        pending: 'bg-yellow-100 text-yellow-800',
+        confirmed: 'bg-blue-100 text-blue-800',
+        shipped: 'bg-purple-100 text-purple-800',
+        delivered: 'bg-green-100 text-green-800',
+        cancelled: 'bg-red-100 text-red-800'
+      };
+
+      document.getElementById("orderDetailsContent").innerHTML = `
+        <div class="space-y-4">
+          <div class="flex justify-between items-start pb-4 border-b">
+            <div>
+              <p class="text-sm text-gray-600">Order ID</p>
+              <p class="font-mono text-sm">${order.id}</p>
+            </div>
+            <span class="px-3 py-1 rounded-full text-sm font-semibold ${statusColors[order.status] || 'bg-gray-100 text-gray-800'}">
+              ${(order.status || 'pending').charAt(0).toUpperCase() + (order.status || 'pending').slice(1)}
+            </span>
+          </div>
+
+          <div>
+            <p class="text-sm text-gray-600 mb-1">Order Date</p>
+            <p class="font-medium">${date.toLocaleDateString()} at ${date.toLocaleTimeString()}</p>
+          </div>
+
+          <div>
+            <p class="text-sm font-semibold text-gray-800 mb-3">Items Ordered</p>
+            <div class="space-y-3">
+              ${order.items ? order.items.map(item => `
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                  ${item.imageURL ? `<img src="${item.imageURL}" class="w-16 h-16 rounded-lg object-cover" />` : '<div class="w-16 h-16 bg-gray-200 rounded-lg"></div>'}
+                  <div class="flex-1">
+                    <p class="font-medium text-gray-800">${item.name || 'Product'}</p>
+                    <p class="text-sm text-gray-600">Quantity: ${item.qty || 1}</p>
+                    <p class="text-sm text-gray-600">Price: R${parseFloat(item.price || 0).toFixed(2)}</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">R${(parseFloat(item.price || 0) * (item.qty || 1)).toFixed(2)}</p>
+                  </div>
+                </div>
+              `).join('') : '<p class="text-gray-500">No items</p>'}
+            </div>
+          </div>
+
+          <div class="pt-4 border-t space-y-2">
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Subtotal</span>
+              <span class="font-medium">R${parseFloat(order.subtotal || 0).toFixed(2)}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Delivery Fee</span>
+              <span class="font-medium">R${parseFloat(order.deliveryFee || 0).toFixed(2)}</span>
+            </div>
+            <div class="flex justify-between text-lg font-bold pt-2 border-t">
+              <span>Total</span>
+              <span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">R${parseFloat(order.total || 0).toFixed(2)}</span>
+            </div>
+          </div>
+
+          ${order.status === 'pending' ? `
+            <div class="pt-4 border-t space-y-2">
+              <button onclick="updateOrderStatus('${order.id}', 'confirmed')" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-3 rounded-xl hover:shadow-lg font-semibold transition-all">
+                Mark as Confirmed
+              </button>
+              <button onclick="updateOrderStatus('${order.id}', 'cancelled')" class="w-full border-2 border-red-600 text-red-600 px-4 py-3 rounded-xl hover:bg-red-50 font-semibold transition-all">
+                Cancel Order
+              </button>
+            </div>
+          ` : order.status === 'confirmed' ? `
+            <div class="pt-4 border-t">
+              <button onclick="updateOrderStatus('${order.id}', 'shipped')" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-3 rounded-xl hover:shadow-lg font-semibold transition-all">
+                Mark as Shipped
+              </button>
+            </div>
+          ` : order.status === 'shipped' ? `
+            <div class="pt-4 border-t">
+              <button onclick="updateOrderStatus('${order.id}', 'delivered')" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-3 rounded-xl hover:shadow-lg font-semibold transition-all">
+                Mark as Delivered
+              </button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+
+      document.getElementById("orderModal").classList.remove("hidden");
+      lucide.createIcons();
+    };
+
+    window.closeOrderModal = function() {
+      document.getElementById("orderModal").classList.add("hidden");
+    };
+
+    window.updateOrderStatus = async function(orderId, newStatus) {
+      if (!confirm(`Change order status to ${newStatus}?`)) return;
+
+      try {
+        await realtimeDb.ref(`orders/${orderId}`).update({
+          status: newStatus,
+          updatedAt: new Date().toISOString()
+        });
+
+        alert(`Order status updated to ${newStatus}`);
+        closeOrderModal();
+      } catch (error) {
+        console.error("Error updating order:", error);
+        alert("Failed to update order status");
+      }
+    };
+
+    window.cancelOrder = async function(orderId) {
+      if (!confirm("Are you sure you want to cancel this order?")) return;
+
+      try {
+        await realtimeDb.ref(`orders/${orderId}`).update({
+          status: 'cancelled',
+          updatedAt: new Date().toISOString()
+        });
+
+        alert("Order cancelled successfully");
+      } catch (error) {
+        console.error("Error cancelling order:", error);
+        alert("Failed to cancel order");
+      }
+    };
+
+    document.getElementById("orderFilter").addEventListener("change", function() {
+      const filter = this.value;
+
+      if (filter === "all") {
+        renderOrders(allOrders);
+      } else {
+        const filtered = allOrders.filter(o => o.status === filter);
+        renderOrders(filtered);
+      }
+    });
+
+    function logout() {
+      auth.signOut().then(() => window.location.href = "login.html");
     }
 
     function goToSettings() {
