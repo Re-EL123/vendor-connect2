@@ -239,7 +239,7 @@
   lucide.createIcons();
   
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, doc, getDoc, collection, getDocs, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, collection, getDocs, query, where, orderBy, limit, collectionGroup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
   const firebaseConfig = {
@@ -318,14 +318,20 @@
       const ordersSnap = await getDocs(ordersQuery);
       document.getElementById('totalOrders').textContent = ordersSnap.size.toLocaleString();
 
-      // Products count from vendors collection
+      // Products count - FIXED: Get vendor doc then count subcollection products
       const vendorQuery = query(collection(db, "vendors"), where("uid", "==", currentUser.uid));
       const vendorSnap = await getDocs(vendorQuery);
       let totalProducts = 0;
-      vendorSnap.forEach(vendorDoc => {
-        const vendor = vendorDoc.data();
-        if (vendor.products) totalProducts += Object.keys(vendor.products).length;
-      });
+      
+      for (const vendorDoc of vendorSnap.docs) {
+        const vendorData = vendorDoc.data();
+        const vendorId = vendorDoc.id;
+        
+        // Count products in subcollection vendors/{vendorId}/products
+        const productsQuery = query(collection(db, `vendors/${vendorId}/products`));
+        const productsSnap = await getDocs(productsQuery);
+        totalProducts += productsSnap.size;
+      }
       
       document.getElementById('totalViews').textContent = totalViews.toLocaleString();
       document.getElementById('totalLikes').textContent = totalLikes.toLocaleString();
@@ -383,6 +389,12 @@
       lucide.createIcons();
     } catch (error) {
       console.error('Error loading orders:', error);
+      document.getElementById('ordersList').innerHTML = `
+        <div class="text-center py-12 text-gray-500">
+          <i data-lucide="shopping-cart" class="w-16 h-16 mx-auto mb-4 opacity-50"></i>
+          <p class="text-lg font-semibold">No orders yet</p>
+        </div>
+      `;
     }
   }
 
@@ -408,14 +420,26 @@
       }
 
       let allProducts = [];
-      vendorSnap.forEach(vendorDoc => {
-        const vendor = vendorDoc.data();
-        if (vendor.products) {
-          Object.entries(vendor.products).forEach(([productId, product]) => {
-            allProducts.push({ id: productId, ...product, vendorId: vendorDoc.id });
+      
+      // FIXED: Fetch products from subcollection vendors/{vendorId}/products
+      for (const vendorDoc of vendorSnap.docs) {
+        const vendorId = vendorDoc.id;
+        const productsQuery = query(
+          collection(db, `vendors/${vendorId}/products`),
+          orderBy("createdAt", "desc"),
+          limit(3)
+        );
+        const productsSnap = await getDocs(productsQuery);
+        
+        productsSnap.forEach(productDoc => {
+          const product = productDoc.data();
+          allProducts.push({ 
+            id: productDoc.id, 
+            ...product, 
+            vendorId: vendorId 
           });
-        }
-      });
+        });
+      }
 
       allProducts.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
       const topProducts = allProducts.slice(0, 3);
@@ -433,7 +457,7 @@
         `;
       } else {
         productsList.innerHTML = topProducts.map(product => `
-          <div class="group bg-gradient-to-b from-gray-50 to-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all border hover:border-emerald-200 cursor-pointer" onclick="window.location.href='product-details.html?id=${product.id}'">
+          <div class="group bg-gradient-to-b from-gray-50 to-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all border hover:border-emerald-200 cursor-pointer" onclick="window.location.href='product-details.html?id=${product.id}&vendor=${product.vendorId}'">
             <div class="w-full h-32 bg-gradient-to-r from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center mb-4 overflow-hidden">
               ${product.imageURL ? `<img src="${product.imageURL}" class="w-full h-full object-cover group-hover:scale-105 transition-transform">` : 
                 `<i data-lucide="package" class="w-16 h-16 text-emerald-400"></i>`}
@@ -454,6 +478,12 @@
       lucide.createIcons();
     } catch (error) {
       console.error('Error loading products:', error);
+      document.getElementById('productsList').innerHTML = `
+        <div class="text-center py-12 text-gray-500 rounded-2xl border-2 border-dashed border-gray-200 col-span-full">
+          <i data-lucide="package-plus" class="w-16 h-16 mx-auto mb-4 opacity-50 text-emerald-400"></i>
+          <p class="text-lg font-semibold">No products found</p>
+        </div>
+      `;
     }
   }
 
