@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Manage Products - Street Connect</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in { animation: fadeIn 0.3s ease-out; }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .slide-in { animation: slideIn 0.4s ease-out; }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .pulse-badge {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
+
+<!-- Header -->
+<header class="bg-white/90 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+  <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <button onclick="window.history.back()" class="p-3 hover:bg-gray-100 rounded-xl transition-all shadow-sm">
+        <i data-lucide="arrow-left" class="w-6 h-6 text-gray-700"></i>
+      </button>
+      <h1 class="text-3xl font-extrabold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+        Manage Products
+      </h1>
+    </div>
+    
+    <div class="flex items-center gap-3">
+      <button onclick="window.location.href='create-product.html'" class="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-2xl font-semibold hover:shadow-xl transition-all flex items-center gap-2">
+        <i data-lucide="plus-circle" class="w-5 h-5"></i>
+        New Product
+      </button>
+      <div id="userAvatar" class="w-12 h-12 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg shadow-lg cursor-pointer" onclick="window.location.href='profile.html'"></div>
+    </div>
+  </div>
+</header>
+
+<div class="max-w-6xl mx-auto px-4 py-8">
+  <!-- Stats Header -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white rounded-3xl shadow-2xl p-6 text-center fade-in">
+      <div class="text-3xl font-bold text-emerald-600 mb-2" id="totalProductsCount">0</div>
+      <p class="text-gray-600 font-semibold">Total Products</p>
+    </div>
+    <div class="bg-white rounded-3xl shadow-2xl p-6 text-center fade-in">
+      <div class="text-3xl font-bold text-blue-600 mb-2" id="approvedCount">0</div>
+      <p class="text-gray-600 font-semibold">Approved</p>
+    </div>
+    <div class="bg-white rounded-3xl shadow-2xl p-6 text-center fade-in">
+      <div class="text-3xl font-bold text-orange-600 mb-2" id="pendingCount">0</div>
+      <p class="text-gray-600 font-semibold">Pending Review</p>
+    </div>
+  </div>
+
+  <!-- Filters & Search -->
+  <div class="bg-white rounded-3xl shadow-2xl p-6 mb-8 fade-in">
+    <div class="flex flex-col lg:flex-row gap-4 items-center justify-between">
+      <div class="flex flex-col sm:flex-row gap-4 flex-1">
+        <div class="relative flex-1">
+          <input type="text" id="searchInput" placeholder="Search products..." 
+            class="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-emerald-500 focus:border-transparent transition-all text-lg">
+          <i data-lucide="search" class="w-6 h-6 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2"></i>
+        </div>
+        <select id="categoryFilter" class="px-6 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-emerald-500 focus:border-transparent transition-all text-lg">
+          <option value="">All Categories</option>
+          <option value="Food">Food & Beverage</option>
+          <option value="Tech">Technology</option>
+          <option value="Fashion">Fashion</option>
+          <option value="Beauty">Beauty & Wellness</option>
+          <option value="Services">Services</option>
+        </select>
+        <select id="statusFilter" class="px-6 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-emerald-500 focus:border-transparent transition-all text-lg">
+          <option value="">All Status</option>
+          <option value="approved">Approved</option>
+          <option value="pending">Pending</option>
+        </select>
+      </div>
+      <div class="flex gap-3">
+        <button onclick="toggleGridView()" id="gridBtn" class="p-3 bg-emerald-500 text-white rounded-xl hover:shadow-lg transition-all">
+          <i data-lucide="grid" class="w-5 h-5"></i>
+        </button>
+        <button onclick="toggleListView()" id="listBtn" class="p-3 bg-gray-200 text-gray-700 rounded-xl hover:shadow-lg transition-all">
+          <i data-lucide="list" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Products Grid -->
+  <div id="productsContainer" class="bg-white rounded-3xl shadow-2xl p-8">
+    <div class="flex items-center justify-between mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
+        <i data-lucide="package" class="w-8 h-8 text-emerald-600"></i>
+        Your Products
+      </h2>
+      <div id="productsFound" class="text-sm text-gray-500 font-medium"></div>
+    </div>
+    <div id="productsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <!-- Products load here -->
+      <div class="text-center py-12 text-gray-500 rounded-2xl border-2 border-dashed border-gray-200 col-span-full">
+        <i data-lucide="package-plus" class="w-16 h-16 mx-auto mb-4 opacity-50 text-emerald-400"></i>
+        <p class="text-lg font-semibold">No products found</p>
+        <p class="text-sm mt-2">Create your first product to manage here</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-3xl p-8 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+    <div class="text-center mb-6">
+      <div class="w-20 h-20 bg-red-100 rounded-3xl flex items-center justify-center mx-auto mb-4">
+        <i data-lucide="trash-2" class="w-10 h-10 text-red-500"></i>
+      </div>
+      <h3 class="text-2xl font-bold text-gray-900 mb-2">Delete Product?</h3>
+      <p class="text-gray-600 mb-6">This action cannot be undone. This will permanently delete <span id="deleteProductName" class="font-semibold"></span> from your store.</p>
+    </div>
+    <div class="flex gap-3 pt-4">
+      <button id="confirmDelete" class="flex-1 bg-red-500 hover:bg-red-600 text-white py-4 rounded-2xl font-bold transition-all shadow-lg">
+        Delete Product
+      </button>
+      <button id="cancelDelete" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-900 py-4 rounded-2xl font-bold transition-all">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile Bottom Nav -->
+<nav class="fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur-lg border-t border-gray-200 shadow-2xl md:hidden">
+  <div class="flex justify-around py-4">
+    <a href="feed.html" class="flex flex-col items-center text-gray-600">
+      <i data-lucide="home" class="w-7 h-7"></i>
+      <span class="text-xs font-medium mt-1">Feed</span>
+    </a>
+    <a href="marketplace.html" class="flex flex-col items-center text-emerald-600">
+      <i data-lucide="shopping-bag" class="w-7 h-7"></i>
+      <span class="text-xs font-bold mt-1">Market</span>
+    </a>
+    <a href="dashboard.html" class="flex flex-col items-center text-gray-600">
+      <i data-lucide="layout-dashboard" class="w-7 h-7"></i>
+      <span class="text-xs font-medium mt-1">Dashboard</span>
+    </a>
+    <a href="profile.html" class="flex flex-col items-center text-gray-600">
+      <i data-lucide="user" class="w-7 h-7"></i>
+      <span class="text-xs font-medium mt-1">Profile</span>
+    </a>
+  </div>
+</nav>
+
+<script type="module">
+  lucide.createIcons();
+  
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, doc, getDoc, collection, getDocs, query, where, orderBy, limit, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
+    authDomain: "online-mall-4422.firebaseapp.com",
+    projectId: "online-mall-4422",
+    storageBucket: "online-mall-4422.appspot.com"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+
+  let currentUser = null;
+  let allProducts = [];
+  let filteredProducts = [];
+  let currentVendorId = null;
+  let isGridView = true;
+
+  // Auth check
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = 'login.html';
+      return;
+    }
+    currentUser = user;
+    await loadProducts();
+  });
+
+  // Load all products from vendor subcollections
+  async function loadProducts() {
+    try {
+      const vendorQuery = query(collection(db, "vendors"), where("uid", "==", currentUser.uid));
+      const vendorSnap = await getDocs(vendorQuery);
+      
+      allProducts = [];
+      
+      for (const vendorDoc of vendorSnap.docs) {
+        const vendorId = vendorDoc.id;
+        currentVendorId = vendorId;
+        
+        const productsQuery = query(
+          collection(db, `vendors/${vendorId}/products`),
+          orderBy("createdAt", "desc")
+        );
+        const productsSnap = await getDocs(productsQuery);
+        
+        productsSnap.forEach(productDoc => {
+          const product = productDoc.data();
+          allProducts.push({ 
+            id: productDoc.id, 
+            vendorId: vendorId,
+            ...product 
+          });
+        });
+      }
+      
+      filteredProducts = [...allProducts];
+      updateStats();
+      renderProducts();
+      
+    } catch (error) {
+      console.error('Error loading products:', error);
+    }
+  }
+
+  function updateStats() {
+    const total = allProducts.length;
+    const approved = allProducts.filter(p => p.isApproved).length;
+    const pending = total - approved;
+    
+    document.getElementById('totalProductsCount').textContent = total;
+    document.getElementById('approvedCount').textContent = approved;
+    document.getElementById('pendingCount').textContent = pending;
+  }
+
+  function renderProducts() {
+    const container = document.getElementById('productsGrid');
+    const productsFound = document.getElementById('productsFound');
+    
+    if (filteredProducts.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-12 text-gray-500 rounded-2xl border-2 border-dashed border-gray-200 col-span-full">
+          <i data-lucide="package-search" class="w-16 h-16 mx-auto mb-4 opacity-50 text-emerald-400"></i>
+          <p class="text-lg font-semibold">No products match your search</p>
+          <p class="text-sm mt-2">Try adjusting your filters</p>
+        </div>
+      `;
+      productsFound.textContent = '0 products found';
+      return;
+    }
+    
+    productsFound.textContent = `${filteredProducts.length} products found`;
+    
+    container.innerHTML = filteredProducts.map(product => `
+      <div class="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all border hover:border-emerald-300 relative overflow-hidden ${isGridView ? '' : 'lg:flex lg:items-center lg:gap-4 lg:p-8'}">
+        <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all z-10 flex gap-2">
+          <button onclick="editProduct('${product.id}')" class="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-all shadow-lg">
+            <i data-lucide="edit" class="w-4 h-4"></i>
+          </button>
+          <button onclick="confirmDelete('${product.id}', '${product.name}')" class="p-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-all shadow-lg">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+        </div>
+        
+        <div class="w-full h-40 ${isGridView ? 'mb-4' : 'w-32 h-32 flex-shrink-0'} bg-gradient-to-r from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center overflow-hidden">
+          ${product.imageURL ? `<img src="${product.imageURL}" class="w-full h-full object-cover group-hover:scale-105 transition-transform">` : 
+            `<i data-lucide="package" class="w-12 h-12 text-emerald-400"></i>`}
+        </div>
+        
+        <div class="flex-1 min-w-0 ${isGridView ? '' : 'text-left'}">
+          <div class="flex items-center justify-between mb-3 ${isGridView ? 'flex-col items-start gap-2' : ''}">
+            <h3 class="font-bold text-xl text-gray-900 truncate">${product.name}</h3>
+            <span class="px-3 py-1 rounded-full text-xs font-bold ${
+              product.isApproved 
+                ? 'bg-emerald-100 text-emerald-800' 
+                : 'bg-orange-100 text-orange-800'
+            }">
+              ${product.isApproved ? '✅ Approved' : '⏳ Pending'}
+            </span>
+          </div>
+          <p class="text-emerald-600 font-bold text-2xl mb-3">R${product.price?.toLocaleString() || '0'}</p>
+          <p class="text-sm text-gray-500 mb-4">${product.category}</p>
+          <p class="text-sm text-gray-600 line-clamp-2 mb-4">${product.description}</p>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-500">${getTimeAgo(product.createdAt)}</span>
+            <button onclick="window.location.href='product-details.html?id=${product.id}&vendor=${product.vendorId}'" 
+              class="px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-xl transition-all text-sm">
+              View Live
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+    
+    lucide.createIcons();
+  }
+
+  // Filter & Search
+  document.getElementById('searchInput').addEventListener('input', (e) => {
+    const search = e.target.value.toLowerCase();
+    filterProducts(search);
+  });
+
+  document.getElementById('categoryFilter').addEventListener('change', filterProducts);
+  document.getElementById('statusFilter').addEventListener('change', filterProducts);
+
+  function filterProducts() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const category = document.getElementById('categoryFilter').value;
+    const status = document.getElementById('statusFilter').value;
+    
+    filteredProducts = allProducts.filter(product => {
+      const matchesSearch = !search || 
+        product.name.toLowerCase().includes(search) ||
+        product.description.toLowerCase().includes(search) ||
+        product.category.toLowerCase().includes(search);
+      
+      const matchesCategory = !category || product.category === category;
+      const matchesStatus = !status || 
+        (status === 'approved' && product.isApproved) ||
+        (status === 'pending' && !product.isApproved);
+      
+      return matchesSearch && matchesCategory && matchesStatus;
+    });
+    
+    renderProducts();
+  }
+
+  // View Toggle
+  function toggleGridView() {
+    isGridView = true;
+    document.getElementById('gridBtn').classList.add('bg-emerald-500', 'text-white');
+    document.getElementById('gridBtn').classList.remove('bg-gray-200', 'text-gray-700');
+    document.getElementById('listBtn').classList.add('bg-gray-200', 'text-gray-700');
+    document.getElementById('listBtn').classList.remove('bg-emerald-500', 'text-white');
+    renderProducts();
+  }
+
+  function toggleListView() {
+    isGridView = false;
+    document.getElementById('listBtn').classList.add('bg-emerald-500', 'text-white');
+    document.getElementById('listBtn').classList.remove('bg-gray-200', 'text-gray-700');
+    document.getElementById('gridBtn').classList.add('bg-gray-200', 'text-gray-700');
+    document.getElementById('gridBtn').classList.remove('bg-emerald-500', 'text-white');
+    renderProducts();
+  }
+
+  // Delete Modal
+  window.confirmDelete = (productId, productName) => {
+    document.getElementById('deleteProductName').textContent = productName;
+    document.getElementById('deleteModal').classList.remove('hidden');
+    window.currentDeleteId = productId;
+  };
+
+  document.getElementById('cancelDelete').onclick = () => {
+    document.getElementById('deleteModal').classList.add('hidden');
+  };
+
+  document.getElementById('confirmDelete').onclick = async () => {
+    try {
+      await deleteDoc(doc(db, `vendors/${currentVendorId}/products/${window.currentDeleteId}`));
+      allProducts = allProducts.filter(p => p.id !== window.currentDeleteId);
+      filterProducts();
+      document.getElementById('deleteModal').classList.add('hidden');
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      alert('Failed to delete product');
+    }
+  };
+
+  window.editProduct = (productId) => {
+    window.location.href = `create-product.html?edit=${productId}&vendor=${currentVendorId}`;
+  };
+
+  function getTimeAgo(timestamp) {
+    if (!timestamp || !timestamp.seconds) return 'Just now';
+    const now = Date.now();
+    const postTime = timestamp.seconds * 1000;
+    const diff = now - postTime;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor(diff / (1000 * 60));
+    
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    if (minutes > 0) return `${minutes}m ago`;
+    return 'Just now';
+  }
+
+  // Enter key on search
+  document.getElementById('searchInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') filterProducts();
+  });
+</script>
+
+</body>
+</html>
