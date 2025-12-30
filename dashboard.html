@@ -1,15 +1,14 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Street Connect - Dashboard</title>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard - Street Connect</title>
+
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
@@ -18,7 +17,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
     .fade-in { animation: fadeIn 0.3s ease-out; }
-
+    
     @keyframes pulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.5; }
@@ -26,159 +25,183 @@
     .pulse-badge {
       animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     }
+    
+    .metric-card {
+      transition: all 0.3s ease;
+    }
+    .metric-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0,0, 0.1);
+    }
   </style>
 </head>
+
 <body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
 
-  <!-- Header -->
-  <header class="bg-white/90 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+<!-- Header -->
+<header class="bg-white/90 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+  <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <button onclick="window.history.back()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+        <i data-lucide="arrow-left" class="w-5 h-5 text-gray-600"></i>
+      </button>
       <h1 class="text-2xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-        Street Connect
+        Dashboard
       </h1>
-
-      <div class="flex items-center gap-3">
-        <button onclick="window.location.href='search.html'" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-          <i data-lucide="search" class="w-5 h-5 text-gray-600"></i>
-        </button>
-        <button id="notifBtn" onclick="window.location.href='notifications.html'" class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
-          <i data-lucide="bell" class="w-5 h-5 text-gray-600"></i>
-          <span id="notifBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-bold px-1 pulse-badge"></span>
-        </button>
-        <button onclick="window.location.href='inbox.html'" class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
-          <i data-lucide="message-circle" class="w-5 h-5 text-gray-600"></i>
-          <span id="messageBadge" class="hidden absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-bold px-1 pulse-badge"></span>
-        </button>
-        <button onclick="window.location.href='settings.html'" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-          <i data-lucide="settings" class="w-5 h-5 text-gray-600"></i>
-        </button>
-        <div id="userAvatar" class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-sm cursor-pointer"
-          onclick="window.location.href='profile.html'">
-        </div>
-      </div>
     </div>
-  </header>
+    
+    <div class="flex items-center gap-3">
+      <button onclick="window.location.href='feed.html'" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+        <i data-lucide="home" class="w-5 h-5 text-gray-600"></i>
+      </button>
+      <button onclick="window.location.href='search.html'" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+        <i data-lucide="search" class="w-5 h-5 text-gray-600"></i>
+      </button>
+      <button id="notifBtn" onclick="window.location.href='notifications.html'" class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
+        <i data-lucide="bell" class="w-5 h-5 text-gray-600"></i>
+        <span id="notifBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-bold px-1 pulse-badge"></span>
+      </button>
+      <div id="userAvatar" class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-sm cursor-pointer" onclick="window.location.href='profile.html'"></div>
+    </div>
+  </div>
+</header>
 
-  <div class="max-w-6xl mx-auto px-4 py-6">
-    <div class="grid md:grid-cols-3 gap-6">
-
-      <!-- Left Sidebar -->
-      <aside class="md:col-span-1 space-y-4">
-        <!-- User Info Card -->
-        <div class="bg-white rounded-2xl shadow-lg p-6">
-          <h2 class="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">User Info</h2>
-          <div id="userInfo" class="space-y-2 text-sm"></div>
-        </div>
-
-        <!-- Subscription Card -->
-        <div class="bg-white rounded-2xl shadow-lg p-6">
-          <h2 class="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">Subscription</h2>
-          <p id="subscriptionType" class="mb-4 text-lg font-medium">Loading...</p>
-          <button onclick="goToSettings()" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-3 rounded-xl font-semibold hover:shadow-lg transition-all">
-            Upgrade / Manage
+<div class="max-w-6xl mx-auto px-4 py-8">
+  <!-- User Profile Card -->
+  <div class="bg-white rounded-3xl shadow-2xl p-8 mb-8 fade-in">
+    <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
+      <div class="flex-shrink-0">
+        <div id="profileAvatar" class="w-24 h-24 rounded-3xl bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-3xl shadow-2xl border-4 border-white"></div>
+      </div>
+      <div class="flex-1 text-center md:text-left">
+        <h2 id="dashboardUserName" class="text-3xl font-extrabold text-gray-900 mb-2"></h2>
+        <p id="dashboardUserType" class="text-xl text-gray-500 mb-4 bg-blue-100 inline-block px-4 py-2 rounded-2xl font-semibold"></p>
+        <div class="flex flex-wrap gap-4 justify-center md:justify-start">
+          <button onclick="window.location.href='profile.html'" class="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl font-semibold hover:shadow-xl transition-all">
+            <i data-lucide="user" class="w-5 h-5 inline mr-2"></i>View Profile
+          </button>
+          <button onclick="window.location.href='subscription.html'" class="px-8 py-3 border-2 border-blue-600 text-blue-600 rounded-2xl font-semibold hover:bg-blue-600 hover:text-white transition-all">
+            <i data-lucide="zap" class="w-5 h-5 inline mr-2"></i>Upgrade Plan
           </button>
         </div>
+      </div>
+    </div>
+  </div>
 
-        <!-- Quick Actions Card -->
-        <div class="bg-white rounded-2xl shadow-lg p-6">
-          <h2 class="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">Quick Actions</h2>
-          <div class="grid grid-cols-2 gap-3">
-            <button onclick="window.location.href='feed.html'" class="flex flex-col items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 rounded-xl hover:shadow-lg transition-all">
-              <i data-lucide="home" class="w-5 h-5"></i>
-              <span class="text-xs font-semibold">Feed</span>
-            </button>
-            <button onclick="window.location.href='marketplace.html'" class="flex flex-col items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white p-4 rounded-xl hover:shadow-lg transition-all">
-              <i data-lucide="shopping-bag" class="w-5 h-5"></i>
-              <span class="text-xs font-semibold">Market</span>
-            </button>
-            <button onclick="window.location.href='wallet.html'" class="flex flex-col items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white p-4 rounded-xl hover:shadow-lg transition-all">
-              <i data-lucide="wallet" class="w-5 h-5"></i>
-              <span class="text-xs font-semibold">Wallet</span>
-            </button>
-            <button onclick="window.location.href='inbox.html'" class="flex flex-col items-center justify-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white p-4 rounded-xl hover:shadow-lg transition-all">
-              <i data-lucide="message-circle" class="w-5 h-5"></i>
-              <span class="text-xs font-semibold">Inbox</span>
-            </button>
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+    <!-- Key Metrics -->
+    <div class="metric-card bg-white rounded-3xl shadow-xl p-8 hover:shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <div class="p-3 bg-blue-100 rounded-2xl">
+          <i data-lucide="eye" class="w-8 h-8 text-blue-600"></i>
+        </div>
+        <div id="viewsTrend" class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+      </div>
+      <h3 class="text-3xl font-bold text-gray-900 mb-1" id="totalViews">0</h3>
+      <p class="text-gray-500 font-medium">Total Post Views</p>
+    </div>
+
+    <div class="metric-card bg-white rounded-3xl shadow-xl p-8 hover:shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <div class="p-3 bg-red-100 rounded-2xl">
+          <i data-lucide="heart" class="w-8 h-8 text-red-500 fill-current"></i>
+        </div>
+        <div id="likesTrend" class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+      </div>
+      <h3 class="text-3xl font-bold text-gray-900 mb-1" id="totalLikes">0</h3>
+      <p class="text-gray-500 font-medium">Total Likes</p>
+    </div>
+
+    <div class="metric-card bg-white rounded-3xl shadow-xl p-8 hover:shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <div class="p-3 bg-green-100 rounded-2xl">
+          <i data-lucide="repeat" class="w-8 h-8 text-green-600"></i>
+        </div>
+        <div id="repostsTrend" class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+      </div>
+      <h3 class="text-3xl font-bold text-gray-900 mb-1" id="totalReposts">0</h3>
+      <p class="text-gray-500 font-medium">Reposts</p>
+    </div>
+
+    <div class="metric-card bg-white rounded-3xl shadow-xl p-8 hover:shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <div class="p-3 bg-purple-100 rounded-2xl">
+          <i data-lucide="shopping-cart" class="w-8 h-8 text-purple-600"></i>
+        </div>
+        <div id="productsTrend" class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+      </div>
+      <h3 class="text-3xl font-bold text-gray-900 mb-1" id="totalProducts">0</h3>
+      <p class="text-gray-500 font-medium">Products Listed</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Recent Activity -->
+    <div class="lg:col-span-2">
+      <div class="bg-white rounded-3xl shadow-2xl p-8">
+        <div class="flex items-center justify-between mb-8">
+          <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
+            <i data-lucide="activity" class="w-8 h-8"></i>
+            Recent Activity
+          </h2>
+          <button onclick="window.location.href='activity.html'" class="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1">
+            View All <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div id="activityList" class="space-y-4 max-h-96 overflow-y-auto">
+          <!-- Activity items will be populated here -->
+          <div class="text-center py-12 text-gray-500">
+            <i data-lucide="activity" class="w-16 h-16 mx-auto mb-4 opacity-50"></i>
+            <p>Loading your recent activity...</p>
           </div>
         </div>
-      </aside>
+      </div>
+    </div>
 
-      <!-- Right Column - Orders Section -->
-      <div class="md:col-span-2">
-        <div class="bg-white rounded-2xl shadow-lg p-6">
-          <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">My Orders</h2>
-            <select id="orderFilter" class="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
-              <option value="all">All Orders</option>
-              <option value="pending">Pending</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="shipped">Shipped</option>
-              <option value="delivered">Delivered</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
-
-          <!-- Upgrade Prompt for Basic Users -->
-          <div id="upgradePrompt" class="hidden text-center py-12">
-            <div class="mb-4">
-              <i data-lucide="lock" class="w-20 h-20 mx-auto text-gray-300"></i>
-            </div>
-            <h3 class="text-xl font-bold text-gray-700 mb-2">Upgrade to View Orders</h3>
-            <p class="text-gray-600 mb-6">Order management is available for Business and Premium subscribers</p>
-            <button onclick="window.location.href='subscription.html'" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:shadow-lg font-semibold transition-all">
-              Upgrade Now
-            </button>
-          </div>
-
-          <!-- Orders List -->
-          <div id="ordersContainer" class="space-y-4">
-            <div class="text-center py-8 text-gray-500">
-              <i data-lucide="loader" class="w-8 h-8 animate-spin mx-auto mb-3"></i>
-              <p>Loading orders...</p>
-            </div>
-          </div>
+    <!-- Quick Actions -->
+    <div>
+      <div class="bg-white rounded-3xl shadow-2xl p-8 sticky top-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-8">Quick Actions</h2>
+        <div class="space-y-4">
+          <button onclick="window.location.href='create-product.html'" class="w-full flex items-center gap-3 p-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-2xl hover:shadow-xl transition-all font-semibold">
+            <i data-lucide="plus-circle" class="w-6 h-6"></i>
+            List New Product
+          </button>
+          <button onclick="window.location.href='feed.html'" class="w-full flex items-center gap-3 p-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl hover:shadow-xl transition-all font-semibold">
+            <i data-lucide="edit-3" class="w-6 h-6"></i>
+            Create Post
+          </button>
+          <button onclick="window.location.href='analytics.html'" class="w-full flex items-center gap-3 p-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl hover:shadow-xl transition-all font-semibold">
+            <i data-lucide="bar-chart-3" class="w-6 h-6"></i>
+            View Analytics
+          </button>
+          <button onclick="window.location.href='marketplace.html'" class="w-full flex items-center gap-3 p-4 border-2 border-gray-200 rounded-2xl hover:border-gray-400 transition-all font-semibold text-gray-700 hover:bg-gray-50">
+            <i data-lucide="shopping-bag" class="w-6 h-6"></i>
+            Manage Products
+          </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Order Details Modal -->
-  <div id="orderModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-2xl font-bold text-gray-800">Order Details</h3>
-        <button onclick="closeOrderModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
-      </div>
-
-      <div id="orderDetailsContent"></div>
-
-      <div class="mt-6 flex gap-3">
-        <button onclick="closeOrderModal()" class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 font-semibold transition-colors">
-          Close
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Bottom Navigation -->
-  <nav class="fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur-lg border-t border-gray-200 shadow-lg md:hidden">
+  <!-- Bottom Navigation (Mobile) -->
+  <nav class="fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur-lg border-t border-gray-200 shadow-2xl md:hidden">
     <div class="flex justify-around py-3">
-      <a href="feed.html" class="flex flex-col items-center text-gray-600">
+      <a href="feed.html" class="flex flex-col items-center text-blue-600">
         <i data-lucide="home" class="w-6 h-6"></i>
-        <span class="text-xs font-medium mt-1">Feed</span>
+        <span class="text-xs font-semibold mt-1">Feed</span>
       </a>
-      <a href="search.html" class="flex flex-col items-center text-gray-600">
-        <i data-lucide="search" class="w-6 h-6"></i>
-        <span class="text-xs font-medium mt-1">Search</span>
+      <a href="marketplace.html" class="flex flex-col items-center text-gray-600 relative">
+        <i data-lucide="shopping-bag" class="w-6 h-6"></i>
+        <span class="text-xs font-medium mt-1">Market</span>
       </a>
       <a href="dashboard.html" class="flex flex-col items-center text-blue-600">
         <i data-lucide="layout-dashboard" class="w-6 h-6"></i>
-        <span class="text-xs font-medium mt-1">Dashboard</span>
+        <span class="text-xs font-semibold mt-1">Dashboard</span>
       </a>
       <a href="inbox.html" class="flex flex-col items-center text-gray-600 relative">
         <i data-lucide="message-circle" class="w-6 h-6"></i>
         <span class="text-xs font-medium mt-1">Inbox</span>
-        <span id="mobileMessageBadge" class="hidden absolute -top-1 -right-2 bg-green-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-bold px-1"></span>
       </a>
       <a href="profile.html" class="flex flex-col items-center text-gray-600">
         <i data-lucide="user" class="w-6 h-6"></i>
@@ -186,408 +209,152 @@
       </a>
     </div>
   </nav>
+</div>
 
-  <script>
-    lucide.createIcons();
+<script type="module">
+  lucide.createIcons();
+  
+  // Firebase initialization (same as feed)
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, doc, getDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
-      authDomain: "online-mall-4422.firebaseapp.com",
-      databaseURL: "https://online-mall-4422-default-rtdb.firebaseio.com",
-      projectId: "online-mall-4422",
-      storageBucket: "online-mall-4422.appspot.com",
-      messagingSenderId: "947082232783",
-      appId: "1:947082232783:web:116206502e5fb38383c8ba",
-      measurementId: "G-LNTNZQBGL8"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
+    authDomain: "online-mall-4422.firebaseapp.com",
+    projectId: "online-mall-4422",
+    storageBucket: "online-mall-4422.appspot.com"
+  };
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const firestoreDb = firebase.firestore();
-    const realtimeDb = firebase.database();
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
 
-    let currentUser = null;
-    let userSubscription = 'basic';
-    let allOrders = [];
+  let currentUser = null;
+  let userProfile = null;
+  let analyticsData = {};
 
-    auth.onAuthStateChanged(async user => {
-      if (!user) {
-        window.location.href = "login.html";
-        return;
+  // Initialize dashboard
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = 'login.html';
+      return;
+    }
+    
+    currentUser = user;
+    await loadDashboardData();
+  });
+
+  async function loadDashboardData() {
+    try {
+      // Load user profile
+      const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+      if (userDoc.exists()) {
+        userProfile = userDoc.data();
+        setupProfileDisplay();
       }
 
-      currentUser = user;
-      const uid = user.uid;
+      // Load analytics data
+      await loadAnalytics();
+      await loadRecentActivity();
       
-      try {
-        const doc = await firestoreDb.collection("users").doc(uid).get();
+      // Load notifications badge
+      await loadNotificationsBadge();
+      
+    } catch (error) {
+      console.error('Error loading dashboard:', error);
+    }
+  }
 
-        if (!doc.exists) {
-          document.getElementById("userInfo").innerHTML = `
-            <p><strong>Email:</strong> ${user.email}</p>
-            <p class="text-gray-600 mt-2">Complete your profile in settings</p>
-          `;
-          document.getElementById("subscriptionType").innerText = "Basic Plan (Free)";
-          userSubscription = 'basic';
-          showUpgradePrompt();
-          
-          const displayName = user.email.split('@')[0];
-          const initial = displayName.charAt(0).toUpperCase();
-          document.getElementById("userAvatar").textContent = initial;
-          
-          lucide.createIcons();
-          return;
-        }
+  function setupProfileDisplay() {
+    const displayName = userProfile.businessName || userProfile.name || 'User';
+    const initial = displayName.charAt(0).toUpperCase();
+    
+    document.getElementById('dashboardUserName').textContent = displayName;
+    document.getElementById('dashboardUserType').textContent = 
+      userProfile.subscriptionType === 'business' ? 'Business Account' : 'Basic Account';
+    
+    document.getElementById('profileAvatar').textContent = initial;
+    document.getElementById('userAvatar').textContent = initial;
+  }
 
-        const data = doc.data();
-        userSubscription = data.subscriptionType || 'basic';
-
-        const displayName = data.businessName || data.name || data.fullName || "User";
-        const initial = displayName.charAt(0).toUpperCase();
-        document.getElementById("userAvatar").textContent = initial;
-
-        document.getElementById("userInfo").innerHTML = `
-          <p><strong>Name:</strong> ${data.name || data.fullName || "Not set"}</p>
-          <p><strong>Email:</strong> ${data.email || user.email}</p>
-          <p><strong>Phone:</strong> ${data.phone || "Not set"}</p>
-          <p><strong>Location:</strong> ${data.city || "Not set"}, ${data.province || "Not set"}</p>
-          <p><strong>Role:</strong> ${data.isVendor ? 'Vendor (' + (data.subscriptionType || 'basic') + ')' : 'User (basic)'}</p>
-        `;
-
-        document.getElementById("subscriptionType").innerText = `${(data.subscriptionType || 'basic').charAt(0).toUpperCase() + (data.subscriptionType || 'basic').slice(1)} Plan`;
-
-        if (userSubscription === 'basic') {
-          showUpgradePrompt();
-        } else {
-          loadOrders();
-        }
-
-        await fetchUnreadNotifications();
-        await fetchUnreadMessages();
-
-        lucide.createIcons();
-      } catch (error) {
-        console.error("Error loading user data:", error);
-        alert("Error loading profile. Please refresh the page.");
-      }
-    });
-
-    async function fetchUnreadNotifications() {
-      try {
-        const notifQuery = firestoreDb.collection("notifications")
-          .where("recipientId", "==", currentUser.uid)
-          .where("read", "==", false);
+  async function loadAnalytics() {
+    try {
+      // Get user's posts
+      const postsQuery = query(collection(db, "posts"), where("uid", "==", currentUser.uid));
+      const postsSnap = await getDocs(postsQuery);
+      
+      let totalViews = 0;
+      let totalLikes = 0;
+      let totalReposts = 0;
+      
+      postsSnap.forEach(postDoc => {
+        const post = postDoc.data();
+        totalViews += post.views || 0;
+        totalLikes += (post.likes || []).length;
         
-        const notifSnap = await notifQuery.get();
-        const unreadCount = notifSnap.size;
-
-        if (unreadCount > 0) {
-          const badge = document.getElementById('notifBadge');
-          badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
-          badge.classList.remove('hidden');
-        }
-      } catch (error) {
-        console.error('Error fetching notifications:', error);
-      }
+        // Count reposts of this user's posts
+        if (post.reposts) totalReposts += post.reposts;
+      });
+      
+      document.getElementById('totalViews').textContent = totalViews.toLocaleString();
+      document.getElementById('totalLikes').textContent = totalLikes.toLocaleString();
+      document.getElementById('totalReposts').textContent = totalReposts.toLocaleString();
+      
+      // Mock product count for now
+      document.getElementById('totalProducts').textContent = '12';
+      
+    } catch (error) {
+      console.error('Error loading analytics:', error);
     }
+  }
 
-    async function fetchUnreadMessages() {
-      try {
-        const chatsSnap = await firestoreDb.collection("chats").get();
-        let totalUnread = 0;
-
-        chatsSnap.forEach(chatDoc => {
-          const chatData = chatDoc.data();
-          const unreadField = `unread_${currentUser.uid}`;
-          if (chatData[unreadField]) {
-            totalUnread += chatData[unreadField];
-          }
-        });
-
-        if (totalUnread > 0) {
-          const badge = document.getElementById('messageBadge');
-          const mobileBadge = document.getElementById('mobileMessageBadge');
-          const displayCount = totalUnread > 99 ? '99+' : totalUnread;
-
-          badge.textContent = displayCount;
-          badge.classList.remove('hidden');
-          if (mobileBadge) {
-            mobileBadge.textContent = displayCount;
-            mobileBadge.classList.remove('hidden');
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching unread messages:', error);
-      }
-    }
-
-    function showUpgradePrompt() {
-      document.getElementById("upgradePrompt").classList.remove("hidden");
-      document.getElementById("ordersContainer").classList.add("hidden");
-      lucide.createIcons();
-    }
-
-    async function loadOrders() {
-      try {
-        document.getElementById("upgradePrompt").classList.add("hidden");
-        document.getElementById("ordersContainer").classList.remove("hidden");
-
-        const ordersRef = realtimeDb.ref("orders");
-        ordersRef.orderByChild("userId").equalTo(currentUser.uid).on("value", snapshot => {
-          allOrders = [];
-
-          if (!snapshot.exists()) {
-            renderOrders([]);
-            return;
-          }
-
-          snapshot.forEach(childSnapshot => {
-            allOrders.push({
-              id: childSnapshot.key,
-              ...childSnapshot.val()
-            });
-          });
-
-          allOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-          renderOrders(allOrders);
-        });
-      } catch (error) {
-        console.error("Error loading orders:", error);
-        document.getElementById("ordersContainer").innerHTML = `
-          <div class="text-center py-8 text-red-600">
-            <p>Error loading orders. Please refresh the page.</p>
-          </div>
-        `;
-      }
-    }
-
-    function renderOrders(orders) {
-      const container = document.getElementById("ordersContainer");
-
-      if (orders.length === 0) {
-        container.innerHTML = `
-          <div class="text-center py-12">
-            <div class="mb-4">
-              <i data-lucide="shopping-bag" class="w-20 h-20 mx-auto text-gray-300"></i>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-700 mb-2">No Orders Yet</h3>
-            <p class="text-gray-600 mb-4">Start shopping in the marketplace to see your orders here</p>
-            <button onclick="window.location.href='marketplace.html'" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:shadow-lg font-semibold transition-all">
-              Browse Marketplace
-            </button>
-          </div>
-        `;
-        lucide.createIcons();
-        return;
-      }
-
-      container.innerHTML = orders.map(order => {
-        const date = new Date(order.createdAt);
-        const statusColors = {
-          pending: 'bg-yellow-100 text-yellow-800',
-          confirmed: 'bg-blue-100 text-blue-800',
-          shipped: 'bg-purple-100 text-purple-800',
-          delivered: 'bg-green-100 text-green-800',
-          cancelled: 'bg-red-100 text-red-800'
-        };
-
-        const itemCount = order.items ? order.items.length : 0;
-        const firstItem = order.items && order.items.length > 0 ? order.items[0] : null;
-
-        return `
-          <div class="border border-gray-200 rounded-xl p-5 hover:shadow-lg transition-all fade-in">
-            <div class="flex items-start justify-between mb-3">
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="text-xs font-mono text-gray-500">Order #${order.id.substring(0, 8)}</span>
-                  <span class="text-xs px-3 py-1 rounded-full font-semibold ${statusColors[order.status] || 'bg-gray-100 text-gray-800'}">
-                    ${(order.status || 'pending').charAt(0).toUpperCase() + (order.status || 'pending').slice(1)}
-                  </span>
-                </div>
-                <p class="text-sm text-gray-600">${date.toLocaleDateString()} at ${date.toLocaleTimeString()}</p>
-                <p class="text-sm text-gray-600 mt-1">${itemCount} item${itemCount !== 1 ? 's' : ''}</p>
-              </div>
-              <div class="text-right">
-                <p class="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">R ${parseFloat(order.total || 0).toFixed(2)}</p>
-              </div>
-            </div>
-
-            ${firstItem ? `
-              <div class="flex items-center gap-3 mb-3 p-3 bg-gray-50 rounded-xl">
-                ${firstItem.imageURL ? `<img src="${firstItem.imageURL}" class="w-14 h-14 rounded-lg object-cover" />` : '<div class="w-14 h-14 bg-gray-200 rounded-lg"></div>'}
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-semibold text-gray-800 truncate">${firstItem.name || 'Product'}</p>
-                  <p class="text-xs text-gray-600">Qty: ${firstItem.qty || 1} × R${parseFloat(firstItem.price || 0).toFixed(2)}</p>
-                </div>
-              </div>
-              ${itemCount > 1 ? `<p class="text-xs text-gray-500 mb-3">+ ${itemCount - 1} more item${itemCount - 1 !== 1 ? 's' : ''}</p>` : ''}
-            ` : ''}
-
-            <div class="flex gap-2">
-              <button onclick="viewOrderDetails('${order.id}')" class="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-lg text-sm font-semibold transition-all">
-                View Details
-              </button>
-              ${order.status === 'pending' ? `
-                <button onclick="cancelOrder('${order.id}')" class="px-4 py-3 border-2 border-red-600 text-red-600 rounded-xl hover:bg-red-50 text-sm font-semibold transition-all">
-                  Cancel
-                </button>
-              ` : ''}
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      lucide.createIcons();
-    }
-
-    window.viewOrderDetails = function(orderId) {
-      const order = allOrders.find(o => o.id === orderId);
-      if (!order) return;
-
-      const date = new Date(order.createdAt);
-      const statusColors = {
-        pending: 'bg-yellow-100 text-yellow-800',
-        confirmed: 'bg-blue-100 text-blue-800',
-        shipped: 'bg-purple-100 text-purple-800',
-        delivered: 'bg-green-100 text-green-800',
-        cancelled: 'bg-red-100 text-red-800'
-      };
-
-      document.getElementById("orderDetailsContent").innerHTML = `
-        <div class="space-y-4">
-          <div class="flex justify-between items-start pb-4 border-b">
-            <div>
-              <p class="text-sm text-gray-600">Order ID</p>
-              <p class="font-mono text-sm">${order.id}</p>
-            </div>
-            <span class="px-3 py-1 rounded-full text-sm font-semibold ${statusColors[order.status] || 'bg-gray-100 text-gray-800'}">
-              ${(order.status || 'pending').charAt(0).toUpperCase() + (order.status || 'pending').slice(1)}
-            </span>
-          </div>
-
-          <div>
-            <p class="text-sm text-gray-600 mb-1">Order Date</p>
-            <p class="font-medium">${date.toLocaleDateString()} at ${date.toLocaleTimeString()}</p>
-          </div>
-
-          <div>
-            <p class="text-sm font-semibold text-gray-800 mb-3">Items Ordered</p>
-            <div class="space-y-3">
-              ${order.items ? order.items.map(item => `
-                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                  ${item.imageURL ? `<img src="${item.imageURL}" class="w-16 h-16 rounded-lg object-cover" />` : '<div class="w-16 h-16 bg-gray-200 rounded-lg"></div>'}
-                  <div class="flex-1">
-                    <p class="font-medium text-gray-800">${item.name || 'Product'}</p>
-                    <p class="text-sm text-gray-600">Quantity: ${item.qty || 1}</p>
-                    <p class="text-sm text-gray-600">Price: R${parseFloat(item.price || 0).toFixed(2)}</p>
-                  </div>
-                  <div class="text-right">
-                    <p class="font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">R${(parseFloat(item.price || 0) * (item.qty || 1)).toFixed(2)}</p>
-                  </div>
-                </div>
-              `).join('') : '<p class="text-gray-500">No items</p>'}
-            </div>
-          </div>
-
-          <div class="pt-4 border-t space-y-2">
-            <div class="flex justify-between text-sm">
-              <span class="text-gray-600">Subtotal</span>
-              <span class="font-medium">R${parseFloat(order.subtotal || 0).toFixed(2)}</span>
-            </div>
-            <div class="flex justify-between text-sm">
-              <span class="text-gray-600">Delivery Fee</span>
-              <span class="font-medium">R${parseFloat(order.deliveryFee || 0).toFixed(2)}</span>
-            </div>
-            <div class="flex justify-between text-lg font-bold pt-2 border-t">
-              <span>Total</span>
-              <span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">R${parseFloat(order.total || 0).toFixed(2)}</span>
-            </div>
-          </div>
-
-          ${order.status === 'pending' ? `
-            <div class="pt-4 border-t space-y-2">
-              <button onclick="updateOrderStatus('${order.id}', 'confirmed')" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-3 rounded-xl hover:shadow-lg font-semibold transition-all">
-                Mark as Confirmed
-              </button>
-              <button onclick="updateOrderStatus('${order.id}', 'cancelled')" class="w-full border-2 border-red-600 text-red-600 px-4 py-3 rounded-xl hover:bg-red-50 font-semibold transition-all">
-                Cancel Order
-              </button>
-            </div>
-          ` : order.status === 'confirmed' ? `
-            <div class="pt-4 border-t">
-              <button onclick="updateOrderStatus('${order.id}', 'shipped')" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-3 rounded-xl hover:shadow-lg font-semibold transition-all">
-                Mark as Shipped
-              </button>
-            </div>
-          ` : order.status === 'shipped' ? `
-            <div class="pt-4 border-t">
-              <button onclick="updateOrderStatus('${order.id}', 'delivered')" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-3 rounded-xl hover:shadow-lg font-semibold transition-all">
-                Mark as Delivered
-              </button>
-            </div>
-          ` : ''}
+  async function loadRecentActivity() {
+    const activityList = document.getElementById('activityList');
+    
+    // Mock recent activity data (replace with real data fetching)
+    const mockActivities = [
+      { type: 'like', postTitle: 'New sneakers available!', time: '2h ago' },
+      { type: 'comment', postTitle: 'Fresh produce delivery', time: '5h ago' },
+      { type: 'repost', postTitle: 'Tech gadgets on sale', time: '1d ago' },
+      { type: 'view', postTitle: 'Your post got 50 views', time: '1d ago' }
+    ];
+    
+    activityList.innerHTML = mockActivities.map(activity => `
+      <div class="flex items-start gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
+        <div class="flex-shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
+          ${activity.type.charAt(0).toUpperCase()}
         </div>
-      `;
+        <div class="flex-1 min-w-0">
+          <p class="font-semibold text-gray-900 text-sm">${activity.postTitle}</p>
+          <p class="text-xs text-gray-500 mt-1">${activity.type.replace(/^\w/, c => c.toUpperCase())} • ${activity.time}</p>
+        </div>
+      </div>
+    `).join('');
+    
+    lucide.createIcons();
+  }
 
-      document.getElementById("orderModal").classList.remove("hidden");
-      lucide.createIcons();
-    };
-
-    window.closeOrderModal = function() {
-      document.getElementById("orderModal").classList.add("hidden");
-    };
-
-    window.updateOrderStatus = async function(orderId, newStatus) {
-      if (!confirm(`Change order status to ${newStatus}?`)) return;
-
-      try {
-        await realtimeDb.ref(`orders/${orderId}`).update({
-          status: newStatus,
-          updatedAt: new Date().toISOString()
-        });
-
-        alert(`Order status updated to ${newStatus}`);
-        closeOrderModal();
-      } catch (error) {
-        console.error("Error updating order:", error);
-        alert("Failed to update order status");
+  async function loadNotificationsBadge() {
+    try {
+      const notifQuery = query(
+        collection(db, "notifications"),
+        where("recipientId", "==", currentUser.uid),
+        where("read", "==", false)
+      );
+      const notifSnap = await getDocs(notifQuery);
+      const unreadCount = notifSnap.size;
+      
+      if (unreadCount > 0) {
+        const badge = document.getElementById('notifBadge');
+        badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+        badge.classList.remove('hidden');
       }
-    };
-
-    window.cancelOrder = async function(orderId) {
-      if (!confirm("Are you sure you want to cancel this order?")) return;
-
-      try {
-        await realtimeDb.ref(`orders/${orderId}`).update({
-          status: 'cancelled',
-          updatedAt: new Date().toISOString()
-        });
-
-        alert("Order cancelled successfully");
-      } catch (error) {
-        console.error("Error cancelling order:", error);
-        alert("Failed to cancel order");
-      }
-    };
-
-    document.getElementById("orderFilter").addEventListener("change", function() {
-      const filter = this.value;
-
-      if (filter === "all") {
-        renderOrders(allOrders);
-      } else {
-        const filtered = allOrders.filter(o => o.status === filter);
-        renderOrders(filtered);
-      }
-    });
-
-    function logout() {
-      auth.signOut().then(() => window.location.href = "login.html");
+    } catch (error) {
+      console.error('Error loading notifications:', error);
     }
+  }
+</script>
 
-    function goToSettings() {
-      window.location.href = "settings.html";
-    }
-  </script>
 </body>
 </html>
