@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Feed - Street Connect</title>
+  <title>Feed - VendorConnect</title>
 
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -25,6 +25,25 @@
     .comment-item:hover {
       background-color: #f9fafb;
     }
+    
+    /* Like animation */
+    @keyframes likeAnimation {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+    .like-animate {
+      animation: likeAnimation 0.4s ease-in-out;
+    }
+    
+    /* Pulse animation for badges */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .pulse-badge {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
   </style>
 </head>
 
@@ -34,7 +53,7 @@
 <header class="bg-white/90 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50 shadow-sm">
   <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
     <h1 class="text-2xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-      Street Connect
+      VendorConnect
     </h1>
     
     <div class="flex items-center gap-3">
@@ -43,10 +62,11 @@
       </button>
       <button id="notifBtn" onclick="window.location.href='notifications.html'" class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
         <i data-lucide="bell" class="w-5 h-5 text-gray-600"></i>
-        <span id="notifBadge" class="hidden absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+        <span id="notifBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-bold px-1 pulse-badge"></span>
       </button>
-      <button onclick="window.location.href='inbox.html'" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+      <button onclick="window.location.href='inbox.html'" class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
         <i data-lucide="message-circle" class="w-5 h-5 text-gray-600"></i>
+        <span id="messageBadge" class="hidden absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-bold px-1 pulse-badge"></span>
       </button>
       <button onclick="window.location.href='settings.html'" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
         <i data-lucide="settings" class="w-5 h-5 text-gray-600"></i>
@@ -95,7 +115,7 @@
           <div id="createPostAvatar" class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold"></div>
           <button id="createPostBtn" 
             class="flex-1 text-left px-4 py-3 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-colors">
-            What's on your mind today?
+            What's on your mind?
           </button>
         </div>
         
@@ -208,9 +228,10 @@
       <i data-lucide="shopping-bag" class="w-6 h-6"></i>
       <span class="text-xs font-medium mt-1">Market</span>
     </a>
-    <a href="inbox.html" class="flex flex-col items-center text-gray-600">
+    <a href="inbox.html" class="flex flex-col items-center text-gray-600 relative">
       <i data-lucide="message-circle" class="w-6 h-6"></i>
       <span class="text-xs font-medium mt-1">Inbox</span>
+      <span id="mobileMessageBadge" class="hidden absolute -top-1 -right-2 bg-green-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-bold px-1"></span>
     </a>
     <a href="profile.html" class="flex flex-col items-center text-gray-600">
       <i data-lucide="user" class="w-6 h-6"></i>
@@ -223,7 +244,7 @@
   lucide.createIcons();
   
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, getDocs, query, where, addDoc, doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, getDocs, query, where, addDoc, doc, getDoc, updateDoc, deleteDoc, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
@@ -241,7 +262,7 @@
   let currentUser = null;
   let userProfile = null;
   let allPosts = [];
-  let postComments = {}; // Store comments for each post
+  let postComments = {};
   let currentPage = 1;
   const pageSize = 10;
 
@@ -250,19 +271,16 @@
     currentUser = user;
     
     try {
-      // Fetch user profile
       const userDoc = await getDoc(doc(db, "users", user.uid));
       if (userDoc.exists()) {
         userProfile = userDoc.data();
         
-        // Update UI with user info
         const displayName = userProfile.businessName || userProfile.name || 'User';
         const initial = displayName.charAt(0).toUpperCase();
         
         document.getElementById('userName').textContent = displayName;
         document.getElementById('userType').textContent = userProfile.subscriptionType === 'business' ? 'Business Account' : 'Basic Account';
         
-        // Update all avatar elements
         document.getElementById('userAvatar').textContent = initial;
         document.getElementById('createPostAvatar').textContent = initial;
         document.querySelector('#userInfo .w-20').textContent = initial;
@@ -282,8 +300,13 @@
         }
       }
       
-      await fetchAllPosts();
-      await fetchAllComments();
+      await Promise.all([
+        fetchAllPosts(),
+        fetchAllComments(),
+        fetchUnreadNotifications(),
+        fetchUnreadMessages()
+      ]);
+      
       renderPosts();
     } catch (error) {
       console.error('Error initializing:', error);
@@ -291,24 +314,68 @@
     }
   });
 
+  async function fetchUnreadNotifications() {
+    try {
+      const notifQuery = query(
+        collection(db, "notifications"),
+        where("recipientId", "==", currentUser.uid),
+        where("read", "==", false)
+      );
+      const notifSnap = await getDocs(notifQuery);
+      const unreadCount = notifSnap.size;
+      
+      if (unreadCount > 0) {
+        const badge = document.getElementById('notifBadge');
+        badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+        badge.classList.remove('hidden');
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  }
+
+  async function fetchUnreadMessages() {
+    try {
+      const chatsSnap = await getDocs(collection(db, "chats"));
+      let totalUnread = 0;
+      
+      chatsSnap.forEach(chatDoc => {
+        const chatData = chatDoc.data();
+        const unreadField = `unread_${currentUser.uid}`;
+        if (chatData[unreadField]) {
+          totalUnread += chatData[unreadField];
+        }
+      });
+      
+      if (totalUnread > 0) {
+        const badge = document.getElementById('messageBadge');
+        const mobileBadge = document.getElementById('mobileMessageBadge');
+        const displayCount = totalUnread > 99 ? '99+' : totalUnread;
+        
+        badge.textContent = displayCount;
+        badge.classList.remove('hidden');
+        mobileBadge.textContent = displayCount;
+        mobileBadge.classList.remove('hidden');
+      }
+    } catch (error) {
+      console.error('Error fetching unread messages:', error);
+    }
+  }
+
   async function fetchAllPosts() {
     try {
-      // Fetch all posts
       const postsSnap = await getDocs(collection(db, "posts"));
       const posts = [];
       
-      // Fetch all users once to avoid multiple calls
       const usersSnap = await getDocs(collection(db, "users"));
       const usersMap = {};
       usersSnap.forEach(userDoc => {
         usersMap[userDoc.id] = userDoc.data();
       });
       
-      // Process posts with user data
       postsSnap.forEach(postDoc => {
         const postData = { id: postDoc.id, ...postDoc.data() };
         
-        // Get author data from map
         if (postData.uid && usersMap[postData.uid]) {
           const authorData = usersMap[postData.uid];
           postData.authorName = authorData.businessName || authorData.name || 'Unknown User';
@@ -318,7 +385,6 @@
           postData.authorCategory = '';
         }
         
-        // Get original author data for reposts
         if (postData.isRepost && postData.originalAuthorId && usersMap[postData.originalAuthorId]) {
           const originalAuthor = usersMap[postData.originalAuthorId];
           postData.originalAuthorName = originalAuthor.businessName || originalAuthor.name || 'Unknown User';
@@ -327,7 +393,6 @@
         posts.push(postData);
       });
       
-      // Sort posts by creation date (newest first)
       allPosts = posts.sort((a, b) => {
         const timeA = a.createdAt?.seconds || 0;
         const timeB = b.createdAt?.seconds || 0;
@@ -345,7 +410,6 @@
       const commentsSnap = await getDocs(collection(db, "comments"));
       postComments = {};
       
-      // Fetch all users for comment authors
       const usersSnap = await getDocs(collection(db, "users"));
       const usersMap = {};
       usersSnap.forEach(userDoc => {
@@ -355,7 +419,6 @@
       commentsSnap.forEach(commentDoc => {
         const commentData = { id: commentDoc.id, ...commentDoc.data() };
         
-        // Add author name
         if (commentData.userId && usersMap[commentData.userId]) {
           const authorData = usersMap[commentData.userId];
           commentData.authorName = authorData.businessName || authorData.name || 'Unknown User';
@@ -369,7 +432,6 @@
         postComments[commentData.postId].push(commentData);
       });
       
-      // Sort comments by timestamp
       Object.keys(postComments).forEach(postId => {
         postComments[postId].sort((a, b) => {
           const timeA = a.timestamp?.seconds || 0;
@@ -383,6 +445,30 @@
     }
   }
 
+  function getTimeAgo(timestamp) {
+    if (!timestamp || !timestamp.seconds) return 'Just now';
+    
+    const now = Date.now();
+    const postTime = timestamp.seconds * 1000;
+    const diff = now - postTime;
+    
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    const weeks = Math.floor(days / 7);
+    const months = Math.floor(days / 30);
+    const years = Math.floor(days / 365);
+    
+    if (years > 0) return `${years}y ago`;
+    if (months > 0) return `${months}mo ago`;
+    if (weeks > 0) return `${weeks}w ago`;
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    if (minutes > 0) return `${minutes}m ago`;
+    return 'Just now';
+  }
+
   function renderPosts() {
     const container = document.getElementById("postsContainer");
     const loading = document.getElementById("loadingIndicator");
@@ -390,18 +476,15 @@
     
     container.innerHTML = "";
     
-    // Filter posts based on selected filters
     let filtered = allPosts.filter(p => {
       const provinceMatch = !document.getElementById('provinceFilter').value || p.province === document.getElementById('provinceFilter').value;
       const categoryMatch = !document.getElementById('categoryFilter').value || p.category === document.getElementById('categoryFilter').value;
       return provinceMatch && categoryMatch;
     });
 
-    // Pagination
     const start = (currentPage - 1) * pageSize;
     const pagePosts = filtered.slice(start, start + pageSize);
 
-    // Hide loading, show content
     loading.classList.add('hidden');
     container.classList.remove('hidden');
     pagination.classList.remove('hidden');
@@ -418,10 +501,8 @@
       const isOwner = post.uid === currentUser.uid;
       const comments = postComments[post.id] || [];
       const commentsCount = comments.length;
-      
-      const postDate = post.createdAt?.seconds 
-        ? new Date(post.createdAt.seconds * 1000).toLocaleDateString()
-        : 'Recently';
+      const viewsCount = post.views || 0;
+      const timeAgo = getTimeAgo(post.createdAt);
 
       const card = document.createElement("div");
       card.className = "bg-white rounded-2xl shadow-lg p-6 fade-in";
@@ -429,19 +510,19 @@
         ${post.isRepost ? `
           <div class="flex items-center gap-2 text-sm text-gray-500 mb-3 pb-3 border-b border-gray-100">
             <i data-lucide="repeat" class="w-4 h-4"></i>
-            <span><strong>${post.authorName}</strong> reposted from <strong>${post.originalAuthorName || 'Unknown User'}</strong></span>
+            <span><strong class="hover:underline cursor-pointer" onclick="window.location.href='profile.html?uid=${post.uid}'">${post.authorName}</strong> reposted from <strong class="hover:underline cursor-pointer" onclick="window.location.href='profile.html?uid=${post.originalAuthorId}'">${post.originalAuthorName || 'Unknown User'}</strong></span>
           </div>
         ` : ''}
         
         <div class="flex items-start justify-between mb-4">
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='profile.html?uid=${post.isRepost ? post.originalAuthorId : post.uid}'">
             <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
               ${(post.isRepost ? (post.originalAuthorName || 'U') : (post.authorName || 'U')).charAt(0).toUpperCase()}
             </div>
             <div>
-              <h3 class="font-bold text-gray-800">${post.isRepost ? (post.originalAuthorName || 'Unknown') : (post.authorName || 'Unknown')}</h3>
+              <h3 class="font-bold text-gray-800 hover:underline">${post.isRepost ? (post.originalAuthorName || 'Unknown') : (post.authorName || 'Unknown')}</h3>
               <p class="text-xs text-gray-500">${post.authorCategory || ''} ${post.city || post.province ? '•' : ''} ${post.city || ''} ${post.city && post.province ? ',' : ''} ${post.province || ''}</p>
-              <p class="text-xs text-gray-400">${postDate}</p>
+              <p class="text-xs text-gray-400">${timeAgo}</p>
             </div>
           </div>
           ${isOwner ? `
@@ -455,11 +536,18 @@
         
         ${post.imageURL ? `
           <img src="${post.imageURL}" class="w-full rounded-xl mb-4 max-h-96 object-cover cursor-pointer" 
-            onclick="window.location.href='post-details.html?id=${post.id}'" />
+            onclick="incrementViews('${post.id}'); window.location.href='post-details.html?id=${post.id}'" />
         ` : ''}
         
+        <div class="flex items-center gap-2 text-xs text-gray-500 mb-3">
+          <span class="flex items-center gap-1">
+            <i data-lucide="eye" class="w-3 h-3"></i>
+            ${viewsCount} ${viewsCount === 1 ? 'view' : 'views'}
+          </span>
+        </div>
+        
         <div class="flex items-center gap-6 pt-4 border-t border-gray-100">
-          <button onclick="toggleLike('${post.id}')" 
+          <button onclick="toggleLike('${post.id}')" id="like-btn-${post.id}"
             class="flex items-center gap-2 ${isLiked ? 'text-red-500' : 'text-gray-600'} hover:text-red-500 transition-colors">
             <i data-lucide="heart" class="w-5 h-5 ${isLiked ? 'fill-current' : ''}"></i>
             <span class="text-sm font-medium">${likesCount}</span>
@@ -480,7 +568,6 @@
           </button>
         </div>
         
-        <!-- Comments Section -->
         <div id="comments-${post.id}" class="hidden mt-4 pt-4 border-t border-gray-100">
           <div id="comments-list-${post.id}" class="space-y-3 mb-4 max-h-64 overflow-y-auto">
             ${comments.length === 0 ? '<p class="text-sm text-gray-500 text-center py-4">No comments yet. Be the first to comment!</p>' : ''}
@@ -503,7 +590,6 @@
       `;
       container.appendChild(card);
       
-      // Render existing comments if there are any
       if (comments.length > 0) {
         renderComments(post.id, comments);
       }
@@ -511,7 +597,6 @@
 
     lucide.createIcons();
     
-    // Update pagination controls
     document.getElementById('pageNum').textContent = currentPage;
     document.getElementById('prevBtn').disabled = currentPage === 1;
     document.getElementById('nextBtn').disabled = start + pageSize >= filtered.length;
@@ -532,12 +617,13 @@
       const commentEl = document.createElement('div');
       commentEl.className = 'comment-item flex items-start gap-2 p-2 rounded-lg';
       commentEl.innerHTML = `
-        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold text-xs flex-shrink-0">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold text-xs flex-shrink-0 cursor-pointer" 
+          onclick="window.location.href='profile.html?uid=${comment.userId}'">
           ${(comment.authorName || 'U').charAt(0).toUpperCase()}
         </div>
         <div class="flex-1 min-w-0">
           <div class="bg-gray-100 rounded-2xl px-4 py-2">
-            <p class="font-semibold text-sm text-gray-800">${comment.authorName || 'Unknown User'}</p>
+            <p class="font-semibold text-sm text-gray-800 hover:underline cursor-pointer" onclick="window.location.href='profile.html?uid=${comment.userId}'">${comment.authorName || 'Unknown User'}</p>
             <p class="text-sm text-gray-700 break-words">${comment.comment || ''}</p>
           </div>
           <div class="flex items-center gap-3 mt-1 px-2">
@@ -555,6 +641,17 @@
     
     lucide.createIcons();
   }
+
+  window.incrementViews = async (postId) => {
+    try {
+      const postRef = doc(db, "posts", postId);
+      await updateDoc(postRef, {
+        views: increment(1)
+      });
+    } catch (error) {
+      console.error('Error incrementing views:', error);
+    }
+  };
 
   window.toggleComments = (postId) => {
     const commentsSection = document.getElementById(`comments-${postId}`);
@@ -581,7 +678,6 @@
         timestamp: serverTimestamp()
       });
       
-      // Create notification for post owner
       const post = allPosts.find(p => p.id === postId);
       if (post && post.uid !== currentUser.uid) {
         try {
@@ -603,7 +699,6 @@
       await fetchAllComments();
       renderPosts();
       
-      // Keep comments section open after submitting
       setTimeout(() => {
         const commentsSection = document.getElementById(`comments-${postId}`);
         if (commentsSection && commentsSection.classList.contains('hidden')) {
@@ -626,7 +721,6 @@
       await fetchAllComments();
       renderPosts();
       
-      // Keep comments section open after deleting
       setTimeout(() => {
         const commentsSection = document.getElementById(`comments-${postId}`);
         if (commentsSection && commentsSection.classList.contains('hidden')) {
@@ -725,6 +819,10 @@
   };
 
   window.toggleLike = async (postId) => {
+    const likeBtn = document.getElementById(`like-btn-${postId}`);
+    likeBtn.classList.add('like-animate');
+    setTimeout(() => likeBtn.classList.remove('like-animate'), 400);
+    
     try {
       const postRef = doc(db, "posts", postId);
       const postSnap = await getDoc(postRef);
@@ -737,7 +835,6 @@
       const postData = postSnap.data();
       let likes = postData.likes || [];
       
-      // Ensure likes is an array
       if (!Array.isArray(likes)) {
         likes = [];
       }
@@ -745,13 +842,10 @@
       const isLiked = likes.includes(currentUser.uid);
       
       if (isLiked) {
-        // Remove like
         likes = likes.filter(id => id !== currentUser.uid);
       } else {
-        // Add like
         likes = [...likes, currentUser.uid];
         
-        // Create notification if not liking own post
         if (postData.uid !== currentUser.uid) {
           try {
             await addDoc(collection(db, "notifications"), {
@@ -769,8 +863,6 @@
       }
       
       await updateDoc(postRef, { likes });
-      
-      // Update local data
       await fetchAllPosts();
       renderPosts();
       
@@ -784,10 +876,8 @@
     if (!confirm('Are you sure you want to delete this post?')) return;
     
     try {
-      // Delete post
       await deleteDoc(doc(db, "posts", postId));
       
-      // Delete associated comments
       const commentsQuery = query(collection(db, "comments"), where("postId", "==", postId));
       const commentsSnap = await getDocs(commentsQuery);
       const deletePromises = commentsSnap.docs.map(commentDoc => deleteDoc(commentDoc.ref));
@@ -818,7 +908,6 @@
         return;
       }
       
-      // Check if user already reposted this
       const existingRepost = allPosts.find(p => 
         p.isRepost && 
         p.originalPostId === postId && 
@@ -845,7 +934,6 @@
         createdAt: serverTimestamp()
       });
       
-      // Create notification for original author
       if (originalPost.uid !== currentUser.uid) {
         try {
           await addDoc(collection(db, "notifications"), {
@@ -897,7 +985,6 @@
     }
   };
 
-  // Pagination controls
   document.getElementById('prevBtn').onclick = () => { 
     currentPage--; 
     renderPosts(); 
@@ -910,7 +997,6 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   
-  // Filter controls
   document.getElementById('provinceFilter').onchange = () => { 
     currentPage = 1; 
     renderPosts(); 
