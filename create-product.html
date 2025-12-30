@@ -43,7 +43,7 @@
       <button onclick="window.history.back()" class="p-3 hover:bg-gray-100 rounded-xl transition-all shadow-sm">
         <i data-lucide="arrow-left" class="w-6 h-6 text-gray-700"></i>
       </button>
-      <h1 class="text-3xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+      <h1 id="pageTitle" class="text-3xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
         New Product
       </h1>
     </div>
@@ -65,9 +65,9 @@
       <div class="bg-white rounded-3xl shadow-2xl p-8 fade-in">
         <h2 class="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-3">
           <i data-lucide="package" class="w-8 h-8 text-emerald-600"></i>
-          Product Details
+          <span id="formTitle">Product Details</span>
         </h2>
-        <p class="text-gray-600 mb-8">Fill in all fields to list your product</p>
+        <p class="text-gray-600 mb-8" id="formSubtitle">Fill in all fields to list your product</p>
         
         <form id="productForm" class="space-y-6">
           <!-- Product Name -->
@@ -75,7 +75,7 @@
             <label class="block text-sm font-semibold text-gray-700 mb-2">Product Name</label>
             <input type="text" id="productName" required
               class="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500 focus:border-transparent transition-all text-lg font-semibold"
-              placeholder="e.g. Fresh Organic Apples">
+              placeholder="e.g. Plate">
           </div>
 
           <!-- Category -->
@@ -84,7 +84,7 @@
             <select id="productCategory" required
               class="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500 focus:border-transparent transition-all text-lg">
               <option value="">Select Category</option>
-              <option value="Food">Food & Beverage</option>
+              <option value="Food">Food</option>
               <option value="Tech">Technology</option>
               <option value="Fashion">Fashion</option>
               <option value="Beauty">Beauty & Wellness</option>
@@ -96,78 +96,53 @@
           </div>
 
           <!-- Price -->
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-2">Price (ZAR)</label>
-              <input type="number" id="productPrice" step="0.01" min="0" required
-                class="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-emerald-500 focus:border-transparent transition-all text-lg font-mono"
-                placeholder="199.99">
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-2">Stock</label>
-              <input type="number" id="productStock" min="0" required
-                class="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-emerald-500 focus:border-transparent transition-all text-lg"
-                placeholder="50">
-            </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Price (ZAR)</label>
+            <input type="number" id="productPrice" step="0.01" min="0" required
+              class="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-emerald-500 focus:border-transparent transition-all text-lg font-mono"
+              placeholder="50">
           </div>
 
           <!-- Description -->
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
-            <textarea id="productDescription" rows="5" required
+            <textarea id="productDescription" rows="4" required
               class="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500 focus:border-transparent transition-all resize-vertical text-lg"
-              placeholder="Describe your product, condition, delivery options..."></textarea>
+              placeholder="Delicious & Mouth Watering Dish"></textarea>
           </div>
 
-          <!-- Location -->
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-2">City</label>
-              <input type="text" id="productCity"
-                class="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-indigo-500 focus:border-transparent transition-all text-lg"
-                placeholder="Johannesburg">
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-2">Province</label>
-              <select id="productProvince"
-                class="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-indigo-500 focus:border-transparent transition-all text-lg">
-                <option value="">Select Province</option>
-                <option value="Gauteng">Gauteng</option>
-                <option value="Western Cape">Western Cape</option>
-                <option value="KwaZulu-Natal">KwaZulu-Natal</option>
-                <option value="Eastern Cape">Eastern Cape</option>
-                <option value="Free State">Free State</option>
-                <option value="Limpopo">Limpopo</option>
-                <option value="Mpumalanga">Mpumalanga</option>
-                <option value="North West">North West</option>
-                <option value="Northern Cape">Northern Cape</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Images -->
+          <!-- Image Upload -->
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
-              Product Images <span class="text-emerald-600 font-bold">(Up to 5)</span>
+              Product Image
             </label>
             <div id="imageDropZone" class="border-2 border-dashed border-gray-300 rounded-3xl p-8 text-center hover:border-blue-400 transition-all bg-gray-50 hover:bg-blue-50">
               <i data-lucide="image-plus" class="w-16 h-16 text-gray-400 mx-auto mb-4"></i>
-              <p class="text-lg font-semibold text-gray-700 mb-2">Drop images here or click to browse</p>
-              <p class="text-sm text-gray-500 mb-6">JPG, PNG up to 5MB each</p>
-              <input type="file" id="productImages" accept="image/*" multiple max="5" class="hidden">
-              <button type="button" onclick="document.getElementById('productImages').click()" 
+              <p class="text-lg font-semibold text-gray-700 mb-2">Drop image here or click to browse</p>
+              <p class="text-sm text-gray-500 mb-6">JPG, PNG up to 5MB</p>
+              <input type="file" id="productImage" accept="image/*" class="hidden">
+              <button type="button" onclick="document.getElementById('productImage').click()" 
                 class="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl font-semibold hover:shadow-xl transition-all">
-                Choose Images
+                Choose Image
               </button>
             </div>
-            <div id="imagePreview" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-6 hidden"></div>
+            <div id="imagePreview" class="mt-6 hidden">
+              <img id="previewImg" class="w-full h-48 object-cover rounded-2xl shadow-lg">
+              <button type="button" onclick="removeImage()" class="mt-3 px-4 py-2 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition-all">
+                <i data-lucide="x" class="w-4 h-4 inline mr-1"></i>Remove Image
+              </button>
+            </div>
           </div>
 
-          <!-- Publish Button -->
+          <!-- Vendor Info (Hidden) -->
+          <input type="hidden" id="vendorId" value="">
+          <input type="hidden" id="productId" value="">
+
+          <!-- Publish/Update Button -->
           <button type="submit" id="publishBtn"
             class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-6 rounded-3xl font-bold text-xl shadow-2xl hover:shadow-3xl hover:scale-[1.02] transition-all flex items-center justify-center gap-3">
             <i data-lucide="rocket" class="w-7 h-7"></i>
-            Publish Product
+            <span id="btnText">Publish Product</span>
           </button>
         </form>
       </div>
@@ -180,32 +155,13 @@
           <i data-lucide="eye" class="w-6 h-6 text-blue-600"></i>
           Live Preview
         </h3>
-        <div id="productPreview" class="space-y-4 bg-gradient-to-b from-gray-50 to-white rounded-2xl p-6 border-2 border-dashed border-gray-200 min-h-[500px] flex flex-col">
+        <div id="productPreview" class="space-y-4 bg-gradient-to-b from-gray-50 to-white rounded-2xl p-6 border-2 border-dashed border-gray-200 min-h-[400px] flex flex-col">
           <div class="text-center py-12">
             <i data-lucide="package" class="w-20 h-20 text-gray-300 mx-auto mb-4"></i>
             <p class="text-gray-500 font-semibold">Preview will appear here</p>
             <p class="text-sm text-gray-400">Fill form on left to see live preview</p>
           </div>
         </div>
-      </div>
-      
-      <div class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-3xl p-6 shadow-2xl">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-3">
-            <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
-              <i data-lucide="zap" class="w-6 h-6"></i>
-            </div>
-            <div>
-              <h4 class="font-bold text-lg">Business Ready</h4>
-              <p class="text-sm opacity-90">Subscription required</p>
-            </div>
-          </div>
-          <div id="subscriptionStatus" class="px-3 py-1 bg-white/20 rounded-full text-xs font-bold">Loading...</div>
-        </div>
-        <p class="opacity-90 mb-4">Your product will appear in local searches and marketplace</p>
-        <button onclick="window.location.href='subscription.html'" class="w-full py-3 bg-white/20 backdrop-blur-sm rounded-xl font-semibold hover:bg-white/30 transition-all">
-          Upgrade to Business
-        </button>
       </div>
     </div>
   </div>
@@ -237,7 +193,7 @@
   lucide.createIcons();
   
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, doc, getDoc, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, addDoc, setDoc, collection, serverTimestamp, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
@@ -254,52 +210,84 @@
   const auth = getAuth(app);
 
   let currentUser = null;
-  let userProfile = null;
-  let imageFiles = [];
+  let currentVendorId = null;
+  let imageFile = null;
+  let isEditMode = false;
+  let editingProductId = null;
 
-  // Auth check
+  // Auth check & init
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       window.location.href = 'login.html';
       return;
     }
     currentUser = user;
-    await loadUserProfile();
+    await initPage();
   });
 
-  async function loadUserProfile() {
+  async function initPage() {
+    // Check for edit mode
+    const urlParams = new URLSearchParams(window.location.search);
+    const editId = urlParams.get('edit');
+    const vendorId = urlParams.get('vendor');
+    
+    if (editId && vendorId) {
+      isEditMode = true;
+      currentVendorId = vendorId;
+      editingProductId = editId;
+      await loadProductForEdit(editId, vendorId);
+    } else {
+      // Find vendor for new product
+      await findVendor();
+    }
+    
+    setupEventListeners();
+    if (isEditMode) {
+      updateUIForEdit();
+    }
+  }
+
+  async function findVendor() {
+    const vendorQuery = query(collection(db, "vendors"), where("uid", "==", currentUser.uid));
+    const vendorSnap = await getDocs(vendorQuery);
+    
+    if (!vendorSnap.empty) {
+      currentVendorId = vendorSnap.docs[0].id;
+      document.getElementById('vendorId').value = currentVendorId;
+    }
+  }
+
+  async function loadProductForEdit(productId, vendorId) {
     try {
-      const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-      if (userDoc.exists()) {
-        userProfile = userDoc.data();
-        const initial = (userProfile.businessName || userProfile.name || 'U').charAt(0).toUpperCase();
-        document.getElementById('userAvatar').textContent = initial;
+      const productDoc = await getDoc(doc(db, `vendors/${vendorId}/products/${productId}`));
+      if (productDoc.exists()) {
+        const product = productDoc.data();
+        document.getElementById('productName').value = product.name || '';
+        document.getElementById('productCategory').value = product.category || '';
+        document.getElementById('productPrice').value = product.price || '';
+        document.getElementById('productDescription').value = product.description || '';
+        document.getElementById('productId').value = productId;
         
-        // Pre-fill location from profile
-        if (userProfile.city) document.getElementById('productCity').value = userProfile.city;
-        if (userProfile.province) document.getElementById('productProvince').value = userProfile.province;
-        
-        updateSubscriptionStatus();
+        if (product.imageURL) {
+          imageFile = { url: product.imageURL };
+          showImagePreview(product.imageURL);
+        }
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
+      console.error('Error loading product:', error);
     }
   }
 
-  function updateSubscriptionStatus() {
-    const statusEl = document.getElementById('subscriptionStatus');
-    if (userProfile?.subscriptionType === 'business') {
-      statusEl.textContent = '✅ Business';
-      statusEl.className = 'px-3 py-1 bg-white/30 rounded-full text-xs font-bold';
-    } else {
-      statusEl.textContent = '⚠️ Upgrade Required';
-      statusEl.className = 'px-3 py-1 bg-red-100/30 text-red-400 rounded-full text-xs font-bold';
-    }
+  function updateUIForEdit() {
+    document.getElementById('pageTitle').textContent = 'Edit Product';
+    document.getElementById('formTitle').innerHTML = '<i data-lucide="edit-3" class="w-5 h-5 inline mr-2 text-blue-500"></i>Edit Product Details';
+    document.getElementById('formSubtitle').textContent = 'Update your product information';
+    document.getElementById('btnText').textContent = 'Update Product';
   }
 
-  // Image upload handling
+  // Image handling
   const dropZone = document.getElementById('imageDropZone');
-  const fileInput = document.getElementById('productImages');
+  const fileInput = document.getElementById('productImage');
   const preview = document.getElementById('imagePreview');
 
   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -327,135 +315,134 @@
     dropZone.classList.remove('bg-blue-50', 'border-blue-400');
   }
 
-  fileInput.addEventListener('change', handleFiles);
+  fileInput.addEventListener('change', handleImage);
+  dropZone.addEventListener('drop', handleDrop);
 
-  function handleFiles(e) {
-    imageFiles = Array.from(e.target.files).slice(0, 5);
-    displayPreview();
+  function handleImage(e) {
+    const file = e.target.files[0];
+    if (file) {
+      imageFile = file;
+      const reader = new FileReader();
+      reader.onload = (e) => showImagePreview(e.target.result);
+      reader.readAsDataURL(file);
+    }
   }
-
-  dropZone.addEventListener('drop', handleDrop, false);
 
   function handleDrop(e) {
-    imageFiles = Array.from(e.dataTransfer.files).slice(0, 5);
-    displayPreview();
-  }
-
-  function displayPreview() {
-    preview.innerHTML = '';
-    preview.classList.remove('hidden');
-    
-    imageFiles.forEach((file, index) => {
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      imageFile = file;
       const reader = new FileReader();
-      reader.onload = (e) => {
-        const div = document.createElement('div');
-        div.className = 'relative group';
-        div.innerHTML = `
-          <img src="${e.target.result}" class="w-full h-32 object-cover rounded-2xl shadow-lg group-hover:shadow-2xl transition-all">
-          <button type="button" onclick="removeImage(${index})" class="absolute -top-2 -right-2 bg-red-500 text-white p-2 rounded-2xl shadow-lg opacity-0 group-hover:opacity-100 transition-all">
-            <i data-lucide="x" class="w-4 h-4"></i>
-          </button>
-        `;
-        preview.appendChild(div);
-        lucide.createIcons();
-      };
+      reader.onload = (e) => showImagePreview(e.target.result);
       reader.readAsDataURL(file);
-    });
+    }
   }
 
-  window.removeImage = (index) => {
-    imageFiles.splice(index, 1);
+  function showImagePreview(src) {
+    preview.classList.remove('hidden');
+    document.getElementById('previewImg').src = src;
+  }
+
+  window.removeImage = () => {
+    imageFile = null;
+    preview.classList.add('hidden');
     fileInput.value = '';
-    displayPreview();
   };
 
-  // Live preview update
-  ['productName', 'productPrice', 'productCategory', 'productDescription'].forEach(id => {
-    document.getElementById(id).addEventListener('input', updatePreview);
-  });
+  function setupEventListeners() {
+    // Live preview
+    ['productName', 'productPrice', 'productCategory', 'productDescription'].forEach(id => {
+      document.getElementById(id).addEventListener('input', updatePreview);
+    });
+
+    // Preview toggle
+    window.togglePreview = () => {
+      const formSection = document.getElementById('formSection');
+      const previewSection = document.getElementById('previewSection');
+      formSection.classList.toggle('lg:col-span-2');
+      previewSection.classList.toggle('hidden');
+    };
+  }
 
   function updatePreview() {
     const previewEl = document.getElementById('productPreview');
     const name = document.getElementById('productName').value || 'Your Product';
     const price = document.getElementById('productPrice').value;
     const category = document.getElementById('productCategory').value;
+    const desc = document.getElementById('productDescription').value;
     
     previewEl.innerHTML = `
       <div class="space-y-4">
-        <div class="flex items-start gap-4">
-          <div class="w-16 h-16 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
-            ${name.charAt(0).toUpperCase()}
-          </div>
-          <div class="flex-1 min-w-0">
-            <h3 class="font-bold text-xl text-gray-900 truncate">${name}</h3>
-            <p class="text-sm text-emerald-600 font-semibold">${category || 'Category'}</p>
-            ${price ? `<p class="text-2xl font-bold text-gray-900 mt-1">R ${parseFloat(price).toFixed(2)}</p>` : ''}
-          </div>
+        <div class="w-full h-48 bg-gradient-to-r from-emerald-100 to-teal-100 rounded-2xl flex items-center justify-center overflow-hidden">
+          ${imageFile ? (typeof imageFile === 'string' ? `<img src="${imageFile}" class="w-full h-full object-cover">` : 'Image Preview') : 
+            `<i data-lucide="package" class="w-20 h-20 text-emerald-400"></i>`}
         </div>
-        <p class="text-gray-700 leading-relaxed">${document.getElementById('productDescription').value.substring(0, 100)}${document.getElementById('productDescription').value.length > 100 ? '...' : ''}</p>
-        ${imageFiles.length > 0 ? '' : '<div class="h-48 bg-gray-200 rounded-2xl flex items-center justify-center text-gray-400">Product Image</div>'}
+        <div>
+          <h3 class="font-bold text-xl text-gray-900 truncate">${name}</h3>
+          <p class="text-sm text-gray-500">${category || 'Category'}</p>
+          ${price ? `<p class="text-2xl font-bold text-emerald-600 mt-1">R${parseFloat(price).toLocaleString()}</p>` : ''}
+          <p class="text-gray-600 leading-relaxed mt-3 line-clamp-3">${desc || 'Description'}</p>
+        </div>
       </div>
     `;
     lucide.createIcons();
   }
 
-  // Preview toggle
-  window.togglePreview = () => {
-    const formSection = document.getElementById('formSection');
-    const previewSection = document.getElementById('previewSection');
-    formSection.classList.toggle('lg:col-span-2');
-    previewSection.classList.toggle('hidden');
-  };
-
   // Form submission
   document.getElementById('productForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    if (userProfile?.subscriptionType !== 'business') {
-      if (confirm('Business subscription required to list products. Go to subscription page?')) {
-        window.location.href = 'subscription.html';
-      }
+    if (!currentVendorId) {
+      alert('No vendor found. Please create a vendor profile first.');
       return;
     }
 
     const publishBtn = document.getElementById('publishBtn');
     publishBtn.disabled = true;
-    publishBtn.innerHTML = '<i data-lucide="loader" class="w-7 h-7 animate-spin"></i> Publishing...';
+    publishBtn.innerHTML = '<i data-lucide="loader" class="w-7 h-7 animate-spin"></i> Saving...';
 
     try {
-      // Upload images
-      const imageUrls = [];
-      for (const file of imageFiles) {
-        const storageRef = ref(storage, `products/${currentUser.uid}/${Date.now()}_${file.name}`);
-        await uploadBytes(storageRef, file);
-        const url = await getDownloadURL(storageRef);
-        imageUrls.push(url);
+      let imageURL = '';
+      
+      // Upload image if new file
+      if (imageFile && typeof imageFile !== 'string') {
+        const storageRef = ref(storage, `products/${currentVendorId}/${Date.now()}_${imageFile.name}`);
+        await uploadBytes(storageRef, imageFile);
+        imageURL = await getDownloadURL(storageRef);
+      } else if (imageFile) {
+        imageURL = imageFile.url || imageFile;
       }
 
-      // Save product
-      await addDoc(collection(db, 'products'), {
+      const productData = {
         name: document.getElementById('productName').value,
         category: document.getElementById('productCategory').value,
-        price: parseFloat(document.getElementById('productPrice').value),
-        stock: parseInt(document.getElementById('productStock').value),
         description: document.getElementById('productDescription').value,
-        city: document.getElementById('productCity').value,
-        province: document.getElementById('productProvince').value,
-        images: imageUrls,
-        sellerId: currentUser.uid,
-        views: 0,
-        likes: [],
+        price: parseFloat(document.getElementById('productPrice').value),
+        imageURL: imageURL,
+        isApproved: false,
         createdAt: serverTimestamp()
-      });
+      };
 
-      alert('✅ Product listed successfully!');
-      window.location.href = 'marketplace.html';
+      if (isEditMode && editingProductId) {
+        // Update existing product
+        await setDoc(doc(db, `vendors/${currentVendorId}/products/${editingProductId}`), productData, { merge: true });
+        alert('✅ Product updated successfully!');
+        window.location.href = 'manage-products.html';
+      } else {
+        // Create new product
+        await addDoc(collection(db, `vendors/${currentVendorId}/products`), productData);
+        alert('✅ Product created successfully!');
+        window.location.href = 'manage-products.html';
+      }
+      
     } catch (error) {
-      console.error('Error creating product:', error);
-      alert('❌ Failed to list product. Please try again.');
+      console.error('Error saving product:', error);
+      alert('❌ Failed to save product. Please try again.');
     } finally {
       publishBtn.disabled = false;
-      publishBtn.innerHTML = '<i data-lucide="rocket" class="w-7 h-7"></i> Publish Product';
+      publishBtn.innerHTML = isEditMode ? 
+        '<i data-lucide="save" class="w-7 h-7"></i> Update Product' : 
+        '<i data-lucide="rocket" class="w-7 h-7"></i> Publish Product';
       lucide.createIcons();
     }
   });
