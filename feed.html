@@ -1,13 +1,14 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dashboard - Street Connect</title>
+  <title>Feed - Street Connect</title>
 
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
+
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
@@ -18,20 +19,31 @@
     }
     .fade-in { animation: fadeIn 0.3s ease-out; }
     
+    /* Comment section styles */
+    .comment-item {
+      transition: background-color 0.2s;
+    }
+    .comment-item:hover {
+      background-color: #f9fafb;
+    }
+    
+    /* Like animation */
+    @keyframes likeAnimation {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+    .like-animate {
+      animation: likeAnimation 0.4s ease-in-out;
+    }
+    
+    /* Pulse animation for badges */
     @keyframes pulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.5; }
     }
     .pulse-badge {
       animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    }
-    
-    .metric-card {
-      transition: all 0.3s ease;
-    }
-    .metric-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 20px 25px -5px rgba(0, 0,0, 0.1);
     }
   </style>
 </head>
@@ -41,19 +53,11 @@
 <!-- Header -->
 <header class="bg-white/90 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50 shadow-sm">
   <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-    <div class="flex items-center gap-4">
-      <button onclick="window.history.back()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-        <i data-lucide="arrow-left" class="w-5 h-5 text-gray-600"></i>
-      </button>
-      <h1 class="text-2xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-        Dashboard
-      </h1>
-    </div>
+    <h1 class="text-2xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+      Street Connect
+    </h1>
     
     <div class="flex items-center gap-3">
-      <button onclick="window.location.href='feed.html'" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-        <i data-lucide="home" class="w-5 h-5 text-gray-600"></i>
-      </button>
       <button onclick="window.location.href='search.html'" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
         <i data-lucide="search" class="w-5 h-5 text-gray-600"></i>
       </button>
@@ -61,281 +65,330 @@
         <i data-lucide="bell" class="w-5 h-5 text-gray-600"></i>
         <span id="notifBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-bold px-1 pulse-badge"></span>
       </button>
-      <div id="userAvatar" class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-sm cursor-pointer" onclick="window.location.href='profile.html'"></div>
+      <button onclick="window.location.href='inbox.html'" class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
+        <i data-lucide="message-circle" class="w-5 h-5 text-gray-600"></i>
+        <span id="messageBadge" class="hidden absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-bold px-1 pulse-badge"></span>
+      </button>
+      <button onclick="window.location.href='settings.html'" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+        <i data-lucide="settings" class="w-5 h-5 text-gray-600"></i>
+      </button>
+      <div id="userAvatar" class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-sm cursor-pointer"
+        onclick="window.location.href='profile.html'">
+      </div>
     </div>
   </div>
 </header>
 
-<div class="max-w-6xl mx-auto px-4 py-8">
-  <!-- User Profile Card -->
-  <div class="bg-white rounded-3xl shadow-2xl p-8 mb-8 fade-in">
-    <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
-      <div class="flex-shrink-0">
-        <div id="profileAvatar" class="w-24 h-24 rounded-3xl bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-3xl shadow-2xl border-4 border-white"></div>
-      </div>
-      <div class="flex-1 text-center md:text-left">
-        <h2 id="dashboardUserName" class="text-3xl font-extrabold text-gray-900 mb-2"></h2>
-        <p id="dashboardUserType" class="text-xl text-gray-500 mb-4 bg-blue-100 inline-block px-4 py-2 rounded-2xl font-semibold"></p>
-        <div class="flex flex-wrap gap-4 justify-center md:justify-start">
-          <button onclick="window.location.href='profile.html'" class="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl font-semibold hover:shadow-xl transition-all">
-            <i data-lucide="user" class="w-5 h-5 inline mr-2"></i>View Profile
+<div class="max-w-6xl mx-auto px-4 py-6">
+  <div class="grid md:grid-cols-3 gap-6">
+    
+    <!-- Left Sidebar -->
+    <aside class="md:col-span-1 space-y-4">
+      <div class="bg-white rounded-2xl shadow-lg p-6">
+        <div id="userInfo" class="text-center">
+          <div class="w-20 h-20 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 mx-auto mb-3 flex items-center justify-center text-white font-semibold text-2xl"></div>
+          <h3 id="userName" class="font-bold text-gray-800 mb-1"></h3>
+          <p id="userType" class="text-sm text-gray-500 mb-3"></p>
+          <button onclick="window.location.href='profile.html'" 
+            class="text-sm text-blue-600 hover:underline font-semibold mb-2">
+            View Profile
           </button>
-          <button onclick="window.location.href='subscription.html'" class="px-8 py-3 border-2 border-blue-600 text-blue-600 rounded-2xl font-semibold hover:bg-blue-600 hover:text-white transition-all">
-            <i data-lucide="zap" class="w-5 h-5 inline mr-2"></i>Upgrade Plan
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-    <!-- Key Metrics -->
-    <div class="metric-card bg-white rounded-3xl shadow-xl p-8 hover:shadow-2xl">
-      <div class="flex items-center justify-between mb-4">
-        <div class="p-3 bg-blue-100 rounded-2xl">
-          <i data-lucide="eye" class="w-8 h-8 text-blue-600"></i>
-        </div>
-        <div id="viewsTrend" class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-      </div>
-      <h3 class="text-3xl font-bold text-gray-900 mb-1" id="totalViews">0</h3>
-      <p class="text-gray-500 font-medium">Total Post Views</p>
-    </div>
-
-    <div class="metric-card bg-white rounded-3xl shadow-xl p-8 hover:shadow-2xl">
-      <div class="flex items-center justify-between mb-4">
-        <div class="p-3 bg-red-100 rounded-2xl">
-          <i data-lucide="heart" class="w-8 h-8 text-red-500 fill-current"></i>
-        </div>
-        <div id="likesTrend" class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-      </div>
-      <h3 class="text-3xl font-bold text-gray-900 mb-1" id="totalLikes">0</h3>
-      <p class="text-gray-500 font-medium">Total Likes</p>
-    </div>
-
-    <div class="metric-card bg-white rounded-3xl shadow-xl p-8 hover:shadow-2xl">
-      <div class="flex items-center justify-between mb-4">
-        <div class="p-3 bg-green-100 rounded-2xl">
-          <i data-lucide="repeat" class="w-8 h-8 text-green-600"></i>
-        </div>
-        <div id="repostsTrend" class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-      </div>
-      <h3 class="text-3xl font-bold text-gray-900 mb-1" id="totalReposts">0</h3>
-      <p class="text-gray-500 font-medium">Reposts</p>
-    </div>
-
-    <div class="metric-card bg-white rounded-3xl shadow-xl p-8 hover:shadow-2xl">
-      <div class="flex items-center justify-between mb-4">
-        <div class="p-3 bg-purple-100 rounded-2xl">
-          <i data-lucide="shopping-cart" class="w-8 h-8 text-purple-600"></i>
-        </div>
-        <div id="productsTrend" class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-      </div>
-      <h3 class="text-3xl font-bold text-gray-900 mb-1" id="totalProducts">0</h3>
-      <p class="text-gray-500 font-medium">Products Listed</p>
-    </div>
-  </div>
-
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-    <!-- Recent Activity -->
-    <div class="lg:col-span-2">
-      <div class="bg-white rounded-3xl shadow-2xl p-8">
-        <div class="flex items-center justify-between mb-8">
-          <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
-            <i data-lucide="activity" class="w-8 h-8"></i>
-            Recent Activity
-          </h2>
-          <button onclick="window.location.href='activity.html'" class="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1">
-            View All <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          <button onclick="window.location.href='dashboard.html'" 
+            class="w-full mt-2 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 rounded-xl font-semibold hover:shadow-lg transition-all">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+            Dashboard
           </button>
         </div>
-        <div id="activityList" class="space-y-4 max-h-96 overflow-y-auto">
-          <!-- Activity items will be populated here -->
-          <div class="text-center py-12 text-gray-500">
-            <i data-lucide="activity" class="w-16 h-16 mx-auto mb-4 opacity-50"></i>
-            <p>Loading your recent activity...</p>
+      </div>
+      
+      <!-- Subscription status card -->
+      <div id="subscriptionCard" class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-lg p-6 text-white">
+        <h3 class="font-bold text-lg mb-2">Upgrade to Business</h3>
+        <p class="text-sm text-blue-100 mb-4">Create posts, sell products, and grow your business</p>
+        <button onclick="window.location.href='subscription.html'" 
+          class="w-full bg-white text-blue-600 py-2 rounded-xl font-semibold hover:bg-blue-50 transition-all">
+          Upgrade Now
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Feed -->
+    <main class="md:col-span-2 space-y-4">
+      
+      <!-- Create Post Section -->
+      <div id="createPostSection" class="bg-white rounded-2xl shadow-lg p-6">
+        <div class="flex items-center gap-3">
+          <div id="createPostAvatar" class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold"></div>
+          <button id="createPostBtn" 
+            class="flex-1 text-left px-4 py-3 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-colors">
+            What's on your mind?
+          </button>
+        </div>
+        
+        <div id="postFormContainer" class="hidden mt-4 pt-4 border-t">
+          <textarea id="postDescription" rows="3" 
+            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            placeholder="Share your thoughts..."></textarea>
+          
+          <input id="postImage" type="file" accept="image/*" class="hidden" />
+          
+          <div id="imagePreview" class="hidden mt-3">
+            <div class="relative inline-block">
+              <img id="previewImg" class="rounded-xl max-h-64" />
+              <button onclick="removeImage()" 
+                class="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600">
+                <i data-lucide="x" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between mt-4">
+            <button onclick="document.getElementById('postImage').click()" 
+              class="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors">
+              <i data-lucide="image" class="w-5 h-5"></i>
+              <span class="text-sm font-medium">Photo</span>
+            </button>
+            
+            <div class="flex gap-2">
+              <button onclick="cancelPost()" 
+                class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                Cancel
+              </button>
+              <button onclick="submitPost()" id="submitPostBtn"
+                class="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center gap-2">
+                <i data-lucide="send" class="w-4 h-4"></i> Post
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Quick Actions -->
-    <div>
-      <div class="bg-white rounded-3xl shadow-2xl p-8 sticky top-8">
-        <h2 class="text-2xl font-bold text-gray-900 mb-8">Quick Actions</h2>
-        <div class="space-y-4">
-          <button onclick="window.location.href='create-product.html'" class="w-full flex items-center gap-3 p-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-2xl hover:shadow-xl transition-all font-semibold">
-            <i data-lucide="plus-circle" class="w-6 h-6"></i>
-            List New Product
-          </button>
-          <button onclick="window.location.href='feed.html'" class="w-full flex items-center gap-3 p-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl hover:shadow-xl transition-all font-semibold">
-            <i data-lucide="edit-3" class="w-6 h-6"></i>
-            Create Post
-          </button>
-          <button onclick="window.location.href='analytics.html'" class="w-full flex items-center gap-3 p-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl hover:shadow-xl transition-all font-semibold">
-            <i data-lucide="bar-chart-3" class="w-6 h-6"></i>
-            View Analytics
-          </button>
-          <button onclick="window.location.href='marketplace.html'" class="w-full flex items-center gap-3 p-4 border-2 border-gray-200 rounded-2xl hover:border-gray-400 transition-all font-semibold text-gray-700 hover:bg-gray-50">
-            <i data-lucide="shopping-bag" class="w-6 h-6"></i>
-            Manage Products
-          </button>
-        </div>
+      <!-- Filters -->
+      <div class="bg-white rounded-2xl shadow-lg p-4 flex flex-wrap gap-3">
+        <select id="provinceFilter" 
+          class="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <option value="">All Provinces</option>
+          <option value="Gauteng">Gauteng</option>
+          <option value="Western Cape">Western Cape</option>
+          <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+          <option value="Eastern Cape">Eastern Cape</option>
+          <option value="Free State">Free State</option>
+          <option value="Limpopo">Limpopo</option>
+          <option value="Mpumalanga">Mpumalanga</option>
+          <option value="North West">North West</option>
+          <option value="Northern Cape">Northern Cape</option>
+        </select>
+        
+        <select id="categoryFilter" 
+          class="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <option value="">All Categories</option>
+          <option value="Food">Food & Beverage</option>
+          <option value="Tech">Technology</option>
+          <option value="Fashion">Fashion</option>
+          <option value="Beauty">Beauty</option>
+          <option value="Services">Services</option>
+          <option value="Other">Other</option>
+        </select>
       </div>
+
+      <!-- Loading indicator -->
+      <div id="loadingIndicator" class="bg-white rounded-2xl shadow-lg p-12 text-center">
+        <i data-lucide="loader" class="w-8 h-8 text-blue-600 animate-spin mx-auto mb-3"></i>
+        <p class="text-gray-500">Loading posts...</p>
+      </div>
+
+      <!-- Posts Container -->
+      <div id="postsContainer" class="space-y-4 hidden"></div>
+
+      <!-- Pagination -->
+      <div id="paginationControls" class="hidden flex justify-center items-center gap-4 py-6">
+        <button id="prevBtn" disabled 
+          class="px-4 py-2 bg-white rounded-xl shadow disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors flex items-center gap-2">
+          <i data-lucide="chevron-left" class="w-4 h-4"></i>
+          Previous
+        </button>
+        <span id="pageNum" class="px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold">1</span>
+        <button id="nextBtn" 
+          class="px-4 py-2 bg-white rounded-xl shadow hover:bg-gray-50 transition-colors flex items-center gap-2">
+          Next
+          <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </main>
+
+  </div>
+</div>
+
+<!-- Repost Modal -->
+<div id="repostModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+  <div class="bg-white rounded-2xl p-6 max-w-lg w-full">
+    <div class="flex justify-between items-start mb-4">
+      <h3 class="text-xl font-bold text-gray-800">Add Your Thoughts</h3>
+      <button onclick="closeRepostModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+    </div>
+    
+    <textarea id="repostCaption" rows="3" 
+      class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none mb-4"
+      placeholder="Add your thoughts to this repost (optional)..."></textarea>
+    
+    <div id="repostPreview" class="bg-gray-50 rounded-xl p-4 mb-4 border-l-4 border-blue-600">
+      <p class="text-sm text-gray-600 mb-2">Reposting from <strong id="originalAuthor"></strong></p>
+      <p id="originalContent" class="text-sm text-gray-800"></p>
+    </div>
+    
+    <div class="flex gap-2">
+      <button onclick="closeRepostModal()" 
+        class="flex-1 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+        Cancel
+      </button>
+      <button onclick="confirmRepost()" id="confirmRepostBtn"
+        class="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2">
+        <i data-lucide="repeat" class="w-4 h-4"></i>
+        Repost
+      </button>
     </div>
   </div>
-
-  <!-- Bottom Navigation (Mobile) -->
-  <nav class="fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur-lg border-t border-gray-200 shadow-2xl md:hidden">
-    <div class="flex justify-around py-3">
-      <a href="feed.html" class="flex flex-col items-center text-blue-600">
-        <i data-lucide="home" class="w-6 h-6"></i>
-        <span class="text-xs font-semibold mt-1">Feed</span>
-      </a>
-      <a href="marketplace.html" class="flex flex-col items-center text-gray-600 relative">
-        <i data-lucide="shopping-bag" class="w-6 h-6"></i>
-        <span class="text-xs font-medium mt-1">Market</span>
-      </a>
-      <a href="dashboard.html" class="flex flex-col items-center text-blue-600">
-        <i data-lucide="layout-dashboard" class="w-6 h-6"></i>
-        <span class="text-xs font-semibold mt-1">Dashboard</span>
-      </a>
-      <a href="inbox.html" class="flex flex-col items-center text-gray-600 relative">
-        <i data-lucide="message-circle" class="w-6 h-6"></i>
-        <span class="text-xs font-medium mt-1">Inbox</span>
-      </a>
-      <a href="profile.html" class="flex flex-col items-center text-gray-600">
-        <i data-lucide="user" class="w-6 h-6"></i>
-        <span class="text-xs font-medium mt-1">Profile</span>
-      </a>
-    </div>
-  </nav>
 </div>
+
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur-lg border-t border-gray-200 shadow-lg md:hidden">
+  <div class="flex justify-around py-3">
+    <a href="feed.html" class="flex flex-col items-center text-blue-600">
+      <i data-lucide="home" class="w-6 h-6"></i>
+      <span class="text-xs font-medium mt-1">Feed</span>
+    </a>
+    <a href="search.html" class="flex flex-col items-center text-gray-600">
+      <i data-lucide="search" class="w-6 h-6"></i>
+      <span class="text-xs font-medium mt-1">Search</span>
+    </a>
+    <a href="marketplace.html" class="flex flex-col items-center text-gray-600">
+      <i data-lucide="shopping-bag" class="w-6 h-6"></i>
+      <span class="text-xs font-medium mt-1">Market</span>
+    </a>
+    <a href="inbox.html" class="flex flex-col items-center text-gray-600 relative">
+      <i data-lucide="message-circle" class="w-6 h-6"></i>
+      <span class="text-xs font-medium mt-1">Inbox</span>
+      <span id="mobileMessageBadge" class="hidden absolute -top-1 -right-2 bg-green-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-bold px-1"></span>
+    </a>
+    <a href="profile.html" class="flex flex-col items-center text-gray-600">
+      <i data-lucide="user" class="w-6 h-6"></i>
+      <span class="text-xs font-medium mt-1">Profile</span>
+    </a>
+  </div>
+</nav>
 
 <script type="module">
   lucide.createIcons();
   
-  // Firebase initialization (same as feed)
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, doc, getDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, getDocs, query, where, addDoc, doc, getDoc, updateDoc, deleteDoc, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-  const firebaseConfig = {
+  const app = initializeApp({
     apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
     authDomain: "online-mall-4422.firebaseapp.com",
     projectId: "online-mall-4422",
     storageBucket: "online-mall-4422.appspot.com"
-  };
+  });
 
-  const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const auth = getAuth(app);
+  const storage = getStorage(app);
 
   let currentUser = null;
   let userProfile = null;
-  let analyticsData = {};
+  let allPosts = [];
+  let postComments = {};
+  let currentPage = 1;
+  const pageSize = 10;
+  
+  // View tracking
+  let viewTimers = {};
+  let viewedPosts = new Set();
+  let postToRepost = null;
 
-  // Initialize dashboard
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      window.location.href = 'login.html';
-      return;
-    }
-    
+  onAuthStateChanged(auth, async user => {
+    if (!user) return location.href = "login.html";
     currentUser = user;
-    await loadDashboardData();
-  });
-
-  async function loadDashboardData() {
+    
     try {
-      // Load user profile
-      const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+      const userDoc = await getDoc(doc(db, "users", user.uid));
       if (userDoc.exists()) {
         userProfile = userDoc.data();
-        setupProfileDisplay();
-      }
-
-      // Load analytics data
-      await loadAnalytics();
-      await loadRecentActivity();
-      
-      // Load notifications badge
-      await loadNotificationsBadge();
-      
-    } catch (error) {
-      console.error('Error loading dashboard:', error);
-    }
-  }
-
-  function setupProfileDisplay() {
-    const displayName = userProfile.businessName || userProfile.name || 'User';
-    const initial = displayName.charAt(0).toUpperCase();
-    
-    document.getElementById('dashboardUserName').textContent = displayName;
-    document.getElementById('dashboardUserType').textContent = 
-      userProfile.subscriptionType === 'business' ? 'Business Account' : 'Basic Account';
-    
-    document.getElementById('profileAvatar').textContent = initial;
-    document.getElementById('userAvatar').textContent = initial;
-  }
-
-  async function loadAnalytics() {
-    try {
-      // Get user's posts
-      const postsQuery = query(collection(db, "posts"), where("uid", "==", currentUser.uid));
-      const postsSnap = await getDocs(postsQuery);
-      
-      let totalViews = 0;
-      let totalLikes = 0;
-      let totalReposts = 0;
-      
-      postsSnap.forEach(postDoc => {
-        const post = postDoc.data();
-        totalViews += post.views || 0;
-        totalLikes += (post.likes || []).length;
         
-        // Count reposts of this user's posts
-        if (post.reposts) totalReposts += post.reposts;
-      });
+        const displayName = userProfile.businessName || userProfile.name || 'User';
+        const initial = displayName.charAt(0).toUpperCase();
+        
+        document.getElementById('userName').textContent = displayName;
+        document.getElementById('userType').textContent = userProfile.subscriptionType === 'business' ? 'Business Account' : 'Basic Account';
+        
+        document.getElementById('userAvatar').textContent = initial;
+        document.getElementById('createPostAvatar').textContent = initial;
+        document.querySelector('#userInfo .w-20').textContent = initial;
+        
+        const canPost = userProfile.subscriptionType === 'business' || userProfile.subscriptionType === 'premium';
+        
+        if (!canPost) {
+          document.getElementById('createPostBtn').onclick = () => {
+            if (confirm('Upgrade to Business plan to create posts. Visit subscription page?')) {
+              window.location.href = 'subscription.html';
+            }
+          };
+        } else {
+          const subCard = document.getElementById('subscriptionCard');
+          if (subCard) subCard.remove();
+          document.getElementById('createPostBtn').onclick = showPostForm;
+        }
+      }
       
-      document.getElementById('totalViews').textContent = totalViews.toLocaleString();
-      document.getElementById('totalLikes').textContent = totalLikes.toLocaleString();
-      document.getElementById('totalReposts').textContent = totalReposts.toLocaleString();
+      await Promise.all([
+        fetchAllPosts(),
+        fetchAllComments(),
+        fetchUnreadNotifications(),
+        fetchUnreadMessages()
+      ]);
       
-      // Mock product count for now
-      document.getElementById('totalProducts').textContent = '12';
-      
+      renderPosts();
+      setupViewTracking();
     } catch (error) {
-      console.error('Error loading analytics:', error);
+      console.error('Error initializing:', error);
+      alert('Error loading profile. Please refresh the page.');
     }
+  });
+
+  function setupViewTracking() {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const postId = entry.target.dataset.postId;
+        
+        if (entry.isIntersecting) {
+          // Post is in view, start 2-second timer
+          if (!viewedPosts.has(postId)) {
+            viewTimers[postId] = setTimeout(() => {
+              incrementViews(postId);
+              viewedPosts.add(postId);
+            }, 2000);
+          }
+        } else {
+          // Post left view, clear timer
+          if (viewTimers[postId]) {
+            clearTimeout(viewTimers[postId]);
+            delete viewTimers[postId];
+          }
+        }
+      });
+    }, {
+      threshold: 0.5 // 50% of post must be visible
+    });
+
+    // Observe all post cards
+    document.querySelectorAll('.post-card').forEach(card => {
+      observer.observe(card);
+    });
   }
 
-  async function loadRecentActivity() {
-    const activityList = document.getElementById('activityList');
-    
-    // Mock recent activity data (replace with real data fetching)
-    const mockActivities = [
-      { type: 'like', postTitle: 'New sneakers available!', time: '2h ago' },
-      { type: 'comment', postTitle: 'Fresh produce delivery', time: '5h ago' },
-      { type: 'repost', postTitle: 'Tech gadgets on sale', time: '1d ago' },
-      { type: 'view', postTitle: 'Your post got 50 views', time: '1d ago' }
-    ];
-    
-    activityList.innerHTML = mockActivities.map(activity => `
-      <div class="flex items-start gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
-        <div class="flex-shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
-          ${activity.type.charAt(0).toUpperCase()}
-        </div>
-        <div class="flex-1 min-w-0">
-          <p class="font-semibold text-gray-900 text-sm">${activity.postTitle}</p>
-          <p class="text-xs text-gray-500 mt-1">${activity.type.replace(/^\w/, c => c.toUpperCase())} • ${activity.time}</p>
-        </div>
-      </div>
-    `).join('');
-    
-    lucide.createIcons();
-  }
-
-  async function loadNotificationsBadge() {
+  async function fetchUnreadNotifications() {
     try {
       const notifQuery = query(
         collection(db, "notifications"),
@@ -351,9 +404,717 @@
         badge.classList.remove('hidden');
       }
     } catch (error) {
-      console.error('Error loading notifications:', error);
+      console.error('Error fetching notifications:', error);
     }
   }
+
+  async function fetchUnreadMessages() {
+    try {
+      const chatsSnap = await getDocs(collection(db, "chats"));
+      let totalUnread = 0;
+      
+      chatsSnap.forEach(chatDoc => {
+        const chatData = chatDoc.data();
+        const unreadField = `unread_${currentUser.uid}`;
+        if (chatData[unreadField]) {
+          totalUnread += chatData[unreadField];
+        }
+      });
+      
+      if (totalUnread > 0) {
+        const badge = document.getElementById('messageBadge');
+        const mobileBadge = document.getElementById('mobileMessageBadge');
+        const displayCount = totalUnread > 99 ? '99+' : totalUnread;
+        
+        badge.textContent = displayCount;
+        badge.classList.remove('hidden');
+        mobileBadge.textContent = displayCount;
+        mobileBadge.classList.remove('hidden');
+      }
+    } catch (error) {
+      console.error('Error fetching unread messages:', error);
+    }
+  }
+
+  async function fetchAllPosts() {
+    try {
+      const postsSnap = await getDocs(collection(db, "posts"));
+      const posts = [];
+      
+      const usersSnap = await getDocs(collection(db, "users"));
+      const usersMap = {};
+      usersSnap.forEach(userDoc => {
+        usersMap[userDoc.id] = userDoc.data();
+      });
+      
+      postsSnap.forEach(postDoc => {
+        const postData = { id: postDoc.id, ...postDoc.data() };
+        
+        if (postData.uid && usersMap[postData.uid]) {
+          const authorData = usersMap[postData.uid];
+          postData.authorName = authorData.businessName || authorData.name || 'Unknown User';
+          postData.authorCategory = authorData.category || '';
+        } else {
+          postData.authorName = 'Unknown User';
+          postData.authorCategory = '';
+        }
+        
+        if (postData.isRepost && postData.originalAuthorId && usersMap[postData.originalAuthorId]) {
+          const originalAuthor = usersMap[postData.originalAuthorId];
+          postData.originalAuthorName = originalAuthor.businessName || originalAuthor.name || 'Unknown User';
+        }
+        
+        posts.push(postData);
+      });
+      
+      allPosts = posts.sort((a, b) => {
+        const timeA = a.createdAt?.seconds || 0;
+        const timeB = b.createdAt?.seconds || 0;
+        return timeB - timeA;
+      });
+      
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      alert('Error loading posts. Please refresh the page.');
+    }
+  }
+
+  async function fetchAllComments() {
+    try {
+      const commentsSnap = await getDocs(collection(db, "comments"));
+      postComments = {};
+      
+      const usersSnap = await getDocs(collection(db, "users"));
+      const usersMap = {};
+      usersSnap.forEach(userDoc => {
+        usersMap[userDoc.id] = userDoc.data();
+      });
+      
+      commentsSnap.forEach(commentDoc => {
+        const commentData = { id: commentDoc.id, ...commentDoc.data() };
+        
+        if (commentData.userId && usersMap[commentData.userId]) {
+          const authorData = usersMap[commentData.userId];
+          commentData.authorName = authorData.businessName || authorData.name || 'Unknown User';
+        } else {
+          commentData.authorName = 'Unknown User';
+        }
+        
+        if (!postComments[commentData.postId]) {
+          postComments[commentData.postId] = [];
+        }
+        postComments[commentData.postId].push(commentData);
+      });
+      
+      Object.keys(postComments).forEach(postId => {
+        postComments[postId].sort((a, b) => {
+          const timeA = a.timestamp?.seconds || 0;
+          const timeB = b.timestamp?.seconds || 0;
+          return timeA - timeB;
+        });
+      });
+      
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    }
+  }
+
+  function getTimeAgo(timestamp) {
+    if (!timestamp || !timestamp.seconds) return 'Just now';
+    
+    const now = Date.now();
+    const postTime = timestamp.seconds * 1000;
+    const diff = now - postTime;
+    
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    const weeks = Math.floor(days / 7);
+    const months = Math.floor(days / 30);
+    const years = Math.floor(days / 365);
+    
+    if (years > 0) return `${years}y ago`;
+    if (months > 0) return `${months}mo ago`;
+    if (weeks > 0) return `${weeks}w ago`;
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    if (minutes > 0) return `${minutes}m ago`;
+    return 'Just now';
+  }
+
+  function renderPosts() {
+    const container = document.getElementById("postsContainer");
+    const loading = document.getElementById("loadingIndicator");
+    const pagination = document.getElementById("paginationControls");
+    
+    container.innerHTML = "";
+    
+    let filtered = allPosts.filter(p => {
+      const provinceMatch = !document.getElementById('provinceFilter').value || p.province === document.getElementById('provinceFilter').value;
+      const categoryMatch = !document.getElementById('categoryFilter').value || p.category === document.getElementById('categoryFilter').value;
+      return provinceMatch && categoryMatch;
+    });
+
+    const start = (currentPage - 1) * pageSize;
+    const pagePosts = filtered.slice(start, start + pageSize);
+
+    loading.classList.add('hidden');
+    container.classList.remove('hidden');
+    pagination.classList.remove('hidden');
+
+    if (pagePosts.length === 0) {
+      container.innerHTML = '<div class="bg-white rounded-2xl shadow-lg p-12 text-center"><p class="text-gray-500">No posts found. Try adjusting your filters.</p></div>';
+      pagination.classList.add('hidden');
+      return;
+    }
+
+    pagePosts.forEach(post => {
+      const isLiked = post.likes && Array.isArray(post.likes) && post.likes.includes(currentUser.uid);
+      const likesCount = post.likes && Array.isArray(post.likes) ? post.likes.length : 0;
+      const isOwner = post.uid === currentUser.uid;
+      const comments = postComments[post.id] || [];
+      const commentsCount = comments.length;
+      const viewsCount = post.views || 0;
+      const timeAgo = getTimeAgo(post.createdAt);
+
+      const card = document.createElement("div");
+      card.className = "post-card bg-white rounded-2xl shadow-lg p-6 fade-in";
+      card.dataset.postId = post.id;
+      card.innerHTML = `
+        ${post.isRepost ? `
+          <div class="flex items-center gap-2 text-sm text-gray-500 mb-3 pb-3 border-b border-gray-100">
+            <i data-lucide="repeat" class="w-4 h-4"></i>
+            <span><strong class="hover:underline cursor-pointer" onclick="window.location.href='profile.html?uid=${post.uid}'">${post.authorName}</strong> reposted from <strong class="hover:underline cursor-pointer" onclick="window.location.href='profile.html?uid=${post.originalAuthorId}'">${post.originalAuthorName || 'Unknown User'}</strong></span>
+          </div>
+          ${post.repostCaption ? `<p class="text-gray-700 mb-3 text-sm italic">${post.repostCaption}</p>` : ''}
+          <div class="border-l-4 border-blue-600 pl-4 mb-3">
+        ` : ''}
+        
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='profile.html?uid=${post.isRepost ? post.originalAuthorId : post.uid}'">
+            <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
+              ${(post.isRepost ? (post.originalAuthorName || 'U') : (post.authorName || 'U')).charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <h3 class="font-bold text-gray-800 hover:underline">${post.isRepost ? (post.originalAuthorName || 'Unknown') : (post.authorName || 'Unknown')}</h3>
+              <p class="text-xs text-gray-500">${post.authorCategory || ''} ${post.city || post.province ? '•' : ''} ${post.city || ''} ${post.city && post.province ? ',' : ''} ${post.province || ''}</p>
+              <p class="text-xs text-gray-400">${timeAgo}</p>
+            </div>
+          </div>
+          ${isOwner ? `
+            <button onclick="deletePost('${post.id}')" class="text-gray-400 hover:text-red-500 transition-colors">
+              <i data-lucide="trash-2" class="w-5 h-5"></i>
+            </button>
+          ` : ''}
+        </div>
+        
+        <p class="text-gray-700 mb-3 whitespace-pre-wrap">${post.description || ''}</p>
+        
+        ${post.imageURL ? `
+          <img src="${post.imageURL}" class="w-full rounded-xl mb-4 max-h-96 object-cover cursor-pointer" 
+            onclick="window.location.href='post-details.html?id=${post.id}'" />
+        ` : ''}
+        
+        ${post.isRepost ? '</div>' : ''}
+        
+        <div class="flex items-center gap-2 text-xs text-gray-500 mb-3">
+          <span class="flex items-center gap-1">
+            <i data-lucide="eye" class="w-3 h-3"></i>
+            ${viewsCount} ${viewsCount === 1 ? 'view' : 'views'}
+          </span>
+        </div>
+        
+        <div class="flex items-center gap-6 pt-4 border-t border-gray-100">
+          <button onclick="toggleLike('${post.id}')" id="like-btn-${post.id}"
+            class="flex items-center gap-2 ${isLiked ? 'text-red-500' : 'text-gray-600'} hover:text-red-500 transition-colors">
+            <i data-lucide="heart" class="w-5 h-5 ${isLiked ? 'fill-current' : ''}"></i>
+            <span class="text-sm font-medium">${likesCount}</span>
+          </button>
+          <button onclick="toggleComments('${post.id}')" 
+            class="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors">
+            <i data-lucide="message-circle" class="w-5 h-5"></i>
+            <span class="text-sm font-medium">${commentsCount}</span>
+          </button>
+          <button onclick="openRepostModal('${post.id}')" 
+            class="flex items-center gap-2 text-gray-600 hover:text-green-600 transition-colors">
+            <i data-lucide="repeat" class="w-5 h-5"></i>
+            <span class="text-sm font-medium">Repost</span>
+          </button>
+          <button onclick="sharePost('${post.id}')" 
+            class="flex items-center gap-2 text-gray-600 hover:text-purple-600 transition-colors ml-auto">
+            <i data-lucide="share-2" class="w-4 h-4"></i>
+          </button>
+        </div>
+        
+        <div id="comments-${post.id}" class="hidden mt-4 pt-4 border-t border-gray-100">
+          <div id="comments-list-${post.id}" class="space-y-3 mb-4 max-h-64 overflow-y-auto">
+            ${comments.length === 0 ? '<p class="text-sm text-gray-500 text-center py-4">No comments yet. Be the first to comment!</p>' : ''}
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-sm">
+              ${(userProfile.businessName || userProfile.name || 'U').charAt(0).toUpperCase()}
+            </div>
+            <input type="text" id="comment-input-${post.id}" 
+              placeholder="Write a comment..." 
+              class="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              onkeypress="if(event.key==='Enter') submitComment('${post.id}')" />
+            <button onclick="submitComment('${post.id}')" 
+              class="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors">
+              <i data-lucide="send" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      `;
+      container.appendChild(card);
+      
+      if (comments.length > 0) {
+        renderComments(post.id, comments);
+      }
+    });
+
+    lucide.createIcons();
+    
+    document.getElementById('pageNum').textContent = currentPage;
+    document.getElementById('prevBtn').disabled = currentPage === 1;
+    document.getElementById('nextBtn').disabled = start + pageSize >= filtered.length;
+    
+    // Setup view tracking after render
+    setTimeout(setupViewTracking, 100);
+  }
+
+  function renderComments(postId, comments) {
+    const commentsList = document.getElementById(`comments-list-${postId}`);
+    if (!commentsList) return;
+    
+    commentsList.innerHTML = '';
+    
+    comments.forEach(comment => {
+      const isCommentOwner = comment.userId === currentUser.uid;
+      const commentDate = comment.timestamp?.seconds 
+        ? new Date(comment.timestamp.seconds * 1000).toLocaleString()
+        : 'Just now';
+      
+      const commentEl = document.createElement('div');
+      commentEl.className = 'comment-item flex items-start gap-2 p-2 rounded-lg';
+      commentEl.innerHTML = `
+        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold text-xs flex-shrink-0 cursor-pointer" 
+          onclick="window.location.href='profile.html?uid=${comment.userId}'">
+          ${(comment.authorName || 'U').charAt(0).toUpperCase()}
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="bg-gray-100 rounded-2xl px-4 py-2">
+            <p class="font-semibold text-sm text-gray-800 hover:underline cursor-pointer" onclick="window.location.href='profile.html?uid=${comment.userId}'">${comment.authorName || 'Unknown User'}</p>
+            <p class="text-sm text-gray-700 break-words">${comment.comment || ''}</p>
+          </div>
+          <div class="flex items-center gap-3 mt-1 px-2">
+            <span class="text-xs text-gray-400">${commentDate}</span>
+            ${isCommentOwner ? `
+              <button onclick="deleteComment('${comment.id}', '${postId}')" class="text-xs text-red-500 hover:text-red-700">
+                Delete
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      `;
+      commentsList.appendChild(commentEl);
+    });
+    
+    lucide.createIcons();
+  }
+
+  function incrementViews(postId) {
+    const postRef = doc(db, "posts", postId);
+    updateDoc(postRef, {
+      views: increment(1)
+    }).catch(error => {
+      console.error('Error incrementing views:', error);
+    });
+  }
+
+  window.openRepostModal = (postId) => {
+    if (!userProfile || userProfile.subscriptionType === 'basic') {
+      if (confirm('Upgrade to Business plan to repost. Visit subscription page?')) {
+        window.location.href = 'subscription.html';
+      }
+      return;
+    }
+    
+    const originalPost = allPosts.find(p => p.id === postId);
+    if (!originalPost) {
+      alert('Original post not found');
+      return;
+    }
+    
+    const existingRepost = allPosts.find(p => 
+      p.isRepost && 
+      p.originalPostId === postId && 
+      p.uid === currentUser.uid
+    );
+    
+    if (existingRepost) {
+      alert('You have already reposted this post');
+      return;
+    }
+    
+    postToRepost = originalPost;
+    document.getElementById('originalAuthor').textContent = originalPost.authorName;
+    document.getElementById('originalContent').textContent = originalPost.description?.substring(0, 150) + (originalPost.description?.length > 150 ? '...' : '');
+    document.getElementById('repostCaption').value = '';
+    document.getElementById('repostModal').classList.remove('hidden');
+    lucide.createIcons();
+  };
+
+  window.closeRepostModal = () => {
+    document.getElementById('repostModal').classList.add('hidden');
+    postToRepost = null;
+  };
+
+  window.confirmRepost = async () => {
+    if (!postToRepost) return;
+    
+    const repostCaption = document.getElementById('repostCaption').value.trim();
+    const confirmBtn = document.getElementById('confirmRepostBtn');
+    
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Reposting...';
+    lucide.createIcons();
+    
+    try {
+      await addDoc(collection(db, "posts"), {
+        description: postToRepost.description,
+        imageURL: postToRepost.imageURL,
+        uid: currentUser.uid,
+        originalPostId: postToRepost.id,
+        originalAuthorId: postToRepost.uid,
+        isRepost: true,
+        repostCaption: repostCaption || null,
+        province: userProfile.province || '',
+        city: userProfile.city || '',
+        category: userProfile.category || '',
+        likes: [],
+        views: 0,
+        createdAt: serverTimestamp()
+      });
+      
+      if (postToRepost.uid !== currentUser.uid) {
+        try {
+          await addDoc(collection(db, "notifications"), {
+            recipientId: postToRepost.uid,
+            senderId: currentUser.uid,
+            type: 'repost',
+            postId: postToRepost.id,
+            read: false,
+            createdAt: serverTimestamp()
+          });
+        } catch (notifError) {
+          console.error('Error creating notification:', notifError);
+        }
+      }
+      
+      alert('Reposted successfully!');
+      closeRepostModal();
+      await fetchAllPosts();
+      currentPage = 1;
+      renderPosts();
+    } catch (error) {
+      console.error('Error reposting:', error);
+      alert('Failed to repost. Please try again.');
+    } finally {
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = '<i data-lucide="repeat" class="w-4 h-4"></i> Repost';
+      lucide.createIcons();
+    }
+  };
+
+  window.toggleComments = (postId) => {
+    const commentsSection = document.getElementById(`comments-${postId}`);
+    if (commentsSection) {
+      commentsSection.classList.toggle('hidden');
+      lucide.createIcons();
+    }
+  };
+
+  window.submitComment = async (postId) => {
+    const input = document.getElementById(`comment-input-${postId}`);
+    const commentText = input.value.trim();
+    
+    if (!commentText) {
+      alert('Please enter a comment');
+      return;
+    }
+    
+    try {
+      await addDoc(collection(db, "comments"), {
+        postId: postId,
+        userId: currentUser.uid,
+        comment: commentText,
+        timestamp: serverTimestamp()
+      });
+      
+      const post = allPosts.find(p => p.id === postId);
+      if (post && post.uid !== currentUser.uid) {
+        try {
+          await addDoc(collection(db, "notifications"), {
+            recipientId: post.uid,
+            senderId: currentUser.uid,
+            type: 'comment',
+            postId: postId,
+            message: commentText.substring(0, 50),
+            read: false,
+            createdAt: serverTimestamp()
+          });
+        } catch (notifError) {
+          console.error('Error creating notification:', notifError);
+        }
+      }
+      
+      input.value = '';
+      await fetchAllComments();
+      renderPosts();
+      
+      setTimeout(() => {
+        const commentsSection = document.getElementById(`comments-${postId}`);
+        if (commentsSection && commentsSection.classList.contains('hidden')) {
+          commentsSection.classList.remove('hidden');
+        }
+        lucide.createIcons();
+      }, 100);
+      
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+      alert('Failed to post comment. Please try again.');
+    }
+  };
+
+  window.deleteComment = async (commentId, postId) => {
+    if (!confirm('Delete this comment?')) return;
+    
+    try {
+      await deleteDoc(doc(db, "comments", commentId));
+      await fetchAllComments();
+      renderPosts();
+      
+      setTimeout(() => {
+        const commentsSection = document.getElementById(`comments-${postId}`);
+        if (commentsSection && commentsSection.classList.contains('hidden')) {
+          commentsSection.classList.remove('hidden');
+        }
+        lucide.createIcons();
+      }, 100);
+      
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      alert('Failed to delete comment. Please try again.');
+    }
+  };
+
+  function showPostForm() {
+    if (!userProfile || userProfile.subscriptionType === 'basic') {
+      alert('Upgrade to Business plan to create posts');
+      window.location.href = 'subscription.html';
+      return;
+    }
+    document.getElementById('postFormContainer').classList.remove('hidden');
+  }
+
+  window.cancelPost = () => {
+    document.getElementById('postFormContainer').classList.add('hidden');
+    document.getElementById('postDescription').value = '';
+    document.getElementById('postImage').value = '';
+    document.getElementById('imagePreview').classList.add('hidden');
+  };
+
+  document.getElementById('postImage').onchange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        document.getElementById('previewImg').src = ev.target.result;
+        document.getElementById('imagePreview').classList.remove('hidden');
+        lucide.createIcons();
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  window.removeImage = () => {
+    document.getElementById('postImage').value = '';
+    document.getElementById('imagePreview').classList.add('hidden');
+  };
+
+  window.submitPost = async () => {
+    const description = document.getElementById('postDescription').value.trim();
+    if (!description) {
+      alert('Please enter a description');
+      return;
+    }
+    
+    const submitBtn = document.getElementById('submitPostBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Posting...';
+    lucide.createIcons();
+    
+    try {
+      let imageURL = null;
+      const imageFile = document.getElementById('postImage').files[0];
+      
+      if (imageFile) {
+        const storageRef = ref(storage, `posts/${currentUser.uid}/${Date.now()}_${imageFile.name}`);
+        await uploadBytes(storageRef, imageFile);
+        imageURL = await getDownloadURL(storageRef);
+      }
+      
+      await addDoc(collection(db, "posts"), {
+        description,
+        imageURL,
+        uid: currentUser.uid,
+        province: userProfile.province || '',
+        city: userProfile.city || '',
+        category: userProfile.category || '',
+        likes: [],
+        views: 0,
+        createdAt: serverTimestamp()
+      });
+      
+      alert('Post created successfully!');
+      cancelPost();
+      await fetchAllPosts();
+      currentPage = 1;
+      renderPosts();
+    } catch (error) {
+      console.error('Error creating post:', error);
+      alert('Failed to create post. Please try again.');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i> Post';
+      lucide.createIcons();
+    }
+  };
+
+  window.toggleLike = async (postId) => {
+    const likeBtn = document.getElementById(`like-btn-${postId}`);
+    likeBtn.classList.add('like-animate');
+    setTimeout(() => likeBtn.classList.remove('like-animate'), 400);
+    
+    try {
+      const postRef = doc(db, "posts", postId);
+      const postSnap = await getDoc(postRef);
+      
+      if (!postSnap.exists()) {
+        alert('Post not found');
+        return;
+      }
+      
+      const postData = postSnap.data();
+      let likes = postData.likes || [];
+      
+      if (!Array.isArray(likes)) {
+        likes = [];
+      }
+      
+      const isLiked = likes.includes(currentUser.uid);
+      
+      if (isLiked) {
+        likes = likes.filter(id => id !== currentUser.uid);
+      } else {
+        likes = [...likes, currentUser.uid];
+        
+        if (postData.uid !== currentUser.uid) {
+          try {
+            await addDoc(collection(db, "notifications"), {
+              recipientId: postData.uid,
+              senderId: currentUser.uid,
+              type: 'like',
+              postId: postId,
+              read: false,
+              createdAt: serverTimestamp()
+            });
+          } catch (notifError) {
+            console.error('Error creating notification:', notifError);
+          }
+        }
+      }
+      
+      await updateDoc(postRef, { likes });
+      await fetchAllPosts();
+      renderPosts();
+      
+    } catch (error) {
+      console.error('Error toggling like:', error);
+      alert('Failed to update like. Please try again.');
+    }
+  };
+
+  window.deletePost = async (postId) => {
+    if (!confirm('Are you sure you want to delete this post?')) return;
+    
+    try {
+      await deleteDoc(doc(db, "posts", postId));
+      
+      const commentsQuery = query(collection(db, "comments"), where("postId", "==", postId));
+      const commentsSnap = await getDocs(commentsQuery);
+      const deletePromises = commentsSnap.docs.map(commentDoc => deleteDoc(commentDoc.ref));
+      await Promise.all(deletePromises);
+      
+      alert('Post deleted successfully!');
+      await fetchAllPosts();
+      await fetchAllComments();
+      renderPosts();
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      alert('Failed to delete post. Please try again.');
+    }
+  };
+
+  window.sharePost = async (postId) => {
+    const url = `${window.location.origin}/post-details.html?id=${postId}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({ 
+          title: 'Check out this post on Street Connect', 
+          url 
+        });
+      } catch (e) {
+        if (e.name !== 'AbortError') {
+          await navigator.clipboard.writeText(url);
+          alert('Link copied to clipboard!');
+        }
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        alert('Link copied to clipboard!');
+      } catch (e) {
+        console.error('Failed to copy:', e);
+        alert('Failed to copy link');
+      }
+    }
+  };
+
+  document.getElementById('prevBtn').onclick = () => { 
+    currentPage--; 
+    renderPosts(); 
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  
+  document.getElementById('nextBtn').onclick = () => { 
+    currentPage++; 
+    renderPosts(); 
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  
+  document.getElementById('provinceFilter').onchange = () => { 
+    currentPage = 1; 
+    renderPosts(); 
+  };
+  
+  document.getElementById('categoryFilter').onchange = () => { 
+    currentPage = 1; 
+    renderPosts(); 
+  };
 </script>
 
 </body>
