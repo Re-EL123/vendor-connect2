@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Product Details - Street Connect</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in { animation: fadeIn 0.3s ease-out; }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .slide-in { animation: slideIn 0.4s ease-out; }
+    
+    .image-zoom { transition: transform 0.3s ease; }
+    .image-zoom:hover { transform: scale(1.05); }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .pulse-badge {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
+
+<!-- Header -->
+<header class="bg-white/90 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+  <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <button onclick="window.history.back()" class="p-3 hover:bg-gray-100 rounded-xl transition-all shadow-sm">
+        <i data-lucide="arrow-left" class="w-6 h-6 text-gray-700"></i>
+      </button>
+      <div class="flex items-center gap-3">
+        <div id="shareBtn" class="p-3 hover:bg-gray-100 rounded-xl transition-all shadow-sm cursor-pointer">
+          <i data-lucide="share-2" class="w-6 h-6 text-gray-700"></i>
+        </div>
+        <button id="likeBtn" class="p-3 hover:bg-red-50 rounded-xl transition-all shadow-sm relative">
+          <i data-lucide="heart" class="w-6 h-6 text-gray-700" id="likeIcon"></i>
+          <span id="likeCount" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold hidden">0</span>
+        </button>
+      </div>
+    </div>
+    
+    <div class="flex items-center gap-3">
+      <button onclick="window.location.href='marketplace.html'" class="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-2xl font-semibold hover:shadow-xl transition-all flex items-center gap-2">
+        <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+        Marketplace
+      </button>
+      <div id="userAvatar" class="w-12 h-12 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg shadow-lg cursor-pointer" onclick="window.location.href='profile.html'"></div>
+    </div>
+  </div>
+</header>
+
+<div class="max-w-6xl mx-auto px-4 py-8">
+  <div class="grid lg:grid-cols-2 gap-12 items-start">
+    
+    <!-- Product Images -->
+    <div class="lg:sticky lg:top-24 lg:h-screen lg:overflow-y-auto">
+      <div id="mainImageContainer" class="w-full h-96 lg:h-[500px] bg-gradient-to-r from-gray-100 to-gray-200 rounded-3xl overflow-hidden shadow-2xl mb-6 image-zoom">
+        <div class="w-full h-full flex items-center justify-center">
+          <i data-lucide="image" class="w-24 h-24 text-gray-400"></i>
+        </div>
+      </div>
+      
+      <div id="thumbnailContainer" class="flex gap-3 justify-center lg:justify-start hidden">
+        <!-- Thumbnails will load here -->
+      </div>
+    </div>
+
+    <!-- Product Details -->
+    <div class="space-y-6">
+      <!-- Product Header -->
+      <div id="productHeader" class="space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 id="productName" class="text-4xl font-extrabold text-gray-900 mb-2">Loading...</h1>
+            <div class="flex items-center gap-4 text-sm text-gray-600">
+              <span id="productCategory" class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full font-semibold">Food</span>
+              <span id="productStatus" class="px-3 py-1 bg-orange-100 text-orange-800 rounded-full font-semibold">Pending</span>
+            </div>
+          </div>
+          <div id="vendorSection" class="text-right hidden">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-xl mx-auto mb-2" id="vendorAvatar"></div>
+            <h3 id="vendorName" class="font-bold text-lg text-gray-900"></h3>
+            <p id="vendorLocation" class="text-sm text-gray-600"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Price & Actions -->
+      <div class="bg-white rounded-3xl shadow-2xl p-8 border">
+        <div class="flex items-baseline justify-between mb-8">
+          <div class="space-y-2">
+            <div class="flex items-baseline gap-2">
+              <span id="productPrice" class="text-5xl font-extrabold text-emerald-600">R 0</span>
+              <span class="text-2xl text-gray-500 line-through">R 0</span>
+            </div>
+            <div class="flex items-center gap-2 text-emerald-600">
+              <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+              <span id="productRating">4.8</span>
+              <span id="reviewCount">(12 reviews)</span>
+            </div>
+          </div>
+          <div id="ownerActions" class="hidden space-y-3">
+            <button onclick="window.location.href='create-product.html?edit={productId}&vendor={vendorId}'" class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-4 px-8 rounded-2xl font-bold hover:shadow-xl transition-all flex items-center justify-center gap-3">
+              <i data-lucide="edit-3" class="w-5 h-5"></i>
+              Edit Product
+            </button>
+            <button onclick="deleteProduct()" class="w-full bg-gradient-to-r from-red-500 to-red-600 text-white py-4 px-8 rounded-2xl font-bold hover:shadow-xl transition-all flex items-center justify-center gap-3">
+              <i data-lucide="trash-2" class="w-5 h-5"></i>
+              Delete Product
+            </button>
+          </div>
+        </div>
+
+        <!-- Buy Section -->
+        <div id="buySection" class="space-y-4">
+          <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl">
+            <label class="text-lg font-semibold text-gray-900 w-20">Quantity:</label>
+            <div class="flex items-center bg-white border-2 border-gray-200 rounded-xl overflow-hidden">
+              <button id="decreaseQty" class="w-12 h-12 flex items-center justify-center hover:bg-gray-100 transition-colors">-</button>
+              <input id="quantityInput" type="number" value="1" min="1" class="w-20 h-12 text-center text-xl font-bold border-0 focus:outline-none">
+              <button id="increaseQty" class="w-12 h-12 flex items-center justify-center hover:bg-gray-100 transition-colors">+</button>
+            </div>
+            <div class="ml-auto">
+              <p class="text-2xl font-bold text-emerald-600" id="totalPrice">R 0</p>
+              <p class="text-sm text-gray-500">In stock</p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <button id="contactBtn" class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-4 px-8 rounded-2xl font-bold text-lg hover:shadow-xl transition-all flex items-center justify-center gap-3">
+              <i data-lucide="message-circle" class="w-6 h-6"></i>
+              Contact Seller
+            </button>
+            <button id="buyBtn" class="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-8 rounded-2xl font-bold text-lg hover:shadow-xl transition-all flex items-center justify-center gap-3">
+              <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+              Buy Now R<span id="buyPrice">0</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="bg-white rounded-3xl shadow-2xl p-8">
+        <h3 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+          <i data-lucide="file-text" class="w-8 h-8 text-gray-700"></i>
+          Description
+        </h3>
+        <div id="productDescription" class="text-lg text-gray-700 leading-relaxed prose max-w-none"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Similar Products -->
+  <div class="mt-24">
+    <div class="bg-white rounded-3xl shadow-2xl p-8">
+      <h3 class="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+        <i data-lucide="package" class="w-8 h-8 text-emerald-600"></i>
+        Similar Products
+      </h3>
+      <div id="similarProducts" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <!-- Similar products load here -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Contact Modal -->
+<div id="contactModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-3xl p-8 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+    <h3 class="text-2xl font-bold text-gray-900 mb-6">Contact Seller</h3>
+    <div id="sellerInfo" class="space-y-4 mb-8 text-gray-700">
+      <p><strong>Name:</strong> <span id="sellerName">Loading...</span></p>
+      <p><strong>Phone:</strong> <span id="sellerPhone">-</span></p>
+      <p><strong>Email:</strong> <span id="sellerEmail">-</span></p>
+    </div>
+    <div class="flex gap-3">
+      <button id="callBtn" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-4 rounded-2xl font-bold transition-all">
+        Call Now
+      </button>
+      <button id="emailBtn" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-4 rounded-2xl font-bold transition-all">
+        Send Email
+      </button>
+    </div>
+    <button id="closeContactModal" class="mt-6 w-full text-gray-500 hover:text-gray-700 transition-all">
+      Close
+    </button>
+  </div>
+</div>
+
+<!-- Mobile Bottom Nav -->
+<nav class="fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur-lg border-t border-gray-200 shadow-2xl md:hidden">
+  <div class="flex justify-around py-4">
+    <a href="feed.html" class="flex flex-col items-center text-gray-600">
+      <i data-lucide="home" class="w-7 h-7"></i>
+      <span class="text-xs font-medium mt-1">Feed</span>
+    </a>
+    <a href="marketplace.html" class="flex flex-col items-center text-emerald-600">
+      <i data-lucide="shopping-bag" class="w-7 h-7"></i>
+      <span class="text-xs font-bold mt-1">Market</span>
+    </a>
+    <a href="dashboard.html" class="flex flex-col items-center text-gray-600">
+      <i data-lucide="layout-dashboard" class="w-7 h-7"></i>
+      <span class="text-xs font-medium mt-1">Dashboard</span>
+    </a>
+    <a href="profile.html" class="flex flex-col items-center text-gray-600">
+      <i data-lucide="user" class="w-7 h-7"></i>
+      <span class="text-xs font-medium mt-1">Profile</span>
+    </a>
+  </div>
+</nav>
+
+<script type="module">
+  lucide.createIcons();
+  
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, doc, getDoc, collection, query, where, getDocs, increment, arrayUnion, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
+    authDomain: "online-mall-4422.firebaseapp.com",
+    projectId: "online-mall-4422",
+    storageBucket: "online-mall-4422.appspot.com"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+
+  let currentUser = null;
+  let productData = null;
+  let vendorData = null;
+
+  // Init
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('id');
+    const vendorId = urlParams.get('vendor');
+    
+    if (productId && vendorId) {
+      await loadProduct(productId, vendorId);
+    } else {
+      window.location.href = 'marketplace.html';
+    }
+  });
+
+  async function loadProduct(productId, vendorId) {
+    try {
+      // Load product
+      const productDoc = await getDoc(doc(db, `vendors/${vendorId}/products/${productId}`));
+      if (!productDoc.exists()) {
+        alert('Product not found');
+        window.location.href = 'marketplace.html';
+        return;
+      }
+      
+      productData = { id: productId, vendorId, ...productDoc.data() };
+      await loadVendor(vendorId);
+      renderProduct();
+      loadSimilarProducts();
+      
+    } catch (error) {
+      console.error('Error loading product:', error);
+    }
+  }
+
+  async function loadVendor(vendorId) {
+    const vendorDoc = await getDoc(doc(db, "vendors", vendorId));
+    if (vendorDoc.exists()) {
+      vendorData = vendorDoc.data();
+    }
+  }
+
+  function renderProduct() {
+    // Main image
+    const mainImage = document.getElementById('mainImageContainer');
+    if (productData.imageURL) {
+      mainImage.innerHTML = `<img src="${productData.imageURL}" alt="${productData.name}" class="w-full h-full object-cover image-zoom">`;
+    }
+
+    // Product details
+    document.getElementById('productName').textContent = productData.name;
+    document.getElementById('productCategory').textContent = productData.category;
+    document.getElementById('productStatus').textContent = productData.isApproved ? '✅ Approved' : '⏳ Pending';
+    document.getElementById('productStatus').className = `px-3 py-1 rounded-full font-semibold text-sm ${productData.isApproved ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800'}`;
+    document.getElementById('productPrice').textContent = `R ${productData.price?.toLocaleString() || '0'}`;
+    document.getElementById('productDescription').innerHTML = productData.description.replace(/\n/g, '<br>') || 'No description available.';
+
+    // Vendor info
+    if (vendorData) {
+      document.getElementById('vendorSection').classList.remove('hidden');
+      const initial = (vendorData.name || 'V').charAt(0).toUpperCase();
+      document.getElementById('vendorAvatar').textContent = initial;
+      document.getElementById('vendorName').textContent = vendorData.name;
+      document.getElementById('vendorLocation').textContent = `${vendorData.phone || ''}`;
+      
+      // Seller contact info
+      document.getElementById('sellerName').textContent = vendorData.name;
+      document.getElementById('sellerPhone').textContent = vendorData.phone || 'Not provided';
+      document.getElementById('sellerEmail').textContent = vendorData.email || 'Not provided';
+    }
+
+    // Owner actions
+    if (currentUser && vendorData?.uid === currentUser.uid) {
+      document.getElementById('ownerActions').classList.remove('hidden');
+      document.querySelector('#ownerActions button:first-child').onclick = () => {
+        window.location.href = `create-product.html?edit=${productData.id}&vendor=${productData.vendorId}`;
+      };
+    }
+
+    // Update prices
+    document.getElementById('buyPrice').textContent = productData.price?.toLocaleString() || '0';
+    updateTotalPrice();
+
+    lucide.createIcons();
+  }
+
+  async function loadSimilarProducts() {
+    try {
+      const productsQuery = query(
+        collection(db, `vendors/${productData.vendorId}/products`),
+        where("category", "==", productData.category),
+        where("name", "!=", productData.name)
+      );
+      const productsSnap = await getDocs(productsQuery);
+      
+      const similarContainer = document.getElementById('similarProducts');
+      if (!productsSnap.empty) {
+        similarContainer.innerHTML = Array.from(productsSnap.docs).slice(0, 4).map(doc => {
+          const product = doc.data();
+          return `
+            <div class="group bg-gradient-to-b from-gray-50 to-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all border hover:border-emerald-200 cursor-pointer" onclick="window.location.href='product-details.html?id=${doc.id}&vendor=${productData.vendorId}'">
+              <div class="w-full h-32 bg-gradient-to-r from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center mb-4 overflow-hidden">
+                ${product.imageURL ? `<img src="${product.imageURL}" class="w-full h-full object-cover group-hover:scale-105 transition-transform">` : 
+                  `<i data-lucide="package" class="w-12 h-12 text-emerald-400"></i>`}
+              </div>
+              <h4 class="font-bold text-lg text-gray-900 mb-2 truncate">${product.name}</h4>
+              <p class="text-emerald-600 font-bold text-xl">R${product.price?.toLocaleString() || '0'}</p>
+            </div>
+          `;
+        }).join('');
+      } else {
+        similarContainer.innerHTML = `
+          <div class="col-span-full text-center py-12 text-gray-500">
+            <i data-lucide="package-search" class="w-16 h-16 mx-auto mb-4 opacity-50 text-emerald-400"></i>
+            <p class="text-lg font-semibold">No similar products found</p>
+          </div>
+        `;
+      }
+      lucide.createIcons();
+    } catch (error) {
+      console.error('Error loading similar products:', error);
+    }
+  }
+
+  // Quantity controls
+  document.getElementById('increaseQty').onclick = () => {
+    const qty = parseInt(document.getElementById('quantityInput').value);
+    document.getElementById('quantityInput').value = qty + 1;
+    updateTotalPrice();
+  };
+
+  document.getElementById('decreaseQty').onclick = () => {
+    const qty = parseInt(document.getElementById('quantityInput').value);
+    if (qty > 1) {
+      document.getElementById('quantityInput').value = qty - 1;
+      updateTotalPrice();
+    }
+  };
+
+  document.getElementById('quantityInput').oninput = updateTotalPrice;
+
+  function updateTotalPrice() {
+    const qty = parseInt(document.getElementById('quantityInput').value);
+    const price = productData?.price || 0;
+    const total = (qty * price).toLocaleString();
+    document.getElementById('totalPrice').textContent = `R ${total}`;
+  }
+
+  // Contact seller
+  document.getElementById('contactBtn').onclick = () => {
+    document.getElementById('contactModal').classList.remove('hidden');
+  };
+
+  document.getElementById('closeContactModal').onclick = () => {
+    document.getElementById('contactModal').classList.add('hidden');
+  };
+
+  document.getElementById('callBtn').onclick = () => {
+    const phone = vendorData?.phone;
+    if (phone) window.location.href = `tel:${phone}`;
+  };
+
+  document.getElementById('emailBtn').onclick = () => {
+    const email = vendorData?.email;
+    if (email) window.location.href = `mailto:${email}`;
+  };
+
+  // Delete product (owner only)
+  window.deleteProduct = async () => {
+    if (confirm('Are you sure you want to delete this product?')) {
+      try {
+        await deleteDoc(doc(db, `vendors/${productData.vendorId}/products/${productData.id}`));
+        alert('Product deleted successfully');
+        window.location.href = 'manage-products.html';
+      } catch (error) {
+        console.error('Error deleting product:', error);
+        alert('Failed to delete product');
+      }
+    }
+  };
+
+  // Like functionality (simplified)
+  document.getElementById('likeBtn').onclick = () => {
+    const likeCountEl = document.getElementById('likeCount');
+    const likeIcon = document.getElementById('likeIcon');
+    const count = parseInt(likeCountEl.textContent || '0');
+    
+    if (likeIcon.classList.contains('text-red-500')) {
+      likeIcon.classList.remove('text-red-500', 'fill-current');
+      likeCountEl.textContent = Math.max(0, count - 1).toString();
+    } else {
+      likeIcon.classList.add('text-red-500', 'fill-current');
+      likeCountEl.textContent = (count + 1).toString();
+      likeCountEl.classList.remove('hidden');
+    }
+  };
+
+  // Share
+  document.getElementById('shareBtn').onclick = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: productData?.name,
+        url: window.location.href
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Link copied to clipboard!');
+    }
+  };
+</script>
+
+</body>
+</html>
