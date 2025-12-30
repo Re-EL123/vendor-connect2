@@ -17,7 +17,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
     .fade-in { animation: fadeIn 0.3s ease-out; }
-
+    
     /* Comment section styles */
     .comment-item {
       transition: background-color 0.2s;
@@ -25,7 +25,7 @@
     .comment-item:hover {
       background-color: #f9fafb;
     }
-
+    
     /* Like animation */
     @keyframes likeAnimation {
       0% { transform: scale(1); }
@@ -35,7 +35,7 @@
     .like-animate {
       animation: likeAnimation 0.4s ease-in-out;
     }
-
+    
     /* Pulse animation for badges */
     @keyframes pulse {
       0%, 100% { opacity: 1; }
@@ -55,7 +55,7 @@
     <h1 class="text-2xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
       Street Connect
     </h1>
-
+    
     <div class="flex items-center gap-3">
       <button onclick="window.location.href='search.html'" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
         <i data-lucide="search" class="w-5 h-5 text-gray-600"></i>
@@ -80,7 +80,7 @@
 
 <div class="max-w-6xl mx-auto px-4 py-6">
   <div class="grid md:grid-cols-3 gap-6">
-
+    
     <!-- Left Sidebar -->
     <aside class="md:col-span-1 space-y-4">
       <div class="bg-white rounded-2xl shadow-lg p-6">
@@ -88,27 +88,23 @@
           <div class="w-20 h-20 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 mx-auto mb-3 flex items-center justify-center text-white font-semibold text-2xl"></div>
           <h3 id="userName" class="font-bold text-gray-800 mb-1"></h3>
           <p id="userType" class="text-sm text-gray-500 mb-3"></p>
-          <button onclick="window.location.href='profile.html'"
-            class="text-sm text-blue-600 hover:underline font-semibold">
+          <button onclick="window.location.href='profile.html'" 
+            class="text-sm text-blue-600 hover:underline font-semibold mb-2">
             View Profile
+          </button>
+          <button onclick="window.location.href='dashboard.html'" 
+            class="w-full mt-2 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 rounded-xl font-semibold hover:shadow-lg transition-all">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+            Dashboard
           </button>
         </div>
       </div>
-
-      <!-- Dashboard Button -->
-      <div class="bg-white rounded-2xl shadow-lg p-4">
-        <button onclick="window.location.href='dashboard.html'"
-          class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all">
-          <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-          Dashboard
-        </button>
-      </div>
-
+      
       <!-- Subscription status card -->
       <div id="subscriptionCard" class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-lg p-6 text-white">
         <h3 class="font-bold text-lg mb-2">Upgrade to Business</h3>
         <p class="text-sm text-blue-100 mb-4">Create posts, sell products, and grow your business</p>
-        <button onclick="window.location.href='subscription.html'"
+        <button onclick="window.location.href='subscription.html'" 
           class="w-full bg-white text-blue-600 py-2 rounded-xl font-semibold hover:bg-blue-50 transition-all">
           Upgrade Now
         </button>
@@ -117,43 +113,43 @@
 
     <!-- Main Feed -->
     <main class="md:col-span-2 space-y-4">
-
+      
       <!-- Create Post Section -->
       <div id="createPostSection" class="bg-white rounded-2xl shadow-lg p-6">
         <div class="flex items-center gap-3">
           <div id="createPostAvatar" class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold"></div>
-          <button id="createPostBtn"
+          <button id="createPostBtn" 
             class="flex-1 text-left px-4 py-3 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-colors">
             What's on your mind?
           </button>
         </div>
-
+        
         <div id="postFormContainer" class="hidden mt-4 pt-4 border-t">
-          <textarea id="postDescription" rows="3"
+          <textarea id="postDescription" rows="3" 
             class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             placeholder="Share your thoughts..."></textarea>
-
+          
           <input id="postImage" type="file" accept="image/*" class="hidden" />
-
+          
           <div id="imagePreview" class="hidden mt-3">
             <div class="relative inline-block">
               <img id="previewImg" class="rounded-xl max-h-64" />
-              <button onclick="removeImage()"
+              <button onclick="removeImage()" 
                 class="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600">
                 <i data-lucide="x" class="w-4 h-4"></i>
               </button>
             </div>
           </div>
-
+          
           <div class="flex items-center justify-between mt-4">
-            <button onclick="document.getElementById('postImage').click()"
+            <button onclick="document.getElementById('postImage').click()" 
               class="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors">
               <i data-lucide="image" class="w-5 h-5"></i>
               <span class="text-sm font-medium">Photo</span>
             </button>
-
+            
             <div class="flex gap-2">
-              <button onclick="cancelPost()"
+              <button onclick="cancelPost()" 
                 class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                 Cancel
               </button>
@@ -168,7 +164,7 @@
 
       <!-- Filters -->
       <div class="bg-white rounded-2xl shadow-lg p-4 flex flex-wrap gap-3">
-        <select id="provinceFilter"
+        <select id="provinceFilter" 
           class="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
           <option value="">All Provinces</option>
           <option value="Gauteng">Gauteng</option>
@@ -181,8 +177,8 @@
           <option value="North West">North West</option>
           <option value="Northern Cape">Northern Cape</option>
         </select>
-
-        <select id="categoryFilter"
+        
+        <select id="categoryFilter" 
           class="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
           <option value="">All Categories</option>
           <option value="Food">Food & Beverage</option>
@@ -205,13 +201,13 @@
 
       <!-- Pagination -->
       <div id="paginationControls" class="hidden flex justify-center items-center gap-4 py-6">
-        <button id="prevBtn" disabled
+        <button id="prevBtn" disabled 
           class="px-4 py-2 bg-white rounded-xl shadow disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors flex items-center gap-2">
           <i data-lucide="chevron-left" class="w-4 h-4"></i>
           Previous
         </button>
         <span id="pageNum" class="px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold">1</span>
-        <button id="nextBtn"
+        <button id="nextBtn" 
           class="px-4 py-2 bg-white rounded-xl shadow hover:bg-gray-50 transition-colors flex items-center gap-2">
           Next
           <i data-lucide="chevron-right" class="w-4 h-4"></i>
@@ -219,6 +215,37 @@
       </div>
     </main>
 
+  </div>
+</div>
+
+<!-- Repost Modal -->
+<div id="repostModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+  <div class="bg-white rounded-2xl p-6 max-w-lg w-full">
+    <div class="flex justify-between items-start mb-4">
+      <h3 class="text-xl font-bold text-gray-800">Add Your Thoughts</h3>
+      <button onclick="closeRepostModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+    </div>
+    
+    <textarea id="repostCaption" rows="3" 
+      class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none mb-4"
+      placeholder="Add your thoughts to this repost (optional)..."></textarea>
+    
+    <div id="repostPreview" class="bg-gray-50 rounded-xl p-4 mb-4 border-l-4 border-blue-600">
+      <p class="text-sm text-gray-600 mb-2">Reposting from <strong id="originalAuthor"></strong></p>
+      <p id="originalContent" class="text-sm text-gray-800"></p>
+    </div>
+    
+    <div class="flex gap-2">
+      <button onclick="closeRepostModal()" 
+        class="flex-1 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+        Cancel
+      </button>
+      <button onclick="confirmRepost()" id="confirmRepostBtn"
+        class="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2">
+        <i data-lucide="repeat" class="w-4 h-4"></i>
+        Repost
+      </button>
+    </div>
   </div>
 </div>
 
@@ -249,42 +276,9 @@
   </div>
 </nav>
 
-<!-- Repost Modal -->
-<div id="repostModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-  <div class="bg-white rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-xl font-bold text-gray-800">Repost</h3>
-      <button onclick="closeRepostModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
-    </div>
-
-    <div id="originalPostPreview" class="mb-4 p-4 bg-gray-50 rounded-xl border-l-4 border-blue-600">
-      <!-- Original post preview will be inserted here -->
-    </div>
-
-    <div class="mb-4">
-      <label class="block text-sm font-medium text-gray-700 mb-2">Add your thoughts (optional)</label>
-      <textarea id="repostComment" rows="3"
-        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-        placeholder="What do you think about this?"></textarea>
-    </div>
-
-    <div class="flex gap-2">
-      <button onclick="closeRepostModal()"
-        class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition-colors font-semibold">
-        Cancel
-      </button>
-      <button onclick="confirmRepost()" id="confirmRepostBtn"
-        class="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2">
-        <i data-lucide="repeat" class="w-4 h-4"></i>
-        Repost
-      </button>
-    </div>
-  </div>
-</div>
-
 <script type="module">
   lucide.createIcons();
-
+  
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getFirestore, collection, getDocs, query, where, addDoc, doc, getDoc, updateDoc, deleteDoc, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -307,33 +301,33 @@
   let postComments = {};
   let currentPage = 1;
   const pageSize = 10;
-  let repostingPostId = null;
-
+  
   // View tracking
-  const viewedPosts = new Set();
-  const viewTimers = new Map();
+  let viewTimers = {};
+  let viewedPosts = new Set();
+  let postToRepost = null;
 
   onAuthStateChanged(auth, async user => {
     if (!user) return location.href = "login.html";
     currentUser = user;
-
+    
     try {
       const userDoc = await getDoc(doc(db, "users", user.uid));
       if (userDoc.exists()) {
         userProfile = userDoc.data();
-
+        
         const displayName = userProfile.businessName || userProfile.name || 'User';
         const initial = displayName.charAt(0).toUpperCase();
-
+        
         document.getElementById('userName').textContent = displayName;
-        document.getElementById('userType').textContent = userProfile.subscriptionType === 'business' || userProfile.subscriptionType === 'premium' ? 'Business Account' : 'Basic Account';
-
+        document.getElementById('userType').textContent = userProfile.subscriptionType === 'business' ? 'Business Account' : 'Basic Account';
+        
         document.getElementById('userAvatar').textContent = initial;
         document.getElementById('createPostAvatar').textContent = initial;
         document.querySelector('#userInfo .w-20').textContent = initial;
-
+        
         const canPost = userProfile.subscriptionType === 'business' || userProfile.subscriptionType === 'premium';
-
+        
         if (!canPost) {
           document.getElementById('createPostBtn').onclick = () => {
             if (confirm('Upgrade to Business plan to create posts. Visit subscription page?')) {
@@ -346,14 +340,14 @@
           document.getElementById('createPostBtn').onclick = showPostForm;
         }
       }
-
+      
       await Promise.all([
         fetchAllPosts(),
         fetchAllComments(),
         fetchUnreadNotifications(),
         fetchUnreadMessages()
       ]);
-
+      
       renderPosts();
       setupViewTracking();
     } catch (error) {
@@ -362,54 +356,35 @@
     }
   });
 
-  // Setup IntersectionObserver for view tracking
   function setupViewTracking() {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         const postId = entry.target.dataset.postId;
-
-        if (entry.isIntersecting && !viewedPosts.has(postId)) {
-          // User is viewing the post, start timer
-          const timer = setTimeout(() => {
-            incrementPostView(postId);
-            viewedPosts.add(postId);
-          }, 2000); // 2 seconds
-
-          viewTimers.set(postId, timer);
-        } else if (!entry.isIntersecting && viewTimers.has(postId)) {
-          // User scrolled away, cancel timer
-          clearTimeout(viewTimers.get(postId));
-          viewTimers.delete(postId);
+        
+        if (entry.isIntersecting) {
+          // Post is in view, start 2-second timer
+          if (!viewedPosts.has(postId)) {
+            viewTimers[postId] = setTimeout(() => {
+              incrementViews(postId);
+              viewedPosts.add(postId);
+            }, 2000);
+          }
+        } else {
+          // Post left view, clear timer
+          if (viewTimers[postId]) {
+            clearTimeout(viewTimers[postId]);
+            delete viewTimers[postId];
+          }
         }
       });
-    }, { threshold: 0.5 }); // 50% of post must be visible
-
-    // Observe all post elements
-    document.querySelectorAll('[data-post-id]').forEach(post => {
-      observer.observe(post);
+    }, {
+      threshold: 0.5 // 50% of post must be visible
     });
-  }
 
-  async function incrementPostView(postId) {
-    try {
-      const postRef = doc(db, "posts", postId);
-      await updateDoc(postRef, {
-        views: increment(1)
-      });
-
-      // Update local post data
-      const post = allPosts.find(p => p.id === postId);
-      if (post) {
-        post.views = (post.views || 0) + 1;
-        // Update view count in UI
-        const viewsElement = document.querySelector(`[data-post-id="${postId}"] .views-count`);
-        if (viewsElement) {
-          viewsElement.textContent = `${post.views} ${post.views === 1 ? 'view' : 'views'}`;
-        }
-      }
-    } catch (error) {
-      console.error('Error incrementing views:', error);
-    }
+    // Observe all post cards
+    document.querySelectorAll('.post-card').forEach(card => {
+      observer.observe(card);
+    });
   }
 
   async function fetchUnreadNotifications() {
@@ -421,7 +396,7 @@
       );
       const notifSnap = await getDocs(notifQuery);
       const unreadCount = notifSnap.size;
-
+      
       if (unreadCount > 0) {
         const badge = document.getElementById('notifBadge');
         badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
@@ -436,7 +411,7 @@
     try {
       const chatsSnap = await getDocs(collection(db, "chats"));
       let totalUnread = 0;
-
+      
       chatsSnap.forEach(chatDoc => {
         const chatData = chatDoc.data();
         const unreadField = `unread_${currentUser.uid}`;
@@ -444,12 +419,12 @@
           totalUnread += chatData[unreadField];
         }
       });
-
+      
       if (totalUnread > 0) {
         const badge = document.getElementById('messageBadge');
         const mobileBadge = document.getElementById('mobileMessageBadge');
         const displayCount = totalUnread > 99 ? '99+' : totalUnread;
-
+        
         badge.textContent = displayCount;
         badge.classList.remove('hidden');
         mobileBadge.textContent = displayCount;
@@ -464,16 +439,16 @@
     try {
       const postsSnap = await getDocs(collection(db, "posts"));
       const posts = [];
-
+      
       const usersSnap = await getDocs(collection(db, "users"));
       const usersMap = {};
       usersSnap.forEach(userDoc => {
         usersMap[userDoc.id] = userDoc.data();
       });
-
+      
       postsSnap.forEach(postDoc => {
         const postData = { id: postDoc.id, ...postDoc.data() };
-
+        
         if (postData.uid && usersMap[postData.uid]) {
           const authorData = usersMap[postData.uid];
           postData.authorName = authorData.businessName || authorData.name || 'Unknown User';
@@ -482,21 +457,21 @@
           postData.authorName = 'Unknown User';
           postData.authorCategory = '';
         }
-
+        
         if (postData.isRepost && postData.originalAuthorId && usersMap[postData.originalAuthorId]) {
           const originalAuthor = usersMap[postData.originalAuthorId];
           postData.originalAuthorName = originalAuthor.businessName || originalAuthor.name || 'Unknown User';
         }
-
+        
         posts.push(postData);
       });
-
+      
       allPosts = posts.sort((a, b) => {
         const timeA = a.createdAt?.seconds || 0;
         const timeB = b.createdAt?.seconds || 0;
         return timeB - timeA;
       });
-
+      
     } catch (error) {
       console.error('Error fetching posts:', error);
       alert('Error loading posts. Please refresh the page.');
@@ -507,29 +482,29 @@
     try {
       const commentsSnap = await getDocs(collection(db, "comments"));
       postComments = {};
-
+      
       const usersSnap = await getDocs(collection(db, "users"));
       const usersMap = {};
       usersSnap.forEach(userDoc => {
         usersMap[userDoc.id] = userDoc.data();
       });
-
+      
       commentsSnap.forEach(commentDoc => {
         const commentData = { id: commentDoc.id, ...commentDoc.data() };
-
+        
         if (commentData.userId && usersMap[commentData.userId]) {
           const authorData = usersMap[commentData.userId];
           commentData.authorName = authorData.businessName || authorData.name || 'Unknown User';
         } else {
           commentData.authorName = 'Unknown User';
         }
-
+        
         if (!postComments[commentData.postId]) {
           postComments[commentData.postId] = [];
         }
         postComments[commentData.postId].push(commentData);
       });
-
+      
       Object.keys(postComments).forEach(postId => {
         postComments[postId].sort((a, b) => {
           const timeA = a.timestamp?.seconds || 0;
@@ -537,7 +512,7 @@
           return timeA - timeB;
         });
       });
-
+      
     } catch (error) {
       console.error('Error fetching comments:', error);
     }
@@ -545,11 +520,11 @@
 
   function getTimeAgo(timestamp) {
     if (!timestamp || !timestamp.seconds) return 'Just now';
-
+    
     const now = Date.now();
     const postTime = timestamp.seconds * 1000;
     const diff = now - postTime;
-
+    
     const seconds = Math.floor(diff / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
@@ -557,7 +532,7 @@
     const weeks = Math.floor(days / 7);
     const months = Math.floor(days / 30);
     const years = Math.floor(days / 365);
-
+    
     if (years > 0) return `${years}y ago`;
     if (months > 0) return `${months}mo ago`;
     if (weeks > 0) return `${weeks}w ago`;
@@ -571,9 +546,9 @@
     const container = document.getElementById("postsContainer");
     const loading = document.getElementById("loadingIndicator");
     const pagination = document.getElementById("paginationControls");
-
+    
     container.innerHTML = "";
-
+    
     let filtered = allPosts.filter(p => {
       const provinceMatch = !document.getElementById('provinceFilter').value || p.province === document.getElementById('provinceFilter').value;
       const categoryMatch = !document.getElementById('categoryFilter').value || p.category === document.getElementById('categoryFilter').value;
@@ -603,7 +578,7 @@
       const timeAgo = getTimeAgo(post.createdAt);
 
       const card = document.createElement("div");
-      card.className = "bg-white rounded-2xl shadow-lg p-6 fade-in";
+      card.className = "post-card bg-white rounded-2xl shadow-lg p-6 fade-in";
       card.dataset.postId = post.id;
       card.innerHTML = `
         ${post.isRepost ? `
@@ -611,9 +586,10 @@
             <i data-lucide="repeat" class="w-4 h-4"></i>
             <span><strong class="hover:underline cursor-pointer" onclick="window.location.href='profile.html?uid=${post.uid}'">${post.authorName}</strong> reposted from <strong class="hover:underline cursor-pointer" onclick="window.location.href='profile.html?uid=${post.originalAuthorId}'">${post.originalAuthorName || 'Unknown User'}</strong></span>
           </div>
-          ${post.repostComment ? `<p class="text-gray-700 mb-3 italic">"${post.repostComment}"</p>` : ''}
+          ${post.repostCaption ? `<p class="text-gray-700 mb-3 text-sm italic">${post.repostCaption}</p>` : ''}
+          <div class="border-l-4 border-blue-600 pl-4 mb-3">
         ` : ''}
-
+        
         <div class="flex items-start justify-between mb-4">
           <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='profile.html?uid=${post.isRepost ? post.originalAuthorId : post.uid}'">
             <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
@@ -631,57 +607,59 @@
             </button>
           ` : ''}
         </div>
-
+        
         <p class="text-gray-700 mb-3 whitespace-pre-wrap">${post.description || ''}</p>
-
+        
         ${post.imageURL ? `
-          <img src="${post.imageURL}" class="w-full rounded-xl mb-4 max-h-96 object-cover cursor-pointer"
+          <img src="${post.imageURL}" class="w-full rounded-xl mb-4 max-h-96 object-cover cursor-pointer" 
             onclick="window.location.href='post-details.html?id=${post.id}'" />
         ` : ''}
-
+        
+        ${post.isRepost ? '</div>' : ''}
+        
         <div class="flex items-center gap-2 text-xs text-gray-500 mb-3">
           <span class="flex items-center gap-1">
             <i data-lucide="eye" class="w-3 h-3"></i>
-            <span class="views-count">${viewsCount} ${viewsCount === 1 ? 'view' : 'views'}</span>
+            ${viewsCount} ${viewsCount === 1 ? 'view' : 'views'}
           </span>
         </div>
-
+        
         <div class="flex items-center gap-6 pt-4 border-t border-gray-100">
           <button onclick="toggleLike('${post.id}')" id="like-btn-${post.id}"
             class="flex items-center gap-2 ${isLiked ? 'text-red-500' : 'text-gray-600'} hover:text-red-500 transition-colors">
             <i data-lucide="heart" class="w-5 h-5 ${isLiked ? 'fill-current' : ''}"></i>
             <span class="text-sm font-medium">${likesCount}</span>
           </button>
-          <button onclick="toggleComments('${post.id}')"
+          <button onclick="toggleComments('${post.id}')" 
             class="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors">
             <i data-lucide="message-circle" class="w-5 h-5"></i>
             <span class="text-sm font-medium">${commentsCount}</span>
           </button>
-          <button onclick="openRepostModal('${post.id}')"
+          <button onclick="openRepostModal('${post.id}')" 
             class="flex items-center gap-2 text-gray-600 hover:text-green-600 transition-colors">
             <i data-lucide="repeat" class="w-5 h-5"></i>
             <span class="text-sm font-medium">Repost</span>
           </button>
-          <button onclick="sharePost('${post.id}')"
+          <button onclick="sharePost('${post.id}')" 
             class="flex items-center gap-2 text-gray-600 hover:text-purple-600 transition-colors ml-auto">
             <i data-lucide="share-2" class="w-4 h-4"></i>
           </button>
         </div>
-
+        
         <div id="comments-${post.id}" class="hidden mt-4 pt-4 border-t border-gray-100">
           <div id="comments-list-${post.id}" class="space-y-3 mb-4 max-h-64 overflow-y-auto">
             ${comments.length === 0 ? '<p class="text-sm text-gray-500 text-center py-4">No comments yet. Be the first to comment!</p>' : ''}
           </div>
-
+          
           <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-sm">
               ${(userProfile.businessName || userProfile.name || 'U').charAt(0).toUpperCase()}
             </div>
-            <input type="text" id="comment-input-${post.id}"
-              placeholder="Write a comment..."
+            <input type="text" id="comment-input-${post.id}" 
+              placeholder="Write a comment..." 
               class="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               onkeypress="if(event.key==='Enter') submitComment('${post.id}')" />
-            <button onclick="submitComment('${post.id}')"
+            <button onclick="submitComment('${post.id}')" 
               class="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors">
               <i data-lucide="send" class="w-4 h-4"></i>
             </button>
@@ -689,36 +667,38 @@
         </div>
       `;
       container.appendChild(card);
-
+      
       if (comments.length > 0) {
         renderComments(post.id, comments);
       }
     });
 
     lucide.createIcons();
-    setupViewTracking();
-
+    
     document.getElementById('pageNum').textContent = currentPage;
     document.getElementById('prevBtn').disabled = currentPage === 1;
     document.getElementById('nextBtn').disabled = start + pageSize >= filtered.length;
+    
+    // Setup view tracking after render
+    setTimeout(setupViewTracking, 100);
   }
 
   function renderComments(postId, comments) {
     const commentsList = document.getElementById(`comments-list-${postId}`);
     if (!commentsList) return;
-
+    
     commentsList.innerHTML = '';
-
+    
     comments.forEach(comment => {
       const isCommentOwner = comment.userId === currentUser.uid;
-      const commentDate = comment.timestamp?.seconds
+      const commentDate = comment.timestamp?.seconds 
         ? new Date(comment.timestamp.seconds * 1000).toLocaleString()
         : 'Just now';
-
+      
       const commentEl = document.createElement('div');
       commentEl.className = 'comment-item flex items-start gap-2 p-2 rounded-lg';
       commentEl.innerHTML = `
-        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold text-xs flex-shrink-0 cursor-pointer"
+        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold text-xs flex-shrink-0 cursor-pointer" 
           onclick="window.location.href='profile.html?uid=${comment.userId}'">
           ${(comment.authorName || 'U').charAt(0).toUpperCase()}
         </div>
@@ -739,9 +719,113 @@
       `;
       commentsList.appendChild(commentEl);
     });
-
+    
     lucide.createIcons();
   }
+
+  function incrementViews(postId) {
+    const postRef = doc(db, "posts", postId);
+    updateDoc(postRef, {
+      views: increment(1)
+    }).catch(error => {
+      console.error('Error incrementing views:', error);
+    });
+  }
+
+  window.openRepostModal = (postId) => {
+    if (!userProfile || userProfile.subscriptionType === 'basic') {
+      if (confirm('Upgrade to Business plan to repost. Visit subscription page?')) {
+        window.location.href = 'subscription.html';
+      }
+      return;
+    }
+    
+    const originalPost = allPosts.find(p => p.id === postId);
+    if (!originalPost) {
+      alert('Original post not found');
+      return;
+    }
+    
+    const existingRepost = allPosts.find(p => 
+      p.isRepost && 
+      p.originalPostId === postId && 
+      p.uid === currentUser.uid
+    );
+    
+    if (existingRepost) {
+      alert('You have already reposted this post');
+      return;
+    }
+    
+    postToRepost = originalPost;
+    document.getElementById('originalAuthor').textContent = originalPost.authorName;
+    document.getElementById('originalContent').textContent = originalPost.description?.substring(0, 150) + (originalPost.description?.length > 150 ? '...' : '');
+    document.getElementById('repostCaption').value = '';
+    document.getElementById('repostModal').classList.remove('hidden');
+    lucide.createIcons();
+  };
+
+  window.closeRepostModal = () => {
+    document.getElementById('repostModal').classList.add('hidden');
+    postToRepost = null;
+  };
+
+  window.confirmRepost = async () => {
+    if (!postToRepost) return;
+    
+    const repostCaption = document.getElementById('repostCaption').value.trim();
+    const confirmBtn = document.getElementById('confirmRepostBtn');
+    
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Reposting...';
+    lucide.createIcons();
+    
+    try {
+      await addDoc(collection(db, "posts"), {
+        description: postToRepost.description,
+        imageURL: postToRepost.imageURL,
+        uid: currentUser.uid,
+        originalPostId: postToRepost.id,
+        originalAuthorId: postToRepost.uid,
+        isRepost: true,
+        repostCaption: repostCaption || null,
+        province: userProfile.province || '',
+        city: userProfile.city || '',
+        category: userProfile.category || '',
+        likes: [],
+        views: 0,
+        createdAt: serverTimestamp()
+      });
+      
+      if (postToRepost.uid !== currentUser.uid) {
+        try {
+          await addDoc(collection(db, "notifications"), {
+            recipientId: postToRepost.uid,
+            senderId: currentUser.uid,
+            type: 'repost',
+            postId: postToRepost.id,
+            read: false,
+            createdAt: serverTimestamp()
+          });
+        } catch (notifError) {
+          console.error('Error creating notification:', notifError);
+        }
+      }
+      
+      alert('Reposted successfully!');
+      closeRepostModal();
+      await fetchAllPosts();
+      currentPage = 1;
+      renderPosts();
+    } catch (error) {
+      console.error('Error reposting:', error);
+      alert('Failed to repost. Please try again.');
+    } finally {
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = '<i data-lucide="repeat" class="w-4 h-4"></i> Repost';
+      lucide.createIcons();
+    }
+  };
 
   window.toggleComments = (postId) => {
     const commentsSection = document.getElementById(`comments-${postId}`);
@@ -754,12 +838,12 @@
   window.submitComment = async (postId) => {
     const input = document.getElementById(`comment-input-${postId}`);
     const commentText = input.value.trim();
-
+    
     if (!commentText) {
       alert('Please enter a comment');
       return;
     }
-
+    
     try {
       await addDoc(collection(db, "comments"), {
         postId: postId,
@@ -767,7 +851,7 @@
         comment: commentText,
         timestamp: serverTimestamp()
       });
-
+      
       const post = allPosts.find(p => p.id === postId);
       if (post && post.uid !== currentUser.uid) {
         try {
@@ -784,11 +868,11 @@
           console.error('Error creating notification:', notifError);
         }
       }
-
+      
       input.value = '';
       await fetchAllComments();
       renderPosts();
-
+      
       setTimeout(() => {
         const commentsSection = document.getElementById(`comments-${postId}`);
         if (commentsSection && commentsSection.classList.contains('hidden')) {
@@ -796,7 +880,7 @@
         }
         lucide.createIcons();
       }, 100);
-
+      
     } catch (error) {
       console.error('Error submitting comment:', error);
       alert('Failed to post comment. Please try again.');
@@ -805,12 +889,12 @@
 
   window.deleteComment = async (commentId, postId) => {
     if (!confirm('Delete this comment?')) return;
-
+    
     try {
       await deleteDoc(doc(db, "comments", commentId));
       await fetchAllComments();
       renderPosts();
-
+      
       setTimeout(() => {
         const commentsSection = document.getElementById(`comments-${postId}`);
         if (commentsSection && commentsSection.classList.contains('hidden')) {
@@ -818,7 +902,7 @@
         }
         lucide.createIcons();
       }, 100);
-
+      
     } catch (error) {
       console.error('Error deleting comment:', error);
       alert('Failed to delete comment. Please try again.');
@@ -865,22 +949,22 @@
       alert('Please enter a description');
       return;
     }
-
+    
     const submitBtn = document.getElementById('submitPostBtn');
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Posting...';
     lucide.createIcons();
-
+    
     try {
       let imageURL = null;
       const imageFile = document.getElementById('postImage').files[0];
-
+      
       if (imageFile) {
         const storageRef = ref(storage, `posts/${currentUser.uid}/${Date.now()}_${imageFile.name}`);
         await uploadBytes(storageRef, imageFile);
         imageURL = await getDownloadURL(storageRef);
       }
-
+      
       await addDoc(collection(db, "posts"), {
         description,
         imageURL,
@@ -892,7 +976,7 @@
         views: 0,
         createdAt: serverTimestamp()
       });
-
+      
       alert('Post created successfully!');
       cancelPost();
       await fetchAllPosts();
@@ -912,30 +996,30 @@
     const likeBtn = document.getElementById(`like-btn-${postId}`);
     likeBtn.classList.add('like-animate');
     setTimeout(() => likeBtn.classList.remove('like-animate'), 400);
-
+    
     try {
       const postRef = doc(db, "posts", postId);
       const postSnap = await getDoc(postRef);
-
+      
       if (!postSnap.exists()) {
         alert('Post not found');
         return;
       }
-
+      
       const postData = postSnap.data();
       let likes = postData.likes || [];
-
+      
       if (!Array.isArray(likes)) {
         likes = [];
       }
-
+      
       const isLiked = likes.includes(currentUser.uid);
-
+      
       if (isLiked) {
         likes = likes.filter(id => id !== currentUser.uid);
       } else {
         likes = [...likes, currentUser.uid];
-
+        
         if (postData.uid !== currentUser.uid) {
           try {
             await addDoc(collection(db, "notifications"), {
@@ -951,11 +1035,11 @@
           }
         }
       }
-
+      
       await updateDoc(postRef, { likes });
       await fetchAllPosts();
       renderPosts();
-
+      
     } catch (error) {
       console.error('Error toggling like:', error);
       alert('Failed to update like. Please try again.');
@@ -964,15 +1048,15 @@
 
   window.deletePost = async (postId) => {
     if (!confirm('Are you sure you want to delete this post?')) return;
-
+    
     try {
       await deleteDoc(doc(db, "posts", postId));
-
+      
       const commentsQuery = query(collection(db, "comments"), where("postId", "==", postId));
       const commentsSnap = await getDocs(commentsQuery);
       const deletePromises = commentsSnap.docs.map(commentDoc => deleteDoc(commentDoc.ref));
       await Promise.all(deletePromises);
-
+      
       alert('Post deleted successfully!');
       await fetchAllPosts();
       await fetchAllComments();
@@ -983,126 +1067,14 @@
     }
   };
 
-  // Repost Modal Functions
-  window.openRepostModal = (postId) => {
-    if (!userProfile || userProfile.subscriptionType === 'basic') {
-      if (confirm('Upgrade to Business plan to repost. Visit subscription page?')) {
-        window.location.href = 'subscription.html';
-      }
-      return;
-    }
-
-    const originalPost = allPosts.find(p => p.id === postId);
-    if (!originalPost) {
-      alert('Original post not found');
-      return;
-    }
-
-    const existingRepost = allPosts.find(p =>
-      p.isRepost &&
-      p.originalPostId === postId &&
-      p.uid === currentUser.uid
-    );
-
-    if (existingRepost) {
-      alert('You have already reposted this post');
-      return;
-    }
-
-    repostingPostId = postId;
-
-    // Show preview
-    document.getElementById('originalPostPreview').innerHTML = `
-      <p class="text-sm font-semibold text-gray-800 mb-1">${originalPost.authorName}</p>
-      <p class="text-sm text-gray-700">${originalPost.description || ''}</p>
-    `;
-
-    document.getElementById('repostModal').classList.remove('hidden');
-    lucide.createIcons();
-  };
-
-  window.closeRepostModal = () => {
-    document.getElementById('repostModal').classList.add('hidden');
-    document.getElementById('repostComment').value = '';
-    repostingPostId = null;
-  };
-
-  window.confirmRepost = async () => {
-    if (!repostingPostId) return;
-
-    const repostComment = document.getElementById('repostComment').value.trim();
-    const confirmBtn = document.getElementById('confirmRepostBtn');
-
-    confirmBtn.disabled = true;
-    confirmBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Reposting...';
-    lucide.createIcons();
-
-    try {
-      const originalPost = allPosts.find(p => p.id === repostingPostId);
-      if (!originalPost) {
-        alert('Original post not found');
-        return;
-      }
-
-      const repostData = {
-        description: originalPost.description,
-        imageURL: originalPost.imageURL,
-        uid: currentUser.uid,
-        originalPostId: repostingPostId,
-        originalAuthorId: originalPost.uid,
-        isRepost: true,
-        province: userProfile.province || '',
-        city: userProfile.city || '',
-        category: userProfile.category || '',
-        likes: [],
-        views: 0,
-        createdAt: serverTimestamp()
-      };
-
-      if (repostComment) {
-        repostData.repostComment = repostComment;
-      }
-
-      await addDoc(collection(db, "posts"), repostData);
-
-      if (originalPost.uid !== currentUser.uid) {
-        try {
-          await addDoc(collection(db, "notifications"), {
-            recipientId: originalPost.uid,
-            senderId: currentUser.uid,
-            type: 'repost',
-            postId: repostingPostId,
-            read: false,
-            createdAt: serverTimestamp()
-          });
-        } catch (notifError) {
-          console.error('Error creating notification:', notifError);
-        }
-      }
-
-      alert('Reposted successfully!');
-      closeRepostModal();
-      await fetchAllPosts();
-      currentPage = 1;
-      renderPosts();
-    } catch (error) {
-      console.error('Error reposting:', error);
-      alert('Failed to repost. Please try again.');
-    } finally {
-      confirmBtn.disabled = false;
-      confirmBtn.innerHTML = '<i data-lucide="repeat" class="w-4 h-4"></i> Repost';
-      lucide.createIcons();
-    }
-  };
-
   window.sharePost = async (postId) => {
     const url = `${window.location.origin}/post-details.html?id=${postId}`;
-
+    
     if (navigator.share) {
       try {
-        await navigator.share({
-          title: 'Check out this post on Street Connect',
-          url
+        await navigator.share({ 
+          title: 'Check out this post on Street Connect', 
+          url 
         });
       } catch (e) {
         if (e.name !== 'AbortError') {
@@ -1121,26 +1093,26 @@
     }
   };
 
-  document.getElementById('prevBtn').onclick = () => {
-    currentPage--;
-    renderPosts();
+  document.getElementById('prevBtn').onclick = () => { 
+    currentPage--; 
+    renderPosts(); 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  document.getElementById('nextBtn').onclick = () => {
-    currentPage++;
-    renderPosts();
+  
+  document.getElementById('nextBtn').onclick = () => { 
+    currentPage++; 
+    renderPosts(); 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  document.getElementById('provinceFilter').onchange = () => {
-    currentPage = 1;
-    renderPosts();
+  
+  document.getElementById('provinceFilter').onchange = () => { 
+    currentPage = 1; 
+    renderPosts(); 
   };
-
-  document.getElementById('categoryFilter').onchange = () => {
-    currentPage = 1;
-    renderPosts();
+  
+  document.getElementById('categoryFilter').onchange = () => { 
+    currentPage = 1; 
+    renderPosts(); 
   };
 </script>
 
