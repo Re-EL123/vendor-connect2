@@ -30,6 +30,26 @@
         Profile Information
       </h2>
       
+      <!-- Profile Picture Section -->
+      <div class="mb-6 flex flex-col items-center">
+        <div class="relative mb-4">
+          <img id="profileImagePreview" src="https://via.placeholder.com/150" alt="Profile" 
+            class="w-32 h-32 rounded-full object-cover border-4 border-blue-200 shadow-lg">
+          <button type="button" onclick="document.getElementById('profileImageInput').click()"
+            class="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full shadow-lg hover:bg-blue-700 transition-colors">
+            <i data-lucide="camera" class="w-5 h-5"></i>
+          </button>
+        </div>
+        <input type="file" id="profileImageInput" accept="image/*" class="hidden">
+        <p class="text-sm text-gray-500">Click camera icon to update profile picture</p>
+        <div id="uploadProgress" class="hidden mt-2 w-full max-w-xs">
+          <div class="bg-gray-200 rounded-full h-2">
+            <div id="uploadProgressBar" class="bg-blue-600 h-2 rounded-full transition-all" style="width: 0%"></div>
+          </div>
+          <p id="uploadProgressText" class="text-sm text-gray-600 text-center mt-1">Uploading...</p>
+        </div>
+      </div>
+      
       <form id="profileForm" class="space-y-4">
         <div class="grid md:grid-cols-2 gap-4">
           <div>
@@ -74,6 +94,13 @@
             <option value="North West">North West</option>
             <option value="Northern Cape">Northern Cape</option>
           </select>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+          <textarea id="address" rows="2" required
+            placeholder="Enter your full address"
+            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
         </div>
         
         <div id="businessFields" class="hidden space-y-4">
@@ -202,15 +229,18 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut, sendPasswordResetEmail, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
     const app = initializeApp({
       apiKey: "AIzaSyDEsYzVYNvSsKvgFk5cSa_7lWWdJtDc1gs",
       authDomain: "online-mall-4422.firebaseapp.com",
-      projectId: "online-mall-4422"
+      projectId: "online-mall-4422",
+      storageBucket: "online-mall-4422.appspot.com"
     });
 
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const storage = getStorage(app);
     
     let currentUser = null;
     let userData = null;
@@ -234,12 +264,21 @@
       
       userData = userDoc.data();
       
+      // Set profile image
+      const profileImg = document.getElementById('profileImagePreview');
+      if (userData.profileImage) {
+        profileImg.src = userData.profileImage;
+      } else {
+        profileImg.src = 'https://via.placeholder.com/150?text=' + encodeURIComponent(userData.name?.charAt(0) || 'U');
+      }
+      
       // Fill form
       document.getElementById('name').value = userData.name || '';
       document.getElementById('email').value = userData.email || currentUser.email;
       document.getElementById('phone').value = userData.phone || '';
       document.getElementById('city').value = userData.city || '';
       document.getElementById('province').value = userData.province || '';
+      document.getElementById('address').value = userData.address || '';
       
       // Show business fields if vendor
       if (userData.isVendor) {
@@ -256,6 +295,72 @@
       lucide.createIcons();
     }
 
+    // Handle profile image upload
+    document.getElementById('profileImageInput').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size must be less than 5MB');
+        return;
+      }
+      
+      try {
+        // Show upload progress
+        document.getElementById('uploadProgress').classList.remove('hidden');
+        
+        // Create storage reference
+        const storageRef = ref(storage, `profiles/${currentUser.uid}`);
+        
+        // Upload file
+        const uploadTask = uploadBytesResumable(storageRef, file);
+        
+        uploadTask.on('state_changed',
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            document.getElementById('uploadProgressBar').style.width = progress + '%';
+            document.getElementById('uploadProgressText').textContent = `Uploading... ${Math.round(progress)}%`;
+          },
+          (error) => {
+            console.error('Upload error:', error);
+            alert('Failed to upload image');
+            document.getElementById('uploadProgress').classList.add('hidden');
+          },
+          async () => {
+            // Upload completed successfully
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            
+            // Update Firestore
+            await updateDoc(doc(db, "users", currentUser.uid), {
+              profileImage: downloadURL,
+              updatedAt: serverTimestamp()
+            });
+            
+            // Update preview
+            document.getElementById('profileImagePreview').src = downloadURL;
+            
+            // Hide progress
+            document.getElementById('uploadProgress').classList.add('hidden');
+            document.getElementById('uploadProgressBar').style.width = '0%';
+            
+            alert('Profile picture updated successfully!');
+            lucide.createIcons();
+          }
+        );
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        alert('Failed to upload image');
+        document.getElementById('uploadProgress').classList.add('hidden');
+      }
+    });
+
     document.getElementById('profileForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
@@ -264,6 +369,7 @@
         phone: document.getElementById('phone').value.trim(),
         city: document.getElementById('city').value.trim(),
         province: document.getElementById('province').value,
+        address: document.getElementById('address').value.trim(),
         updatedAt: serverTimestamp()
       };
       
@@ -309,6 +415,16 @@
       if (confirmation !== 'DELETE') return;
       
       try {
+        // Delete profile image from storage
+        if (userData.profileImage) {
+          try {
+            const imageRef = ref(storage, `profiles/${currentUser.uid}`);
+            await deleteObject(imageRef);
+          } catch (error) {
+            console.error('Error deleting profile image:', error);
+          }
+        }
+        
         await deleteDoc(doc(db, "users", currentUser.uid));
         
         if (userData.isVendor) {
