@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -72,9 +71,9 @@
       <button onclick="window.location.href='settings.html'" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
         <i data-lucide="settings" class="w-5 h-5 text-gray-600"></i>
       </button>
-      <div id="userAvatar" class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-sm cursor-pointer"
+      <img id="userAvatar" src="https://via.placeholder.com/40" alt="Profile"
+        class="w-8 h-8 rounded-full object-cover cursor-pointer border-2 border-blue-200"
         onclick="window.location.href='profile.html'">
-      </div>
     </div>
   </div>
 </header>
@@ -86,7 +85,8 @@
     <aside class="md:col-span-1 space-y-4">
       <div class="bg-white rounded-2xl shadow-lg p-6">
         <div id="userInfo" class="text-center">
-          <div class="w-20 h-20 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 mx-auto mb-3 flex items-center justify-center text-white font-semibold text-2xl"></div>
+          <img id="sidebarAvatar" src="https://via.placeholder.com/80" alt="Profile"
+            class="w-20 h-20 rounded-full object-cover mx-auto mb-3 border-4 border-blue-200">
           <h3 id="userName" class="font-bold text-gray-800 mb-1"></h3>
           <p id="userType" class="text-sm text-gray-500 mb-3"></p>
           <button onclick="window.location.href='profile.html'" 
@@ -118,7 +118,8 @@
       <!-- Create Post Section -->
       <div id="createPostSection" class="bg-white rounded-2xl shadow-lg p-6">
         <div class="flex items-center gap-3">
-          <div id="createPostAvatar" class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold"></div>
+          <img id="createPostAvatar" src="https://via.placeholder.com/40" alt="Profile"
+            class="w-10 h-10 rounded-full object-cover border-2 border-blue-200">
           <button id="createPostBtn" 
             class="flex-1 text-left px-4 py-3 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-colors">
             What's on your mind?
@@ -163,32 +164,53 @@
         </div>
       </div>
 
-      <!-- Filters -->
-      <div class="bg-white rounded-2xl shadow-lg p-4 flex flex-wrap gap-3">
-        <select id="provinceFilter" 
-          class="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          <option value="">All Provinces</option>
-          <option value="Gauteng">Gauteng</option>
-          <option value="Western Cape">Western Cape</option>
-          <option value="KwaZulu-Natal">KwaZulu-Natal</option>
-          <option value="Eastern Cape">Eastern Cape</option>
-          <option value="Free State">Free State</option>
-          <option value="Limpopo">Limpopo</option>
-          <option value="Mpumalanga">Mpumalanga</option>
-          <option value="North West">North West</option>
-          <option value="Northern Cape">Northern Cape</option>
-        </select>
-        
-        <select id="categoryFilter" 
-          class="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          <option value="">All Categories</option>
-          <option value="Food">Food & Beverage</option>
-          <option value="Tech">Technology</option>
-          <option value="Fashion">Fashion</option>
-          <option value="Beauty">Beauty</option>
-          <option value="Services">Services</option>
-          <option value="Other">Other</option>
-        </select>
+      <!-- Feed Sections Tabs -->
+      <div class="bg-white rounded-2xl shadow-lg p-4">
+        <div class="flex gap-2 mb-4 overflow-x-auto">
+          <button onclick="changeFeedSection('recommended')" id="tab-recommended"
+            class="feed-tab px-4 py-2 rounded-xl font-semibold whitespace-nowrap transition-all bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+            <i data-lucide="sparkles" class="w-4 h-4 inline mr-1"></i>
+            Recommended
+          </button>
+          <button onclick="changeFeedSection('latest')" id="tab-latest"
+            class="feed-tab px-4 py-2 rounded-xl font-semibold whitespace-nowrap transition-all bg-gray-100 text-gray-600 hover:bg-gray-200">
+            <i data-lucide="clock" class="w-4 h-4 inline mr-1"></i>
+            Latest Near You
+          </button>
+          <button onclick="changeFeedSection('trending')" id="tab-trending"
+            class="feed-tab px-4 py-2 rounded-xl font-semibold whitespace-nowrap transition-all bg-gray-100 text-gray-600 hover:bg-gray-200">
+            <i data-lucide="trending-up" class="w-4 h-4 inline mr-1"></i>
+            Trending
+          </button>
+        </div>
+
+        <!-- Filters -->
+        <div class="flex flex-wrap gap-3">
+          <select id="provinceFilter" 
+            class="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option value="">All Provinces</option>
+            <option value="Gauteng">Gauteng</option>
+            <option value="Western Cape">Western Cape</option>
+            <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+            <option value="Eastern Cape">Eastern Cape</option>
+            <option value="Free State">Free State</option>
+            <option value="Limpopo">Limpopo</option>
+            <option value="Mpumalanga">Mpumalanga</option>
+            <option value="North West">North West</option>
+            <option value="Northern Cape">Northern Cape</option>
+          </select>
+          
+          <select id="categoryFilter" 
+            class="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option value="">All Categories</option>
+            <option value="Food">Food & Beverage</option>
+            <option value="Tech">Technology</option>
+            <option value="Fashion">Fashion</option>
+            <option value="Beauty">Beauty</option>
+            <option value="Services">Services</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
       </div>
 
       <!-- Loading indicator -->
@@ -300,7 +322,9 @@
   let userProfile = null;
   let allPosts = [];
   let postComments = {};
+  let usersMap = {};
   let currentPage = 1;
+  let currentFeedSection = 'recommended';
   const pageSize = 10;
   
   // View tracking
@@ -318,14 +342,14 @@
         userProfile = userDoc.data();
         
         const displayName = userProfile.businessName || userProfile.name || 'User';
-        const initial = displayName.charAt(0).toUpperCase();
+        const profileImage = userProfile.profileImage || `https://via.placeholder.com/80?text=${encodeURIComponent(displayName.charAt(0).toUpperCase())}`;
         
         document.getElementById('userName').textContent = displayName;
         document.getElementById('userType').textContent = userProfile.subscriptionType === 'business' ? 'Business Account' : 'Basic Account';
         
-        document.getElementById('userAvatar').textContent = initial;
-        document.getElementById('createPostAvatar').textContent = initial;
-        document.querySelector('#userInfo .w-20').textContent = initial;
+        document.getElementById('userAvatar').src = profileImage;
+        document.getElementById('createPostAvatar').src = profileImage;
+        document.getElementById('sidebarAvatar').src = profileImage;
         
         const canPost = userProfile.subscriptionType === 'business' || userProfile.subscriptionType === 'premium';
         
@@ -343,6 +367,7 @@
       }
       
       await Promise.all([
+        fetchAllUsers(),
         fetchAllPosts(),
         fetchAllComments(),
         fetchUnreadNotifications(),
@@ -357,13 +382,24 @@
     }
   });
 
+  async function fetchAllUsers() {
+    try {
+      const usersSnap = await getDocs(collection(db, "users"));
+      usersMap = {};
+      usersSnap.forEach(userDoc => {
+        usersMap[userDoc.id] = userDoc.data();
+      });
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  }
+
   function setupViewTracking() {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         const postId = entry.target.dataset.postId;
         
         if (entry.isIntersecting) {
-          // Post is in view, start 2-second timer
           if (!viewedPosts.has(postId)) {
             viewTimers[postId] = setTimeout(() => {
               incrementViews(postId);
@@ -371,7 +407,6 @@
             }, 2000);
           }
         } else {
-          // Post left view, clear timer
           if (viewTimers[postId]) {
             clearTimeout(viewTimers[postId]);
             delete viewTimers[postId];
@@ -379,10 +414,9 @@
         }
       });
     }, {
-      threshold: 0.5 // 50% of post must be visible
+      threshold: 0.5
     });
 
-    // Observe all post cards
     document.querySelectorAll('.post-card').forEach(card => {
       observer.observe(card);
     });
@@ -441,12 +475,6 @@
       const postsSnap = await getDocs(collection(db, "posts"));
       const posts = [];
       
-      const usersSnap = await getDocs(collection(db, "users"));
-      const usersMap = {};
-      usersSnap.forEach(userDoc => {
-        usersMap[userDoc.id] = userDoc.data();
-      });
-      
       postsSnap.forEach(postDoc => {
         const postData = { id: postDoc.id, ...postDoc.data() };
         
@@ -454,24 +482,25 @@
           const authorData = usersMap[postData.uid];
           postData.authorName = authorData.businessName || authorData.name || 'Unknown User';
           postData.authorCategory = authorData.category || '';
+          postData.authorImage = authorData.profileImage || `https://via.placeholder.com/50?text=${encodeURIComponent((postData.authorName || 'U').charAt(0).toUpperCase())}`;
         } else {
           postData.authorName = 'Unknown User';
           postData.authorCategory = '';
+          postData.authorImage = 'https://via.placeholder.com/50?text=U';
         }
         
         if (postData.isRepost && postData.originalAuthorId && usersMap[postData.originalAuthorId]) {
           const originalAuthor = usersMap[postData.originalAuthorId];
           postData.originalAuthorName = originalAuthor.businessName || originalAuthor.name || 'Unknown User';
+          postData.originalAuthorImage = originalAuthor.profileImage || `https://via.placeholder.com/50?text=${encodeURIComponent((postData.originalAuthorName || 'U').charAt(0).toUpperCase())}`;
         }
+        
+        postData.feedScore = calculateFeedScore(postData);
         
         posts.push(postData);
       });
       
-      allPosts = posts.sort((a, b) => {
-        const timeA = a.createdAt?.seconds || 0;
-        const timeB = b.createdAt?.seconds || 0;
-        return timeB - timeA;
-      });
+      allPosts = posts;
       
     } catch (error) {
       console.error('Error fetching posts:', error);
@@ -479,16 +508,83 @@
     }
   }
 
+  function calculateFeedScore(post) {
+    const now = Date.now();
+    const postTime = post.createdAt?.seconds ? post.createdAt.seconds * 1000 : now;
+    
+    const locationMatch = calculateLocationMatch(post);
+    const engagementScore = calculateEngagementScore(post);
+    const freshnessScore = calculateFreshnessScore(postTime, now);
+    const boostScore = calculateBoostScore(post);
+    const trustScore = calculateTrustScore(post);
+    
+    const feedScore = (locationMatch * 3) + (engagementScore * 2) + freshnessScore + boostScore + trustScore;
+    
+    return feedScore;
+  }
+
+  function calculateLocationMatch(post) {
+    if (!userProfile.province) return 0;
+    
+    if (post.province === userProfile.province) {
+      if (post.city === userProfile.city) {
+        return 10;
+      }
+      return 7;
+    }
+    return 0;
+  }
+
+  function calculateEngagementScore(post) {
+    const likes = post.likes?.length || 0;
+    const comments = postComments[post.id]?.length || 0;
+    const views = post.views || 0;
+    
+    const engagementRate = views > 0 ? ((likes + comments * 2) / views) * 100 : 0;
+    
+    return Math.min(engagementRate, 10);
+  }
+
+  function calculateFreshnessScore(postTime, now) {
+    const hoursSincePost = (now - postTime) / (1000 * 60 * 60);
+    
+    if (hoursSincePost < 1) return 10;
+    if (hoursSincePost < 6) return 8;
+    if (hoursSincePost < 24) return 6;
+    if (hoursSincePost < 72) return 4;
+    if (hoursSincePost < 168) return 2;
+    return 0;
+  }
+
+  function calculateBoostScore(post) {
+    if (!usersMap[post.uid]) return 0;
+    
+    const authorData = usersMap[post.uid];
+    const subscriptionType = authorData.subscriptionType || 'basic';
+    
+    if (subscriptionType === 'premium') return 5;
+    if (subscriptionType === 'business') return 3;
+    return 0;
+  }
+
+  function calculateTrustScore(post) {
+    if (!usersMap[post.uid]) return 0;
+    
+    const authorData = usersMap[post.uid];
+    const hasBusinessInfo = authorData.businessName && authorData.category;
+    const hasCompleteProfile = authorData.phone && authorData.city && authorData.province;
+    
+    let score = 0;
+    if (hasBusinessInfo) score += 3;
+    if (hasCompleteProfile) score += 2;
+    
+    return score;
+  }
+
   async function fetchAllComments() {
     try {
       const commentsSnap = await getDocs(collection(db, "comments"));
       postComments = {};
-      
-      const usersSnap = await getDocs(collection(db, "users"));
-      const usersMap = {};
-      usersSnap.forEach(userDoc => {
-        usersMap[userDoc.id] = userDoc.data();
-      });
       
       commentsSnap.forEach(commentDoc => {
         const commentData = { id: commentDoc.id, ...commentDoc.data() };
@@ -496,8 +592,10 @@
         if (commentData.userId && usersMap[commentData.userId]) {
           const authorData = usersMap[commentData.userId];
           commentData.authorName = authorData.businessName || authorData.name || 'Unknown User';
+          commentData.authorImage = authorData.profileImage || `https://via.placeholder.com/40?text=${encodeURIComponent((commentData.authorName || 'U').charAt(0).toUpperCase())}`;
         } else {
           commentData.authorName = 'Unknown User';
+          commentData.authorImage = 'https://via.placeholder.com/40?text=U';
         }
         
         if (!postComments[commentData.postId]) {
@@ -543,6 +641,55 @@
     return 'Just now';
   }
 
+  window.changeFeedSection = (section) => {
+    currentFeedSection = section;
+    currentPage = 1;
+    
+    document.querySelectorAll('.feed-tab').forEach(tab => {
+      tab.classList.remove('bg-gradient-to-r', 'from-blue-600', 'to-purple-600', 'text-white');
+      tab.classList.add('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+    });
+    
+    const activeTab = document.getElementById(`tab-${section}`);
+    activeTab.classList.remove('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+    activeTab.classList.add('bg-gradient-to-r', 'from-blue-600', 'to-purple-600', 'text-white');
+    
+    renderPosts();
+    lucide.createIcons();
+  };
+
+  function sortPostsByFeedSection(posts) {
+    let sorted = [...posts];
+    
+    switch (currentFeedSection) {
+      case 'recommended':
+        sorted.sort((a, b) => b.feedScore - a.feedScore);
+        break;
+      
+      case 'latest':
+        sorted = sorted.filter(p => {
+          if (!userProfile.province) return true;
+          return p.province === userProfile.province;
+        });
+        sorted.sort((a, b) => {
+          const timeA = a.createdAt?.seconds || 0;
+          const timeB = b.createdAt?.seconds || 0;
+          return timeB - timeA;
+        });
+        break;
+      
+      case 'trending':
+        sorted.sort((a, b) => {
+          const engagementA = (a.likes?.length || 0) + (postComments[a.id]?.length || 0) * 2;
+          const engagementB = (b.likes?.length || 0) + (postComments[b.id]?.length || 0) * 2;
+          return engagementB - engagementA;
+        });
+        break;
+    }
+    
+    return sorted;
+  }
+
   function renderPosts() {
     const container = document.getElementById("postsContainer");
     const loading = document.getElementById("loadingIndicator");
@@ -555,6 +702,8 @@
       const categoryMatch = !document.getElementById('categoryFilter').value || p.category === document.getElementById('categoryFilter').value;
       return provinceMatch && categoryMatch;
     });
+
+    filtered = sortPostsByFeedSection(filtered);
 
     const start = (currentPage - 1) * pageSize;
     const pagePosts = filtered.slice(start, start + pageSize);
@@ -585,6 +734,7 @@
         ${post.isRepost ? `
           <div class="flex items-center gap-2 text-sm text-gray-500 mb-3 pb-3 border-b border-gray-100">
             <i data-lucide="repeat" class="w-4 h-4"></i>
+            <img src="${post.authorImage}" alt="${post.authorName}" class="w-5 h-5 rounded-full object-cover">
             <span><strong class="hover:underline cursor-pointer" onclick="window.location.href='profile.html?uid=${post.uid}'">${post.authorName}</strong> reposted from <strong class="hover:underline cursor-pointer" onclick="window.location.href='profile.html?uid=${post.originalAuthorId}'">${post.originalAuthorName || 'Unknown User'}</strong></span>
           </div>
           ${post.repostCaption ? `<p class="text-gray-700 mb-3 text-sm italic">${post.repostCaption}</p>` : ''}
@@ -593,9 +743,9 @@
         
         <div class="flex items-start justify-between mb-4">
           <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='profile.html?uid=${post.isRepost ? post.originalAuthorId : post.uid}'">
-            <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
-              ${(post.isRepost ? (post.originalAuthorName || 'U') : (post.authorName || 'U')).charAt(0).toUpperCase()}
-            </div>
+            <img src="${post.isRepost ? post.originalAuthorImage : post.authorImage}" 
+              alt="${post.isRepost ? post.originalAuthorName : post.authorName}" 
+              class="w-12 h-12 rounded-full object-cover border-2 border-blue-200">
             <div>
               <h3 class="font-bold text-gray-800 hover:underline">${post.isRepost ? (post.originalAuthorName || 'Unknown') : (post.authorName || 'Unknown')}</h3>
               <p class="text-xs text-gray-500">${post.authorCategory || ''} ${post.city || post.province ? '•' : ''} ${post.city || ''} ${post.city && post.province ? ',' : ''} ${post.province || ''}</p>
@@ -653,9 +803,9 @@
           </div>
           
           <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-sm">
-              ${(userProfile.businessName || userProfile.name || 'U').charAt(0).toUpperCase()}
-            </div>
+            <img src="${userProfile.profileImage || 'https://via.placeholder.com/40'}" 
+              alt="You" 
+              class="w-8 h-8 rounded-full object-cover border-2 border-blue-200">
             <input type="text" id="comment-input-${post.id}" 
               placeholder="Write a comment..." 
               class="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
@@ -680,7 +830,6 @@
     document.getElementById('prevBtn').disabled = currentPage === 1;
     document.getElementById('nextBtn').disabled = start + pageSize >= filtered.length;
     
-    // Setup view tracking after render
     setTimeout(setupViewTracking, 100);
   }
 
@@ -699,10 +848,10 @@
       const commentEl = document.createElement('div');
       commentEl.className = 'comment-item flex items-start gap-2 p-2 rounded-lg';
       commentEl.innerHTML = `
-        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold text-xs flex-shrink-0 cursor-pointer" 
+        <img src="${comment.authorImage}" 
+          alt="${comment.authorName}" 
+          class="w-8 h-8 rounded-full object-cover flex-shrink-0 cursor-pointer border border-gray-200" 
           onclick="window.location.href='profile.html?uid=${comment.userId}'">
-          ${(comment.authorName || 'U').charAt(0).toUpperCase()}
-        </div>
         <div class="flex-1 min-w-0">
           <div class="bg-gray-100 rounded-2xl px-4 py-2">
             <p class="font-semibold text-sm text-gray-800 hover:underline cursor-pointer" onclick="window.location.href='profile.html?uid=${comment.userId}'">${comment.authorName || 'Unknown User'}</p>
